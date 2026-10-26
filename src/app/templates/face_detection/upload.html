@@ -1,0 +1,576 @@
+{% extends "base.html" %}
+
+{% block title %}Face Upload Detection - VisionAI Object Detection{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <h1 class="text-3xl font-bold">Face Upload Detection</h1>
+        <div class="flex space-x-4">
+            <a href="{{ url_for('face_detection.face_camera') }}" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg text-white">
+                <i class="fas fa-video mr-2"></i>Camera Detection
+            </a>
+            <a href="{{ url_for('face_detection.face_detection') }}" class="btn-primary px-6 py-2 rounded-lg text-white">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Face Detection
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Image Upload Section -->
+        <div class="card p-6 rounded-lg">
+            <h2 class="text-xl font-bold mb-4">Upload Image</h2>
+            
+            <!-- Upload Area -->
+            <div id="uploadArea" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors">
+                <input type="file" id="imageInput" accept="image/*" class="hidden">
+                <i class="fas fa-image text-6xl text-gray-400 mb-4"></i>
+                <p class="text-gray-300 mb-2">Click to upload or drag and drop</p>
+                <p class="text-gray-500 text-sm">PNG, JPG, GIF up to 10MB</p>
+            </div>
+            
+            <!-- Preview Area -->
+            <div id="previewArea" class="mt-4 hidden">
+                <img id="previewImage" class="w-full rounded-lg" alt="Preview">
+                <div class="mt-4 flex space-x-4">
+                    <button id="detectFaces" class="btn-primary px-6 py-2 rounded-lg text-white">
+                        <i class="fas fa-users mr-2"></i>Detect Faces
+                    </button>
+                    <button id="clearImage" class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-lg text-white">
+                        <i class="fas fa-times mr-2"></i>Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="card p-6 rounded-lg">
+            <h2 class="text-xl font-bold mb-4">Detection Results</h2>
+            <div id="faceResults" class="space-y-4">
+                <div class="text-center text-gray-400 py-8">
+                    <i class="fas fa-users text-6xl mb-4"></i>
+                    <p>Upload an image to detect faces</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Annotated Image -->
+    <div id="annotatedSection" class="card p-6 rounded-lg hidden">
+        <h2 class="text-xl font-bold mb-4">Face Detection Results</h2>
+        <img id="annotatedImage" class="w-full rounded-lg" alt="Face Detection Results">
+    </div>
+    
+    <!-- Known Faces Status -->
+    <div class="card p-6 rounded-lg">
+        <h2 class="text-xl font-bold mb-4">Face Recognition Status</h2>
+        <div id="recognitionStatus" class="text-center">
+            <i class="fas fa-brain text-6xl text-gray-400 mb-4"></i>
+            <p class="text-gray-400">Loading face recognition data...</p>
+        </div>
+    </div>
+    
+    <!-- Recent Upload Detections -->
+    <div class="card p-6 rounded-lg">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold">Recent Upload Detections</h2>
+            <button onclick="deleteAllUploadDetections()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
+                <i class="fas fa-trash-alt mr-2"></i>Delete All
+            </button>
+        </div>
+        <div id="recentUploadDetections" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <p class="text-gray-400 col-span-full">No recent upload detections.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-800 p-6 rounded-lg max-w-md mx-4 w-full">
+        <h3 class="text-lg font-semibold text-white mb-4">Confirm Delete</h3>
+        <p id="confirmMessage" class="text-gray-300 mb-6">Are you sure you want to delete this item?</p>
+        <div class="flex justify-end space-x-4">
+            <button onclick="closeConfirmModal()" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white">
+                Cancel
+            </button>
+            <button id="confirmButton" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+<script>
+let selectedImage = null;
+let pendingDeleteAction = null;
+
+// Custom confirmation modal functions
+function showConfirmModal(message, onConfirm) {
+    console.log('Showing confirm modal with message:', message);
+    const modal = document.getElementById('confirmModal');
+    const messageElement = document.getElementById('confirmMessage');
+    const confirmButton = document.getElementById('confirmButton');
+    const cancelButton = modal.querySelector('.bg-gray-600');
+    
+    messageElement.textContent = message;
+    pendingDeleteAction = onConfirm;
+    
+    // Remove old event listeners
+    const newConfirmButton = confirmButton.cloneNode(true);
+    const newCancelButton = cancelButton.cloneNode(true);
+    confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+    cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
+    
+    // Add new event listeners
+    newConfirmButton.addEventListener('click', () => {
+        console.log('Confirm button clicked, executing action');
+        console.log('pendingDeleteAction before execution:', pendingDeleteAction);
+        
+        // Store action before closing modal
+        const action = pendingDeleteAction;
+        
+        // Close modal first
+        const modal = document.getElementById('confirmModal');
+        modal.classList.add('hidden');
+        
+        // Then execute action
+        if (action) {
+            console.log('Executing pending delete action');
+            pendingDeleteAction = null; // Clear after storing
+            action();
+        } else {
+            console.log('No pending action to execute');
+        }
+    });
+    
+    newCancelButton.addEventListener('click', () => {
+        console.log('Cancel button clicked');
+        closeConfirmModal();
+    });
+    
+    modal.classList.remove('hidden');
+    console.log('Modal should now be visible');
+}
+
+function closeConfirmModal() {
+    console.log('Closing confirm modal');
+    const modal = document.getElementById('confirmModal');
+    modal.classList.add('hidden');
+    pendingDeleteAction = null;
+}
+
+// Upload area functionality
+const uploadArea = document.getElementById('uploadArea');
+const imageInput = document.getElementById('imageInput');
+const previewArea = document.getElementById('previewArea');
+const previewImage = document.getElementById('previewImage');
+
+uploadArea.addEventListener('click', () => imageInput.click());
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('border-blue-500', 'bg-blue-900/20');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('border-blue-500', 'bg-blue-900/20');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('border-blue-500', 'bg-blue-900/20');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleImageUpload(files[0]);
+    }
+});
+
+imageInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleImageUpload(e.target.files[0]);
+    }
+});
+
+function handleImageUpload(file) {
+    if (!file.type.startsWith('image/')) {
+        showToast('Please upload an image file', 'error');
+        return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) {
+        showToast('File size must be less than 10MB', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        selectedImage = e.target.result;
+        previewImage.src = selectedImage;
+        uploadArea.classList.add('hidden');
+        previewArea.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Clear image
+document.getElementById('clearImage').addEventListener('click', () => {
+    selectedImage = null;
+    imageInput.value = '';
+    uploadArea.classList.remove('hidden');
+    previewArea.classList.add('hidden');
+    document.getElementById('annotatedSection').classList.add('hidden');
+    resetFaceResults();
+});
+
+// Detect faces
+document.getElementById('detectFaces').addEventListener('click', async () => {
+    if (!selectedImage) return;
+    
+    try {
+        const response = await fetch('/face-detection/detect-upload', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                image: selectedImage
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayFaceResults(result.faces, result.face_count, result.recognized_count);
+            displayAnnotatedImage(result.annotated_image);
+            showToast(`Detected ${result.face_count} face(s) successfully`, 'success');
+            
+            // Reload recent upload detections
+            loadRecentUploadDetections();
+        } else {
+            showToast(result.error || 'Face detection failed', 'error');
+        }
+    } catch (error) {
+        showToast('Error detecting faces', 'error');
+    }
+});
+
+function displayFaceResults(faces, faceCount, recognizedCount) {
+    const resultsDiv = document.getElementById('faceResults');
+    
+    if (faces.length === 0) {
+        resultsDiv.innerHTML = `
+            <div class="text-center text-gray-400 py-8">
+                <i class="fas fa-user-slash text-6xl mb-4"></i>
+                <p>No faces detected in the image</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<div class="space-y-3">';
+    
+    // Summary
+    html += `
+        <div class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="font-medium text-white">Total Faces Detected</div>
+                    <div class="text-sm text-gray-400">Using Haar Cascade Classifier</div>
+                </div>
+                <div class="text-2xl font-bold text-blue-500">${faceCount}</div>
+            </div>
+        </div>
+    `;
+    
+    // Recognition summary
+    if (recognizedCount > 0) {
+        html += `
+            <div class="bg-gray-800 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="font-medium text-white">Faces Recognized</div>
+                        <div class="text-sm text-gray-400">Using known faces database</div>
+                    </div>
+                    <div class="text-2xl font-bold text-green-500">${recognizedCount}</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Individual faces
+    faces.forEach((face, index) => {
+        const box = face.box;
+        const width = box[2];
+        const height = box[3];
+        const isRecognized = face.name !== 'Unknown';
+        
+        html += `
+            <div class="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+                <div>
+                    <div class="font-medium text-white">${face.name}</div>
+                    <div class="text-sm text-gray-400">Position: (${box[0]}, ${box[1]})</div>
+                    <div class="text-sm text-gray-400">Size: ${width} × ${height} pixels</div>
+                </div>
+                <div class="text-right">
+                    ${isRecognized ? 
+                        '<div class="text-lg font-bold text-green-500">✓</div><div class="text-sm text-green-400">Recognized</div>' :
+                        '<div class="text-lg font-bold text-yellow-500">?</div><div class="text-sm text-yellow-400">Unknown</div>'
+                    }
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    resultsDiv.innerHTML = html;
+}
+
+function displayAnnotatedImage(imageData) {
+    const annotatedSection = document.getElementById('annotatedSection');
+    const annotatedImage = document.getElementById('annotatedImage');
+    
+    annotatedImage.src = imageData;
+    annotatedSection.classList.remove('hidden');
+}
+
+function resetFaceResults() {
+    document.getElementById('faceResults').innerHTML = `
+        <div class="text-center text-gray-400 py-8">
+            <i class="fas fa-users text-6xl mb-4"></i>
+            <p>Upload an image to detect faces</p>
+        </div>
+    `;
+}
+
+// Load recognition status
+async function loadRecognitionStatus() {
+    try {
+        const response = await fetch('/face-detection/get-known-faces');
+        const data = await response.json();
+        
+        const statusDiv = document.getElementById('recognitionStatus');
+        if (data.success && data.faces.length > 0) {
+            statusDiv.innerHTML = `
+                <i class="fas fa-brain text-6xl text-green-500 mb-4"></i>
+                <h3 class="text-xl font-bold text-white mb-2">Face Recognition Active</h3>
+                <p class="text-gray-300 mb-4">${data.total_faces} known faces in database</p>
+                <div class="flex flex-wrap justify-center gap-2">
+                    ${data.faces.map(face => `<span class="bg-blue-600 px-3 py-1 rounded-full text-sm text-white">${face}</span>`).join('')}
+                </div>
+                <p class="text-sm text-gray-400 mt-4">Faces will be automatically recognized during detection</p>
+            `;
+        } else {
+            statusDiv.innerHTML = `
+                <i class="fas fa-brain text-6xl text-gray-400 mb-4"></i>
+                <h3 class="text-xl font-bold text-white mb-2">No Known Faces</h3>
+                <p class="text-gray-300 mb-4">No faces in recognition database</p>
+                <a href="{{ url_for('face_detection.face_detection') }}" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white inline-block">
+                    <i class="fas fa-plus mr-2"></i>Add Known Faces
+                </a>
+                <p class="text-sm text-gray-400 mt-4">Add faces to enable face recognition</p>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading recognition status:', error);
+    }
+}
+
+// Toast notifications
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+    
+    toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+    toast.textContent = message;
+    
+    const container = document.getElementById('toastContainer');
+    container.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+        toast.classList.add('translate-x-0');
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('translate-x-0');
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+            container.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+// Load recent upload detections
+async function loadRecentUploadDetections() {
+    try {
+        console.log('Loading recent upload detections...');
+        const response = await fetch('/api/recent-detections?type=face_upload');
+        const data = await response.json();
+        
+        console.log('Recent upload detections response:', data);
+        
+        const detectionsDiv = document.getElementById('recentUploadDetections');
+        if (data.success && data.detections.length > 0) {
+            let html = '';
+            data.detections.forEach(detection => {
+                // Handle objects_detected - it might be a JSON string or array
+                let objects = [];
+                if (detection.objects_detected) {
+                    if (typeof detection.objects_detected === 'string') {
+                        try {
+                            objects = JSON.parse(detection.objects_detected);
+                        } catch (e) {
+                            console.error('Error parsing objects_detected:', e);
+                            objects = [];
+                        }
+                    } else if (Array.isArray(detection.objects_detected)) {
+                        objects = detection.objects_detected;
+                    } else {
+                        console.log('objects_detected type:', typeof detection.objects_detected);
+                        objects = [];
+                    }
+                }
+                
+                const faces = objects.filter(obj => obj.name && obj.name !== 'Unknown');
+                const recognizedCount = faces.length;
+                
+                // Timestamp is already in local time
+                const timestamp = new Date(detection.timestamp);
+                
+                html += `
+                    <div class="bg-gray-800 rounded-lg overflow-hidden">
+                        <img src="/detection/uploads/${detection.image_path}" alt="Face Detection" class="w-full h-40 object-cover">
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-white font-medium">Face Detection</span>
+                                <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                                    ${recognizedCount} face(s)
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-3">${timestamp.toLocaleDateString('vi-VN')} ${timestamp.toLocaleTimeString('vi-VN')}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm ${recognizedCount > 0 ? 'text-green-400' : 'text-yellow-400'}">
+                                    ${recognizedCount > 0 ? `${recognizedCount} recognized` : 'No recognition'}
+                                </span>
+                                <div class="flex space-x-2">
+                                    <button onclick="downloadDetection(${detection.id})" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-white text-sm">
+                                        <i class="fas fa-download"></i> Download
+                                    </button>
+                                    <button onclick="deleteDetection(${detection.id})" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-white text-sm">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            detectionsDiv.innerHTML = html;
+            console.log(`Loaded ${data.detections.length} recent upload detections`);
+        } else {
+            detectionsDiv.innerHTML = `
+                <div class="text-center text-gray-400 col-span-full py-12">
+                    <i class="fas fa-history text-6xl mb-4"></i>
+                    <p class="text-lg font-medium mb-2">No recent upload detections</p>
+                    <p class="text-sm">Upload and detect faces to see results here</p>
+                </div>
+            `;
+            console.log('No recent upload detections found');
+        }
+    } catch (error) {
+        console.error('Error loading recent upload detections:', error);
+        const detectionsDiv = document.getElementById('recentUploadDetections');
+        detectionsDiv.innerHTML = `
+            <div class="text-center text-gray-400 col-span-full py-8">
+                <i class="fas fa-exclamation-triangle text-6xl mb-4"></i>
+                <p>Error loading recent detections.</p>
+            </div>
+        `;
+    }
+}
+
+// Delete single detection
+async function deleteDetection(detectionId) {
+    console.log('Attempting to delete detection:', detectionId);
+    showConfirmModal('Are you sure you want to delete this detection?', async () => {
+        console.log('User confirmed delete for detection:', detectionId);
+        try {
+            const response = await fetch(`/api/delete-detection/${detectionId}`, {
+                method: 'DELETE'
+            });
+            
+            console.log('Delete response status:', response.status);
+            console.log('Delete response headers:', response.headers);
+            
+            let result;
+            try {
+                result = await response.json();
+                console.log('Delete response data:', result);
+            } catch (e) {
+                console.log('Failed to parse JSON response:', e);
+                const text = await response.text();
+                console.log('Response text:', text);
+                result = { success: false, error: 'Invalid response from server' };
+            }
+            
+            if (result.success) {
+                console.log('Delete successful, reloading detections...');
+                showToast('Detection deleted successfully', 'success');
+                loadRecentUploadDetections(); // Reload recent detections
+            } else {
+                console.log('Delete failed:', result.error);
+                showToast(result.error || 'Error deleting detection', 'error');
+            }
+        } catch (error) {
+            console.error('Network error deleting detection:', error);
+            showToast('Network error deleting detection', 'error');
+        }
+    });
+}
+
+// Delete all upload detections
+async function deleteAllUploadDetections() {
+    showConfirmModal('Are you sure you want to delete all upload detections? This action cannot be undone.', async () => {
+        try {
+            const response = await fetch('/api/detections/delete-all?type=face_upload', {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showToast(result.message || 'All upload detections deleted successfully', 'success');
+                loadRecentUploadDetections(); // Reload recent detections
+            } else {
+                showToast(result.error || 'Error deleting all detections', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting all detections:', error);
+            showToast('Error deleting all detections', 'error');
+        }
+    });
+}
+
+// Download detection image with recognition results
+function downloadDetection(detectionId) {
+    // Download the annotated image with face recognition results
+    window.open(`/api/detection/${detectionId}/download`, '_blank');
+    showToast('Downloading detection image with results...', 'success');
+}
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadRecognitionStatus();
+    loadRecentUploadDetections();
+});
+</script>
+{% endblock %}

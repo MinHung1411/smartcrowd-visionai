@@ -1,0 +1,39 @@
+bundle:
+  name: visionai-databricks
+
+workspace:
+  host: ${workspace.host}
+
+resources:
+  jobs:
+    visionai_pipeline:
+      name: VisionAI End-to-End Pipeline
+      tasks:
+        - task_key: bronze_ingestion
+          notebook_task:
+            notebook_path: ../src/ingestion/camera_ingest.py
+            source: WORKSPACE
+          job_cluster_key: default_cluster
+
+        - task_key: silver_processing
+          depends_on:
+            - task_key: bronze_ingestion
+          notebook_task:
+            notebook_path: ../src/processing/image_processing.py
+            source: WORKSPACE
+          job_cluster_key: default_cluster
+
+        - task_key: gold_training
+          depends_on:
+            - task_key: silver_processing
+          notebook_task:
+            notebook_path: ../src/training/yolov8_training.py
+            source: WORKSPACE
+          job_cluster_key: default_cluster
+
+      job_clusters:
+        - job_cluster_key: default_cluster
+          new_cluster:
+            spark_version: 13.3.x-scala2.12
+            node_type_id: Standard_DS3_v2
+            num_workers: 1

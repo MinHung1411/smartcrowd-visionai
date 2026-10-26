@@ -1,0 +1,799 @@
+{% extends "base.html" %}
+
+{% block title %}Camera Face Detection{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-white mb-2">Camera Face Detection</h1>
+            <p class="text-gray-400">Real-time face detection and recognition using your camera</p>
+        </div>
+        <div class="flex space-x-4">
+            <a href="{{ url_for('face_detection.face_upload') }}" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg text-white">
+                <i class="fas fa-image mr-2"></i>Upload Detection
+            </a>
+            <a href="{{ url_for('face_detection.face_detection') }}" class="btn-primary px-6 py-2 rounded-lg text-white">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Face Detection
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="space-y-6">
+        <!-- Camera Section -->
+        <div class="card p-6 rounded-lg">
+            <h2 class="text-xl font-bold mb-4">Camera Feed</h2>
+            
+            <!-- Video Container -->
+            <div class="relative bg-gray-900 rounded-lg overflow-hidden" style="aspect-ratio: 16/9;">
+                <video id="videoElement" class="w-full h-full object-cover" autoplay></video>
+                <canvas id="canvasElement" class="absolute top-0 left-0 w-full h-full" style="display: none;"></canvas>
+                
+                <!-- Camera Status -->
+                <div id="cameraStatus" class="absolute top-4 left-4 bg-red-600 px-3 py-1 rounded-full text-white text-sm">
+                    <i class="fas fa-circle mr-2"></i>Camera Off
+                </div>
+                
+                <!-- Detection Status -->
+                <div id="detectionStatus" class="absolute top-4 right-4 bg-gray-800 px-3 py-1 rounded-full text-white text-sm hidden">
+                    <i class="fas fa-search mr-2"></i>Detecting...
+                </div>
+                
+                <!-- Real-time Detection Info -->
+                <div id="realtimeInfo" class="absolute bottom-4 left-4 bg-gray-800 px-3 py-1 rounded-full text-white text-sm hidden">
+                    <span id="fpsCounter">0 FPS</span> | <span id="faceCounter">0 faces</span>
+                </div>
+            </div>
+            
+            <!-- Camera Controls -->
+            <div class="mt-4 flex space-x-4">
+                <button id="startCamera" class="btn-primary px-6 py-2 rounded-lg text-white">
+                    <i class="fas fa-video mr-2"></i>Start Camera
+                </button>
+                <button id="stopCamera" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg text-white" disabled>
+                    <i class="fas fa-stop mr-2"></i>Stop Camera
+                </button>
+                <button id="toggleDetection" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg text-white" disabled>
+                    <i class="fas fa-search mr-2"></i>Start Detection
+                </button>
+            </div>
+        </div>
+        
+        <!-- Detection Stats -->
+        <div class="card p-6 rounded-lg">
+            <h2 class="text-xl font-bold mb-4">Detection Status</h2>
+            <div id="detectionStats" class="space-y-4">
+                <div class="text-center text-gray-400 py-8">
+                    <i class="fas fa-chart-line text-6xl mb-4"></i>
+                    <p>Start detection to see stats</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Camera Detections - Full Width Below Camera -->
+        <div class="card p-6 rounded-lg">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold">Recent Camera Detections</h2>
+                <button onclick="deleteAllCameraDetections()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
+                    <i class="fas fa-trash-alt mr-2"></i>Delete All
+                </button>
+            </div>
+            <div id="recentDetections" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="text-center text-gray-400 col-span-full py-8">
+                    <i class="fas fa-history text-6xl mb-4"></i>
+                    <p>Loading recent detections...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
+    <div class="bg-gray-800 p-6 rounded-lg text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto mb-4"></div>
+        <p class="text-white">Detecting faces...</p>
+    </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-gray-800 p-6 rounded-lg max-w-md mx-4 w-full">
+        <h3 class="text-lg font-semibold text-white mb-4">Confirm Delete</h3>
+        <p id="confirmMessage" class="text-gray-300 mb-6">Are you sure you want to delete this item?</p>
+        <div class="flex justify-end space-x-4">
+            <button onclick="closeConfirmModal()" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white">
+                Cancel
+            </button>
+            <button id="confirmButton" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+<script>
+let stream = null;
+let isDetecting = false;
+let detectionInterval = null;
+let lastFrameTime = 0;
+let frameCount = 0;
+let fps = 0;
+let lastDetectionTime = 0;
+let isProcessingFrame = false;
+let pendingDeleteAction = null;
+
+// Custom confirmation modal functions
+function showConfirmModal(message, onConfirm) {
+    console.log('showConfirmModal called with message:', message);
+    const modal = document.getElementById('confirmModal');
+    const messageElement = document.getElementById('confirmMessage');
+    const confirmButton = document.getElementById('confirmButton');
+    
+    console.log('Modal element:', modal);
+    console.log('Message element:', messageElement);
+    console.log('Confirm button element:', confirmButton);
+    
+    if (!modal || !messageElement || !confirmButton) {
+        console.error('Modal elements not found!');
+        return;
+    }
+    
+    messageElement.textContent = message;
+    pendingDeleteAction = onConfirm;
+    
+    confirmButton.onclick = () => {
+        console.log('Confirm button clicked!');
+        console.log('pendingDeleteAction before execution:', pendingDeleteAction);
+        
+        if (pendingDeleteAction) {
+            console.log('Executing pendingDeleteAction');
+            const actionToExecute = pendingDeleteAction;
+            pendingDeleteAction = null; // Clear before execution to prevent double execution
+            closeConfirmModal();
+            actionToExecute();
+            console.log('pendingDeleteAction executed');
+        } else {
+            console.log('No pendingDeleteAction to execute');
+            closeConfirmModal();
+        }
+    };
+    
+    console.log('Modal classes before:', modal.className);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    console.log('Modal classes after:', modal.className);
+    console.log('Modal should be visible now');
+}
+
+function closeConfirmModal() {
+    const modal = document.getElementById('confirmModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    // Don't clear pendingDeleteAction here - it's cleared after execution
+}
+
+// Load recent detections when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadRecentDetections();
+});
+
+// DOM elements
+const videoElement = document.getElementById('videoElement');
+const canvasElement = document.getElementById('canvasElement');
+const startCameraBtn = document.getElementById('startCamera');
+const stopCameraBtn = document.getElementById('stopCamera');
+const toggleDetectionBtn = document.getElementById('toggleDetection');
+const cameraStatus = document.getElementById('cameraStatus');
+const detectionStatus = document.getElementById('detectionStatus');
+const realtimeInfo = document.getElementById('realtimeInfo');
+const fpsCounter = document.getElementById('fpsCounter');
+const faceCounter = document.getElementById('faceCounter');
+const detectionStats = document.getElementById('detectionStats');
+const recentDetections = document.getElementById('recentDetections');
+
+// Start camera
+startCameraBtn.addEventListener('click', async () => {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: { ideal: 640 },
+                height: { ideal: 480 }
+            } 
+        });
+        
+        videoElement.srcObject = stream;
+        
+        // Update UI
+        startCameraBtn.disabled = true;
+        stopCameraBtn.disabled = false;
+        toggleDetectionBtn.disabled = false;
+        
+        cameraStatus.innerHTML = '<i class="fas fa-circle mr-2"></i>Camera Live';
+        cameraStatus.className = 'absolute top-4 left-4 bg-green-600 px-3 py-1 rounded-full text-white text-sm';
+        
+        showToast('Camera started successfully', 'success');
+        
+    } catch (error) {
+        console.error('Error accessing camera:', error);
+        showToast('Failed to access camera. Please check permissions.', 'error');
+    }
+});
+
+// Stop camera
+stopCameraBtn.addEventListener('click', () => {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        videoElement.srcObject = null;
+        stream = null;
+    }
+    
+    // Stop detection if running
+    if (isDetecting) {
+        stopAutoDetection();
+    }
+    
+    // Update UI
+    startCameraBtn.disabled = false;
+    stopCameraBtn.disabled = true;
+    toggleDetectionBtn.disabled = true;
+    toggleDetectionBtn.innerHTML = '<i class="fas fa-search mr-2"></i>Start Detection';
+    toggleDetectionBtn.className = 'bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg text-white';
+    
+    cameraStatus.innerHTML = '<i class="fas fa-circle mr-2"></i>Camera Off';
+    cameraStatus.className = 'absolute top-4 left-4 bg-red-600 px-3 py-1 rounded-full text-white text-sm';
+    
+    showToast('Camera stopped', 'info');
+});
+
+// Toggle detection
+toggleDetectionBtn.addEventListener('click', () => {
+    if (isDetecting) {
+        stopAutoDetection();
+    } else {
+        startAutoDetection();
+    }
+});
+
+function startAutoDetection() {
+    if (!stream) return;
+    
+    isDetecting = true;
+    frameCount = 0;
+    lastFrameTime = performance.now();
+    
+    // Update UI
+    toggleDetectionBtn.innerHTML = '<i class="fas fa-pause mr-2"></i>Stop Detection';
+    toggleDetectionBtn.className = 'bg-orange-600 hover:bg-orange-700 px-6 py-2 rounded-lg text-white';
+    detectionStatus.classList.remove('hidden');
+    realtimeInfo.classList.remove('hidden');
+    detectionStatus.innerHTML = '<i class="fas fa-search mr-2"></i>Auto Detecting';
+    detectionStatus.className = 'absolute top-4 right-4 bg-green-600 px-3 py-1 rounded-full text-white text-sm';
+    
+    // Start detection loop
+    detectionInterval = setInterval(() => {
+        performRealTimeDetection();
+        updateFPS();
+    }, 333); // 3 FPS for smoother performance (reduced from 10 FPS)
+    
+    showToast('Auto detection started', 'success');
+}
+
+function stopAutoDetection() {
+    isDetecting = false;
+    
+    if (detectionInterval) {
+        clearInterval(detectionInterval);
+        detectionInterval = null;
+    }
+    
+    // Clear overlay
+    clearDetectionOverlay();
+    
+    // Update UI
+    toggleDetectionBtn.innerHTML = '<i class="fas fa-search mr-2"></i>Start Detection';
+    toggleDetectionBtn.className = 'bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg text-white';
+    detectionStatus.classList.add('hidden');
+    realtimeInfo.classList.add('hidden');
+    
+    showToast('Auto detection stopped', 'info');
+}
+
+function clearDetectionOverlay() {
+    const overlayCanvas = document.getElementById('overlayCanvas');
+    if (overlayCanvas) {
+        overlayCanvas.remove();
+    }
+}
+
+function updateFPS() {
+    const currentTime = performance.now();
+    const deltaTime = currentTime - lastFrameTime;
+    
+    if (deltaTime >= 1000) { // Update every second
+        fps = Math.round((frameCount * 1000) / deltaTime);
+        fpsCounter.textContent = `${fps} FPS`;
+        frameCount = 0;
+        lastFrameTime = currentTime;
+    }
+}
+
+async function performRealTimeDetection() {
+    if (!stream || !isDetecting || isProcessingFrame) return;
+    
+    // Frame skipping - only process if enough time has passed
+    const currentTime = performance.now();
+    if (currentTime - lastDetectionTime < 333) { // Minimum 333ms between detections
+        return;
+    }
+    
+    isProcessingFrame = true;
+    lastDetectionTime = currentTime;
+    
+    try {
+        frameCount++;
+        
+        // Capture frame from video with full resolution for accurate detection
+        const context = canvasElement.getContext('2d');
+        const scaleFactor = 1.0; // Full resolution - no scaling
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
+        context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+        
+        // Convert to base64 with high quality for accurate detection
+        const imageData = canvasElement.toDataURL('image/jpeg', 0.9);
+        
+        // Send scale factor to server for coordinate adjustment
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+        
+        const response = await fetch('/face-detection/detect-camera', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                image: imageData,
+                scale_factor: scaleFactor  // Send scale factor to server
+            }),
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayDetectionStats(result.faces, result.face_count, result.recognized_count);
+            
+            // Show overlay with scaled coordinates
+            showDetectionOverlay(result.faces, scaleFactor);
+            
+            // Update face counter
+            faceCounter.textContent = `${result.face_count} faces`;
+            
+            // Update detection status color based on recognition
+            if (result.recognized_count > 0) {
+                detectionStatus.innerHTML = `<i class="fas fa-user-check mr-2"></i>${result.recognized_count} Recognized`;
+                detectionStatus.className = 'absolute top-4 right-4 bg-blue-600 px-3 py-1 rounded-full text-white text-sm';
+            } else {
+                detectionStatus.innerHTML = '<i class="fas fa-search mr-2"></i>Auto Detecting';
+                detectionStatus.className = 'absolute top-4 right-4 bg-green-600 px-3 py-1 rounded-full text-white text-sm';
+            }
+            
+            // Refresh recent detections less frequently
+            if (frameCount % 15 === 0) { // Every 5 seconds at 3 FPS
+                loadRecentDetections();
+            }
+        }
+        
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.log('Detection request timed out');
+        } else {
+            console.error('Detection error:', error);
+        }
+        // Don't show toast for every error to avoid spam
+    } finally {
+        isProcessingFrame = false;
+    }
+}
+
+// Add function to show detection results without replacing video
+function showDetectionOverlay(faces, scaleFactor = 1.0) {
+    // Create overlay canvas for bounding boxes
+    let overlayCanvas = document.getElementById('overlayCanvas');
+    if (!overlayCanvas) {
+        overlayCanvas = document.createElement('canvas');
+        overlayCanvas.id = 'overlayCanvas';
+        overlayCanvas.style.position = 'absolute';
+        overlayCanvas.style.top = '0';
+        overlayCanvas.style.left = '0';
+        overlayCanvas.style.pointerEvents = 'none';
+        overlayCanvas.style.zIndex = '10';
+        
+        // Get video container and add overlay
+        const videoContainer = videoElement.parentElement;
+        videoContainer.style.position = 'relative';
+        videoContainer.appendChild(overlayCanvas);
+    }
+    
+    // Set overlay size to EXACTLY match video display size
+    const videoRect = videoElement.getBoundingClientRect();
+    overlayCanvas.width = videoRect.width;
+    overlayCanvas.height = videoRect.height;
+    
+    console.log(`Video rect: ${videoRect.width}x${videoRect.height}`);
+    console.log(`Overlay canvas size: ${overlayCanvas.width}x${overlayCanvas.height}`);
+    
+    const ctx = overlayCanvas.getContext('2d');
+    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    
+    // Draw bounding boxes for each face (scale coordinates to match display)
+    faces.forEach((face, index) => {
+        console.log(`Face ${index}:`, face);
+        console.log(`Face ${index} box:`, face.box);
+        console.log(`Face ${index} box type:`, typeof face.box);
+        console.log(`Face ${index} box length:`, face.box ? face.box.length : 'undefined');
+        
+        if (face.box) {
+            // Calculate scale factor from backend resolution to display size
+            const scaleX = videoRect.width / videoElement.videoWidth;
+            const scaleY = videoRect.height / videoElement.videoHeight;
+            
+            console.log(`Scale factors: scaleX=${scaleX}, scaleY=${scaleY}`);
+            console.log(`Backend resolution: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
+            console.log(`Display size: ${videoRect.width}x${videoRect.height}`);
+            
+            // Scale coordinates to match display
+            const [backendX, backendY, backendW, backendH] = face.box;
+            const x = backendX * scaleX;
+            const y = backendY * scaleY;
+            const w = backendW * scaleX;
+            const h = backendH * scaleY;
+            
+            console.log(`Drawing box for face ${index}: backend(${backendX}, ${backendY}, ${backendW}, ${backendH}) -> display(${x}, ${y}, ${w}, ${h})`);
+            
+            // Validate coordinates
+            if (typeof x === 'number' && typeof y === 'number' && typeof w === 'number' && typeof h === 'number') {
+                // Choose color based on recognition
+                const isRecognized = face.name && face.name !== 'Unknown';
+                ctx.strokeStyle = isRecognized ? '#00ff00' : '#ff0000'; // Green for recognized, red for unknown
+                ctx.lineWidth = 3; // Thicker lines for better visibility
+                ctx.strokeRect(x, y, w, h);
+                
+                // Draw label background
+                const displayName = face.name || 'Unknown';
+                const confidence = face.confidence ? (face.confidence * 100).toFixed(1) : '0.0';
+                const label = isRecognized ? `${displayName} (${confidence}%)` : `Unknown (${confidence}%)`;
+                
+                ctx.font = 'bold 14px Arial';
+                const textWidth = ctx.measureText(label).width;
+                
+                // Background rectangle for label (position above box)
+                ctx.fillStyle = isRecognized ? '#00ff00' : '#ff0000';
+                ctx.fillRect(x, y - 30, textWidth + 10, 25);
+                
+                // Text
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(label, x + 5, y - 15);
+                
+                console.log(`Successfully drew face ${index}: ${displayName} at display coords (${x}, ${y}, ${w}, ${h}) with confidence ${confidence}%`);
+            } else {
+                console.error(`Invalid coordinates for face ${index}:`, face.box);
+            }
+        } else {
+            console.error(`No box found for face ${index}:`, face);
+        }
+    });
+}
+
+function displayDetectionStats(faces, faceCount, recognizedCount) {
+    const statsDiv = document.getElementById('detectionStats');
+    
+    let html = '<div class="space-y-4">';
+    
+    // Total faces
+    html += `
+        <div class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="font-medium text-white">Total Faces</div>
+                    <div class="text-sm text-gray-400">Currently detected</div>
+                </div>
+                <div class="text-2xl font-bold text-blue-500">${faceCount}</div>
+            </div>
+        </div>
+    `;
+    
+    // Recognized faces
+    html += `
+        <div class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="font-medium text-white">Recognized</div>
+                    <div class="text-sm text-gray-400">Known faces</div>
+                </div>
+                <div class="text-2xl font-bold text-green-500">${recognizedCount}</div>
+            </div>
+        </div>
+    `;
+    
+    // Unknown faces
+    const unknownCount = faceCount - recognizedCount;
+    html += `
+        <div class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="font-medium text-white">Unknown</div>
+                    <div class="text-sm text-gray-400">Unrecognized faces</div>
+                </div>
+                <div class="text-2xl font-bold text-yellow-500">${unknownCount}</div>
+            </div>
+        </div>
+    `;
+    
+    // Individual face details (show max 3)
+    const recentFaces = faces.slice(0, 3);
+    recentFaces.forEach((face, index) => {
+        const isRecognized = face.name !== 'Unknown';
+        const confidence = face.confidence ? (face.confidence * 100).toFixed(1) : 0;
+        
+        html += `
+            <div class="bg-gray-800 rounded-lg p-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-full ${isRecognized ? 'bg-green-600' : 'bg-yellow-600'} flex items-center justify-center">
+                            <i class="fas fa-user text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="font-medium text-white text-sm">${face.name}</div>
+                            <div class="text-xs text-gray-400">${isRecognized ? confidence + '%' : 'Unknown'}</div>
+                        </div>
+                    </div>
+                    ${isRecognized ? 
+                        '<div class="text-green-400"><i class="fas fa-check-circle"></i></div>' :
+                        '<div class="text-yellow-400"><i class="fas fa-question-circle"></i></div>'
+                    }
+                </div>
+            </div>
+        `;
+    });
+    
+    if (faces.length > 3) {
+        html += `<div class="text-center text-gray-400 text-xs">+${faces.length - 3} more faces</div>`;
+    }
+    
+    html += '</div>';
+    statsDiv.innerHTML = html;
+}
+
+function displayAnnotatedImage(imageData) {
+    // Create a temporary image to load the annotated image
+    const img = new Image();
+    img.onload = function() {
+        // Draw the annotated image on the canvas
+        const canvas = document.getElementById('canvasElement');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        // Show canvas and hide video temporarily
+        canvas.style.display = 'block';
+        videoElement.style.display = 'none';
+        
+        // After a short delay, show video again
+        setTimeout(() => {
+            canvas.style.display = 'none';
+            videoElement.style.display = 'block';
+        }, 100);
+    };
+    img.src = imageData;
+}
+
+// Load recent camera detections
+async function loadRecentDetections() {
+    try {
+        console.log('Loading recent face camera detections...');
+        const response = await fetch('/api/recent-detections?type=face_camera');
+        const data = await response.json();
+        
+        console.log('Recent detections response:', data);
+        
+        const detectionsDiv = document.getElementById('recentDetections');
+        if (data.success && data.detections.length > 0) {
+            let html = '';
+            data.detections.forEach(detection => {
+                // Handle objects_detected - it might be a JSON string or array
+                let objects = [];
+                if (detection.objects_detected) {
+                    if (typeof detection.objects_detected === 'string') {
+                        try {
+                            objects = JSON.parse(detection.objects_detected);
+                        } catch (e) {
+                            console.error('Error parsing objects_detected:', e);
+                            objects = [];
+                        }
+                    } else if (Array.isArray(detection.objects_detected)) {
+                        objects = detection.objects_detected;
+                    } else {
+                        console.log('objects_detected type:', typeof detection.objects_detected);
+                        objects = [];
+                    }
+                }
+                
+                const faces = objects.filter(obj => obj.name && obj.name !== 'Unknown');
+                const recognizedCount = faces.length;
+                
+                // Add 7 hours for GMT+7
+                const timestamp = new Date(detection.timestamp);
+                timestamp.setHours(timestamp.getHours() + 7);
+                
+                html += `
+                    <div class="bg-gray-800 rounded-lg overflow-hidden">
+                        <img src="/detection/uploads/${detection.image_path}" alt="Face Detection" class="w-full h-40 object-cover">
+                        <div class="p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-white font-medium">Camera Detection</span>
+                                <span class="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
+                                    ${recognizedCount} face(s)
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-3">${timestamp.toLocaleDateString('vi-VN')} ${timestamp.toLocaleTimeString('vi-VN')}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm ${recognizedCount > 0 ? 'text-green-400' : 'text-yellow-400'}">
+                                    ${recognizedCount > 0 ? `${recognizedCount} recognized` : 'No recognition'}
+                                </span>
+                                <div class="flex space-x-2">
+                                    <button onclick="downloadDetection(${detection.id})" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-white text-sm">
+                                        <i class="fas fa-download"></i> Download
+                                    </button>
+                                    <button onclick="deleteDetection(${detection.id})" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-white text-sm">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            detectionsDiv.innerHTML = html;
+            console.log(`Loaded ${data.detections.length} recent detections`);
+        } else {
+            detectionsDiv.innerHTML = `
+                <div class="text-center text-gray-400 col-span-full py-12">
+                    <i class="fas fa-history text-6xl mb-4"></i>
+                    <p class="text-lg font-medium mb-2">No recent camera detections</p>
+                    <p class="text-sm">Start camera detection to see results here</p>
+                </div>
+            `;
+            console.log('No recent detections found');
+        }
+    } catch (error) {
+        console.error('Error loading recent detections:', error);
+        const detectionsDiv = document.getElementById('recentDetections');
+        detectionsDiv.innerHTML = `
+            <div class="text-center text-gray-400 col-span-full py-8">
+                <i class="fas fa-exclamation-triangle text-6xl mb-4"></i>
+                <p>Error loading recent detections.</p>
+            </div>
+        `;
+    }
+}
+
+// Delete single detection
+async function deleteDetection(detectionId) {
+    console.log('Delete detection called with ID:', detectionId);
+    showConfirmModal('Are you sure you want to delete this detection?', async () => {
+        console.log('Delete confirmed for ID:', detectionId);
+        try {
+            console.log('Sending DELETE request to:', `/api/delete-detection/${detectionId}`);
+            const response = await fetch(`/api/delete-detection/${detectionId}`, {
+                method: 'DELETE'
+            });
+            
+            console.log('Delete response status:', response.status);
+            const data = await response.json();
+            console.log('Delete response data:', data);
+            
+            if (data.success) {
+                showToast('Detection deleted successfully', 'success');
+                loadRecentDetections(); // Reload recent detections
+            } else {
+                showToast(data.error || 'Error deleting detection', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting detection:', error);
+            showToast('Error deleting detection', 'error');
+        }
+    });
+}
+
+// Delete all camera detections
+async function deleteAllCameraDetections() {
+    console.log('Delete all camera detections called');
+    showConfirmModal('Are you sure you want to delete all camera detections? This action cannot be undone.', async () => {
+        console.log('Delete all confirmed');
+        try {
+            console.log('Sending DELETE request to:', '/api/detections/delete-all?type=face_camera');
+            const response = await fetch('/api/detections/delete-all?type=face_camera', {
+                method: 'DELETE'
+            });
+            
+            console.log('Delete all response status:', response.status);
+            const result = await response.json();
+            console.log('Delete all response data:', result);
+            
+            if (result.success) {
+                showToast(result.message || 'All camera detections deleted successfully', 'success');
+                loadRecentDetections(); // Reload recent detections
+            } else {
+                showToast(result.error || 'Error deleting all detections', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting all detections:', error);
+            showToast('Error deleting all detections', 'error');
+        }
+    });
+}
+
+// Download detection image with recognition results
+function downloadDetection(detectionId) {
+    // Download the annotated image with face recognition results
+    window.open(`/api/detection/${detectionId}/download`, '_blank');
+    showToast('Downloading detection image with results...', 'success');
+}
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `p-4 rounded-lg text-white ${type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600'} transform transition-all duration-300 translate-x-full`;
+    toast.textContent = message;
+    
+    const container = document.getElementById('toastContainer');
+    container.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+            container.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+    if (detectionInterval) {
+        clearInterval(detectionInterval);
+    }
+});
+
+// Load recent detections on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadRecentDetections();
+});
+</script>
+{% endblock %}
+/ /   U p d a t e d   a t   0 4 / 0 5 / 2 0 2 6   0 9 : 0 7 : 1 6 
+ 
+ 

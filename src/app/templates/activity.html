@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Log - VisionAI Object Detection{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <h1 class="text-3xl font-bold">Activity Log</h1>
+        <a href="{{ url_for('main.dashboard') }}" class="btn-primary px-6 py-2 rounded-lg text-white">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="stat-card p-6 rounded-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">Total Users</p>
+                    <p class="text-3xl font-bold text-teal-500">{{ recent_users|length }}</p>
+                </div>
+                <div class="text-teal-500 text-3xl">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card p-6 rounded-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">Total Detections</p>
+                    <p class="text-3xl font-bold text-purple-500">{{ recent_detections|length }}</p>
+                </div>
+                <div class="text-purple-500 text-3xl">
+                    <i class="fas fa-eye"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card p-6 rounded-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">Active Today</p>
+                    <p class="text-3xl font-bold text-green-500">
+                        {{ recent_users|selectattr('last_login')|list|length }}
+                    </p>
+                </div>
+                <div class="text-green-500 text-3xl">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activities -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Recent Detections -->
+        <div class="card p-6 rounded-lg">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold">Recent Detections</h2>
+                <div class="flex space-x-2">
+                    <button onclick="deleteAllDetections()" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-white text-sm">
+                        <i class="fas fa-trash-alt mr-2"></i>Delete All
+                    </button>
+                </div>
+            </div>
+            <div class="space-y-3 max-h-96 overflow-y-auto">
+                {% if recent_detections %}
+                    {% for detection in recent_detections %}
+                        <div class="bg-gray-800 rounded-lg p-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
+                                        {% if detection.detection_type == 'camera' %}
+                                            <i class="fas fa-video text-teal-500"></i>
+                                        {% else %}
+                                            <i class="fas fa-upload text-purple-500"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-sm">{{ detection.user.username }}</p>
+                                        <p class="text-xs text-gray-400">
+                                            {{ detection.get_objects_detected()|length }} objects detected
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-right">
+                                        <p class="text-xs text-gray-400">
+                                            {{ detection.timestamp.strftime('%H:%M') }}
+                                        </p>
+                                        <p class="text-xs text-gray-500">
+                                            {{ detection.timestamp.strftime('%Y-%m-%d') }}
+                                        </p>
+                                    </div>
+                                    <button onclick="deleteDetection('{{ detection.id }}')" class="bg-red-600 hover:bg-red-700 p-1 rounded text-white text-xs">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-gray-400 py-8">
+                        <i class="fas fa-search text-6xl mb-4"></i>
+                        <p>No recent detections</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Recent Users -->
+        <div class="card p-6 rounded-lg">
+            <h2 class="text-xl font-bold mb-4">Recent Users</h2>
+            <div class="space-y-3 max-h-96 overflow-y-auto">
+                {% if recent_users %}
+                    {% for user in recent_users %}
+                        <div class="bg-gray-800 rounded-lg p-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user text-gray-400"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-sm">{{ user.username }}</p>
+                                        <p class="text-xs text-gray-400">{{ user.email }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xs px-2 py-1 bg-{{ 'green' if user.is_active else 'red' }}-600 rounded">
+                                        {{ 'Active' if user.is_active else 'Inactive' }}
+                                    </span>
+                                    {% if user.is_admin() %}
+                                        <span class="text-xs px-2 py-1 bg-purple-600 rounded ml-1">
+                                            ADMIN
+                                        </span>
+                                    {% else %}
+                                        <span class="text-xs px-2 py-1 bg-blue-600 rounded ml-1">
+                                            USER
+                                        </span>
+                                    {% endif %}
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        {% if user.last_login %}
+                                            {{ user.last_login.strftime('%H:%M') }}
+                                        {% else %}
+                                            Never
+                                        {% endif %}
+                                    </p>
+                                    <p class="text-xs text-gray-400">
+                                        {% if user.last_login %}
+                                            {{ user.last_login.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                            Never
+                                        {% endif %}
+                                    </p>
+                                    {% if current_user.is_admin() and user.id != current_user.id %}
+                                        <div class="mt-2 space-x-2">
+                                            {% if user.is_admin() %}
+                                                <button onclick="toggleAdminRights('{{ user.id }}', false)" class="bg-orange-600 hover:bg-orange-700 px-2 py-1 rounded text-white text-xs">
+                                                    <i class="fas fa-user-shield mr-1"></i>Remove Admin
+                                                </button>
+                                            {% else %}
+                                                <button onclick="toggleAdminRights('{{ user.id }}', true)" class="bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded text-white text-xs">
+                                                    <i class="fas fa-user-shield mr-1"></i>Make Admin
+                                                </button>
+                                            {% endif %}
+                                            <button onclick="deleteUserAccount('{{ user.id }}', '{{ user.username }}')" class="bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-white text-xs">
+                                                <i class="fas fa-user-times mr-1"></i>Delete Account
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-gray-400 py-8">
+                        <i class="fas fa-users text-6xl mb-4"></i>
+                        <p>No recent users</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Logs -->
+    <div class="card p-6 rounded-lg">
+        <h2 class="text-xl font-bold mb-4">System Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <h3 class="font-medium mb-2 text-teal-500">Application Status</h3>
+                <div class="space-y-1 text-sm">
+                    <p class="text-gray-400">Server: Running</p>
+                    <p class="text-gray-400">Database: Connected</p>
+                    <p class="text-gray-400">AI Model: Loaded</p>
+                </div>
+            </div>
+            <div>
+                <h3 class="font-medium mb-2 text-purple-500">Performance</h3>
+                <div class="space-y-1 text-sm">
+                    <p class="text-gray-400">Avg Processing Time: 0.5s</p>
+                    <p class="text-gray-400">Memory Usage: Normal</p>
+                    <p class="text-gray-400">CPU Usage: Low</p>
+                </div>
+            </div>
+            <div>
+                <h3 class="font-medium mb-2 text-green-500">Storage</h3>
+                <div class="space-y-1 text-sm">
+                    <p class="text-gray-400">Database Size: 2.1 MB</p>
+                    <p class="text-gray-400">Images: 0 files</p>
+                    <p class="text-gray-400">Available Space: 45 GB</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-gray-800 p-6 rounded-lg max-w-md mx-4 w-full">
+        <h3 id="confirmModalTitle" class="text-lg font-semibold text-white mb-4">Confirm Action</h3>
+        <p id="confirmMessage" class="text-gray-300 mb-6">Are you sure you want to perform this action?</p>
+        <div class="flex justify-end space-x-4">
+            <button onclick="closeConfirmModal()" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white">
+                Cancel
+            </button>
+            <button id="confirmButton" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
+                Confirm
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+<script>
+// Custom confirmation modal functions
+let pendingDeleteAction = null;
+
+function showConfirmModal(message, onConfirm, title = 'Confirm Action') {
+    console.log('showConfirmModal called with message:', message, 'title:', title);
+    const modal = document.getElementById('confirmModal');
+    const messageElement = document.getElementById('confirmMessage');
+    const confirmButton = document.getElementById('confirmButton');
+    const titleElement = document.getElementById('confirmModalTitle');
+    
+    console.log('Modal element:', modal);
+    console.log('Message element:', messageElement);
+    console.log('Title element:', titleElement);
+    console.log('Confirm button element:', confirmButton);
+    
+    if (!modal || !messageElement || !confirmButton || !titleElement) {
+        console.error('Modal elements not found!');
+        return;
+    }
+    
+    messageElement.textContent = message;
+    titleElement.textContent = title;
+    pendingDeleteAction = onConfirm;
+    
+    confirmButton.onclick = () => {
+        console.log('Confirm button clicked!');
+        console.log('pendingDeleteAction before execution:', pendingDeleteAction);
+        
+        if (pendingDeleteAction) {
+            console.log('Executing pendingDeleteAction');
+            const actionToExecute = pendingDeleteAction;
+            pendingDeleteAction = null; // Clear before execution to prevent double execution
+            closeConfirmModal();
+            actionToExecute();
+            console.log('pendingDeleteAction executed');
+        } else {
+            console.log('No pendingDeleteAction to execute');
+            closeConfirmModal();
+        }
+    };
+    
+    console.log('Modal classes before:', modal.className);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    console.log('Modal classes after:', modal.className);
+    console.log('Modal should be visible now');
+}
+
+function closeConfirmModal() {
+    const modal = document.getElementById('confirmModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    pendingDeleteAction = null;
+}
+
+// Delete single detection
+async function deleteDetection(detectionId) {
+    console.log('Delete detection called with ID:', detectionId);
+    showConfirmModal('Are you sure you want to delete this detection?', async () => {
+        try {
+            console.log('Sending DELETE request to:', `/api/delete-detection/${detectionId}`);
+            const response = await fetch(`/api/delete-detection/${detectionId}`, {
+                method: 'DELETE'
+            });
+            
+            console.log('Delete response status:', response.status);
+            const data = await response.json();
+            console.log('Delete response data:', data);
+            
+            if (data.success) {
+                showToast('Detection deleted successfully', 'success');
+                loadRecentDetections(); // Reload recent detections
+            } else {
+                showToast(data.error || 'Error deleting detection', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting detection:', error);
+            showToast('Error deleting detection', 'error');
+        }
+    }, 'Confirm Delete');
+}
+
+// Delete all detections
+async function deleteAllDetections() {
+    showConfirmModal('Are you sure you want to delete all detections? This action cannot be undone.', async () => {
+        try {
+            const response = await fetch('/api/detections/delete-all', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showToast('All detections deleted successfully', 'success');
+                setTimeout(() => {
+                    window.location.reload(); // Reload to update the list
+                }, 1000);
+            } else {
+                showToast(data.error || 'Failed to delete detections', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting detections:', error);
+            showToast('Error deleting detections', 'error');
+        }
+    });
+}
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `p-4 rounded-lg text-white ${type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600'} transform transition-all duration-300 translate-x-full`;
+    toast.textContent = message;
+    
+    const container = document.getElementById('toastContainer');
+    container.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+            container.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+// Toggle admin rights for user
+async function toggleAdminRights(userId, makeAdmin) {
+    const action = makeAdmin ? 'grant admin rights to' : 'remove admin rights from';
+    const actionText = makeAdmin ? 'Make Admin' : 'Remove Admin';
+    const modalTitle = makeAdmin ? 'Confirm Make Admin' : 'Confirm Remove Admin';
+    
+    console.log(`DEBUG: Toggling admin rights for user ${userId}, makeAdmin: ${makeAdmin}`);
+    
+    showConfirmModal(`Are you sure you want to ${action} this user?`, async () => {
+        try {
+            console.log(`DEBUG: Sending request to /api/users/${userId}/toggle-admin`);
+            const response = await fetch(`/api/users/${userId}/toggle-admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    make_admin: makeAdmin
+                })
+            });
+            
+            const data = await response.json();
+            console.log('DEBUG: API Response:', data);
+            
+            if (data.success) {
+                showToast(`Admin rights ${makeAdmin ? 'granted' : 'removed'} successfully`, 'success');
+                console.log(`DEBUG: Admin rights ${makeAdmin ? 'granted' : 'removed'}, reloading page...`);
+                setTimeout(() => {
+                    window.location.reload(); // Reload to update the list
+                }, 1000);
+            } else {
+                showToast(data.error || `Failed to ${actionText}`, 'error');
+                console.log('DEBUG: API Error:', data.error);
+            }
+        } catch (error) {
+            console.error('Error toggling admin rights:', error);
+            showToast(`Error ${actionText}`, 'error');
+        }
+    }, modalTitle);
+}
+
+// Delete user account
+async function deleteUserAccount(userId, username) {
+    const modalTitle = 'Delete User Account';
+    const message = `Are you sure you want to permanently delete the account for user "${username}"? This action cannot be undone and will remove all user data including detections.`;
+    
+    showConfirmModal(message, async () => {
+        try {
+            console.log(`DEBUG: Sending delete request for user ${userId} (${username})`);
+            const response = await fetch(`/api/users/${userId}/delete`, {
+                method: 'DELETE'
+            });
+            
+            const data = await response.json();
+            console.log('DEBUG: Delete user API Response:', data);
+            
+            if (data.success) {
+                showToast(`Account for "${username}" deleted successfully`, 'success');
+                console.log(`DEBUG: User ${username} deleted, reloading page...`);
+                setTimeout(() => {
+                    window.location.reload(); // Reload to update the list
+                }, 1000);
+            } else {
+                showToast(data.error || `Failed to delete account for "${username}"`, 'error');
+                console.log('DEBUG: Delete user API Error:', data.error);
+            }
+        } catch (error) {
+            console.error('Error deleting user account:', error);
+            showToast(`Error deleting account for "${username}"`, 'error');
+        }
+    }, modalTitle);
+}
+
+</script>
+{% endblock %}

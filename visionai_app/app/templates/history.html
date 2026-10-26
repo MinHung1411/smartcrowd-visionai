@@ -1,0 +1,514 @@
+{% extends "base.html" %}
+
+{% block title %}Detection History - VisionAI Object Detection{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <h1 class="text-3xl font-bold">Detection History</h1>
+        <div class="flex space-x-3">
+            <button onclick="exportHistory()" class="btn-secondary px-4 py-2 rounded-lg text-white">
+                <i class="fas fa-download mr-2"></i>Export
+            </button>
+            <button onclick="deleteAllHistory()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-white">
+                <i class="fas fa-trash-alt mr-2"></i>Delete All
+            </button>
+            <a href="{{ url_for('main.dashboard') }}" class="btn-primary px-6 py-2 rounded-lg text-white">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <!-- History List -->
+    <div class="card p-6 rounded-lg">
+        <h2 class="text-xl font-bold mb-4">Your Detection History</h2>
+        
+        {% if detections.items %}
+            <div class="space-y-3">
+                {% for detection in detections.items %}
+                    <div class="bg-gray-800 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-gray-700 rounded-lg overflow-hidden">
+                                    {% if detection.image_path %}
+                                        <img src="{{ url_for('detection.uploaded_file', filename=detection.image_path) }}" 
+                                             alt="Detection" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <div class="w-full h-full flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-500 text-sm"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="font-medium text-sm">
+                                        {% if detection.detection_type == 'camera' %}
+                                            Camera Detection
+                                        {% elif detection.detection_type == 'color' %}
+                                            Color Detection
+                                        {% elif detection.detection_type == 'face_upload' %}
+                                            Face Detection
+                                        {% else %}
+                                            Image Detection
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-xs text-gray-400">
+                                        {{ detection.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="text-right">
+                                    <div class="text-sm font-medium">
+                                        {{ detection.get_objects_detected()|length }} objects
+                                    </div>
+                                    <div class="text-xs text-gray-400">
+                                        {{ "%.3f"|format(detection.processing_time or 0) }}s
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="showDetails('{{ detection.id }}')" class="bg-blue-600 hover:bg-blue-700 p-2 rounded text-white text-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="deleteDetection('{{ detection.id }}')" class="bg-red-600 hover:bg-red-700 p-2 rounded text-white text-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if detections.pages > 1 %}
+                <div class="mt-6 flex justify-center">
+                    <nav class="flex space-x-2">
+                        {% if detections.has_prev %}
+                            <a href="{{ url_for('main.history', page=detections.prev_num) }}" 
+                               class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        {% endif %}
+                        
+                        {% for page_num in detections.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != detections.page %}
+                                    <a href="{{ url_for('main.history', page=page_num) }}" 
+                                       class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600">
+                                        {{ page_num }}
+                                    </a>
+                                {% else %}
+                                    <span class="px-3 py-2 bg-teal-500 text-white rounded">{{ page_num }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="px-3 py-2">...</span>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if detections.has_next %}
+                            <a href="{{ url_for('main.history', page=detections.next_num) }}" 
+                               class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center text-gray-400 py-8">
+                <i class="fas fa-history text-6xl mb-4"></i>
+                <p class="text-lg">No detection history yet.</p>
+                <p class="text-sm mt-2">Start using the camera or upload images to see your detection history here.</p>
+                <div class="mt-6 space-x-4">
+                    <a href="{{ url_for('detection.camera') }}" class="btn-primary px-6 py-2 rounded-lg text-white">
+                        <i class="fas fa-video mr-2"></i>Try Camera Detection
+                    </a>
+                    <a href="{{ url_for('detection.upload') }}" class="btn-secondary px-6 py-2 rounded-lg text-white">
+                        <i class="fas fa-upload mr-2"></i>Upload Image
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
+    <div class="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-white">Confirm Delete</h3>
+            <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div class="text-gray-300 mb-6">
+            <p id="deleteMessage">Are you sure you want to delete this detection history?</p>
+        </div>
+        <div class="flex justify-end space-x-3">
+            <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                Cancel
+            </button>
+            <button id="confirmDeleteBtn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div id="detailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
+    <div class="bg-gray-800 p-6 rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto w-full mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-white">Detection Details</h3>
+            <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <div id="modalContent" class="text-gray-300">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentDeleteId = null;
+
+    function showDetails(detectionId) {
+        fetch(`/api/detection-details/${detectionId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Full API Response:', data); // Debug full response
+                console.log('Objects array:', data.objects); // Debug objects array
+                
+                if (data.success) {
+                    let html = `
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-32 h-32 bg-gray-700 rounded-lg overflow-hidden">
+                                        <img src="${data.annotated_image_url || data.image_url}" alt="Detection" class="w-full h-full object-cover">
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-lg text-white">${data.detection_type}</div>
+                                        <div class="text-sm text-gray-400">${data.timestamp}</div>
+                                        <div class="text-sm text-gray-400">Processing time: ${data.processing_time}s</div>
+                                        <div class="text-sm text-gray-400">Objects detected: ${data.objects.length}</div>
+                                    </div>
+                                </div>
+                                <button onclick="exportSingleDetection('${detectionId}')" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white text-sm">
+                                    <i class="fas fa-download mr-2"></i>Export Details
+                                </button>
+                            </div>
+                            
+                            <!-- Image Options -->
+                            <div class="flex space-x-4">
+                                <button onclick="switchImage('original')" id="originalBtn" class="px-3 py-1 bg-blue-600 text-white rounded text-sm">
+                                    Original Image
+                                </button>
+                                <button onclick="switchImage('annotated')" id="annotatedBtn" class="px-3 py-1 bg-gray-600 text-white rounded text-sm">
+                                    Detection Results
+                                </button>
+                            </div>
+                            
+                            <div class="flex justify-center">
+                                <img id="modalImage" src="${data.annotated_image_url || data.image_url}" alt="Detection" class="max-w-full max-h-96 rounded-lg">
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-white mb-3">Detected Objects (${data.objects.length}):</h4>
+                                <div class="space-y-2 max-h-96 overflow-y-auto">
+                    `;
+                    
+                    data.objects.forEach((obj, index) => {
+                        console.log(`Object ${index}:`, obj); // Debug each object
+                        console.log(`Object type:`, typeof obj); // Debug type
+                        console.log(`Object keys:`, obj ? Object.keys(obj) : 'null'); // Debug keys
+                        
+                        let objectName = '';
+                        let vietnameseName = '';
+                        let confidence = 'N/A';
+                        
+                        if (obj && typeof obj === 'object') {
+                            // Handle different object formats
+                            console.log(`Processing object ${index}:`, JSON.stringify(obj, null, 2));
+                            
+                            if (obj.class && obj.name && obj.confidence !== undefined) {
+                                // Object Detection format: {class: 'airplane', name: {...}, confidence: 0.91}
+                                objectName = obj.class || 'Unknown';
+                                if (obj.name && typeof obj.name === 'object') {
+                                    vietnameseName = obj.name.vi || obj.name.en || obj.class || 'Unknown';
+                                } else {
+                                    vietnameseName = obj.name || obj.class || 'Unknown';
+                                }
+                                confidence = obj.confidence ? (obj.confidence * 100).toFixed(1) : 'N/A';
+                                console.log(`Object Detection - Name: ${objectName}, VI: ${vietnameseName}, Raw Conf: ${obj.confidence}, Final Conf: ${confidence}`);
+                            } else if (obj.name && obj.hex && obj.percentage !== undefined) {
+                                // Color Detection format: {name: 'Dark Gray', hex: '#2c3240', percentage: 5.26}
+                                objectName = obj.name || 'Unknown';
+                                vietnameseName = obj.name || 'Unknown';
+                                confidence = obj.percentage ? obj.percentage.toFixed(1) : 'N/A';
+                                console.log(`Color Detection - Name: ${objectName}, VI: ${vietnameseName}, Raw Perc: ${obj.percentage}, Final Conf: ${confidence}`);
+                            } else if (obj.en || obj.vi) {
+                                // Standard format: {en: 'Person', vi: 'Người', confidence: 95.2}
+                                objectName = obj.en || obj.name || obj.class_name || obj.label || obj.object || 'Unknown';
+                                vietnameseName = obj.vi || obj.name || obj.class_name || obj.label || obj.object || 'Unknown';
+                                
+                                // Check if confidence exists, otherwise use default based on detection type
+                                if (obj.confidence !== undefined) {
+                                    confidence = obj.confidence;
+                                } else if (obj.score !== undefined) {
+                                    confidence = obj.score;
+                                } else if (obj.probability !== undefined) {
+                                    confidence = obj.probability;
+                                } else {
+                                    // For face detection or objects without confidence, use a default value
+                                    confidence = 'Detected';
+                                }
+                                
+                                console.log(`Standard Format - Name: ${objectName}, VI: ${vietnameseName}, Raw Conf: ${obj.confidence}, Final Conf: ${confidence}`);
+                            } else {
+                                // Fallback - check all possible confidence fields
+                                objectName = obj.name || obj.class || obj.label || 'Unknown';
+                                vietnameseName = obj.name || obj.class || obj.label || 'Unknown';
+                                
+                                // Check all possible confidence fields
+                                const confidenceFields = ['confidence', 'score', 'probability', 'percentage', 'acc', 'accuracy'];
+                                let foundConfidence = false;
+                                
+                                for (const field of confidenceFields) {
+                                    if (obj[field] !== undefined) {
+                                        confidence = obj[field];
+                                        if (typeof confidence === 'number') {
+                                            confidence = confidence.toFixed(1);
+                                        }
+                                        foundConfidence = true;
+                                        console.log(`Fallback - Found confidence in field ${field}: ${confidence}`);
+                                        break;
+                                    }
+                                }
+                                
+                                if (!foundConfidence) {
+                                    confidence = 'Detected';  // Changed from 'N/A' to 'Detected'
+                                    console.log(`Fallback - No confidence found, available keys: ${Object.keys(obj)}`);
+                                }
+                            }
+                        } else if (typeof obj === 'string') {
+                            objectName = obj;
+                            vietnameseName = obj;
+                            confidence = 'N/A';
+                            console.log(`String object: ${obj}`);
+                        } else {
+                            objectName = String(obj);
+                            vietnameseName = String(obj);
+                            confidence = 'N/A';
+                            console.log(`Other type: ${typeof obj}, value: ${obj}`);
+                        }
+                        
+                        console.log(`Extracted - Name: ${objectName}, VI: ${vietnameseName}, Conf: ${confidence}`);
+                        
+                        html += `
+                            <div class="bg-gray-700 p-3 rounded">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-medium text-white">${index + 1}. ${objectName}</div>
+                                        <div class="text-sm text-gray-400">Vietnamese: ${vietnameseName}</div>
+                                        <div class="text-sm text-gray-400">Confidence: ${confidence}%</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-cube text-gray-400"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                                </div>
+                            </div>
+                            <div class="pt-4 border-t border-gray-600">
+                                <div class="flex justify-between items-center">
+                                    <div class="text-sm text-gray-400">
+                                        Detection ID: ${detectionId}
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button onclick="downloadCurrentImage('${data.image_url}', '${data.annotated_image_url}')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white text-sm">
+                                            <i class="fas fa-image mr-2"></i>Download Image
+                                        </button>
+                                        <button onclick="closeDetailsModal()" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white text-sm">
+                                            Close
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('modalContent').innerHTML = html;
+                    
+                    // Initialize image URLs
+                    currentImageUrl = data.image_url;
+                    currentAnnotatedUrl = data.annotated_image_url || data.image_url;
+                    
+                    // Set default image state
+                    if (data.annotated_image_url && data.annotated_image_url !== data.image_url) {
+                        switchImage('annotated');
+                    } else {
+                        switchImage('original');
+                    }
+                    
+                    document.getElementById('detailsModal').style.display = 'flex';
+                } else {
+                    showToast('Error loading details', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error loading details', 'error');
+            });
+    }
+
+    let currentImageType = 'annotated';
+    let currentImageUrl = '';
+    let currentAnnotatedUrl = '';
+
+    function switchImage(type) {
+        const modalImage = document.getElementById('modalImage');
+        const originalBtn = document.getElementById('originalBtn');
+        const annotatedBtn = document.getElementById('annotatedBtn');
+        
+        if (type === 'original') {
+            modalImage.src = currentImageUrl;
+            originalBtn.className = 'px-3 py-1 bg-blue-600 text-white rounded text-sm';
+            annotatedBtn.className = 'px-3 py-1 bg-gray-600 text-white rounded text-sm';
+            currentImageType = 'original';
+        } else {
+            modalImage.src = currentAnnotatedUrl || currentImageUrl;
+            originalBtn.className = 'px-3 py-1 bg-gray-600 text-white rounded text-sm';
+            annotatedBtn.className = 'px-3 py-1 bg-blue-600 text-white rounded text-sm';
+            currentImageType = 'annotated';
+        }
+    }
+
+    function downloadCurrentImage(originalUrl, annotatedUrl) {
+        currentImageUrl = originalUrl;
+        currentAnnotatedUrl = annotatedUrl;
+        
+        const url = currentImageType === 'original' ? originalUrl : (annotatedUrl || originalUrl);
+        const filename = currentImageType === 'original' ? 'detection_original.jpg' : 'detection_results.jpg';
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast(`Downloading ${currentImageType} image...`, 'success');
+    }
+
+    function exportSingleDetection(detectionId) {
+        window.open(`/api/export-detection/${detectionId}`, '_blank');
+        showToast('Exporting detection details...', 'success');
+    }
+
+    function closeDetailsModal() {
+        document.getElementById('detailsModal').style.display = 'none';
+    }
+
+    function deleteDetection(detectionId) {
+        currentDeleteId = detectionId;
+        document.getElementById('deleteMessage').textContent = 'Are you sure you want to delete this detection history?';
+        document.getElementById('confirmDeleteBtn').onclick = confirmDeleteSingle;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function deleteAllHistory() {
+        currentDeleteId = null;
+        document.getElementById('deleteMessage').textContent = 'Are you sure you want to delete ALL detection history? This action cannot be undone.';
+        document.getElementById('confirmDeleteBtn').onclick = confirmDeleteAll;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function confirmDeleteSingle() {
+        if (currentDeleteId) {
+            fetch(`/api/delete-detection/${currentDeleteId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Detection deleted successfully', 'success');
+                    location.reload();
+                } else {
+                    showToast('Error deleting detection', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error deleting detection', 'error');
+            });
+        }
+        closeDeleteModal();
+    }
+
+    function confirmDeleteAll() {
+        fetch('/api/delete-all-detections', {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('All detections deleted successfully', 'success');
+                location.reload();
+            } else {
+                showToast('Error deleting detections', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error deleting detections', 'error');
+        });
+        closeDeleteModal();
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        currentDeleteId = null;
+    }
+
+    function exportHistory() {
+        window.open('/api/export-detections', '_blank');
+    }
+
+    function showToast(message, type = 'info') {
+        // Simple toast notification
+        const toast = document.createElement('div');
+        toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 ${
+            type === 'success' ? 'bg-green-600' : 
+            type === 'error' ? 'bg-red-600' : 'bg-blue-600'
+        }`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+
+    // Close modals when clicking outside
+    document.getElementById('deleteModal').addEventListener('click', (e) => {
+        if (e.target.id === 'deleteModal') {
+            closeDeleteModal();
+        }
+    });
+
+    document.getElementById('detailsModal').addEventListener('click', (e) => {
+        if (e.target.id === 'detailsModal') {
+            closeDetailsModal();
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,847 @@
+{% extends "base.html" %}
+
+{% block title %}Face Detection - VisionAI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .tab-button {
+        background: transparent;
+        border: 2px solid #374151;
+        color: #9CA3AF;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .tab-button:hover {
+        border-color: #14b8a6;
+        color: #14b8a6;
+    }
+    
+    .tab-button.active {
+        background: #14b8a6;
+        border-color: #14b8a6;
+        color: white;
+    }
+    
+    .upload-area {
+        border: 2px dashed #374151;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .upload-area:hover {
+        border-color: #14b8a6;
+        background: rgba(20, 184, 166, 0.1);
+    }
+    
+    .upload-area.dragover {
+        border-color: #14b8a6;
+        background: rgba(20, 184, 166, 0.2);
+    }
+    
+    .camera-container {
+        position: relative;
+        background: #111827;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    #cameraFeed {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    
+    #detectionCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+    
+    .detection-result {
+        background: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .face-item {
+        background: #374151;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .face-confidence {
+        background: #14b8a6;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .btn-primary {
+        background: #14b8a6;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #0d9488;
+    }
+    
+    .btn-secondary {
+        background: #374151;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #4b5563;
+    }
+    
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #dc2626;
+    }
+    
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .stat-card {
+        background: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #14b8a6;
+    }
+    
+    .stat-label {
+        color: #9CA3AF;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .recent-detections {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .detection-card {
+        background: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .detection-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .detection-info {
+        padding: 1rem;
+    }
+    
+    .detection-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .detection-time {
+        color: #9CA3AF;
+        font-size: 0.875rem;
+    }
+    
+    .delete-btn {
+        background: none;
+        border: none;
+        color: #ef4444;
+        cursor: pointer;
+        padding: 0.25rem;
+    }
+    
+    .delete-btn:hover {
+        color: #dc2626;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2">Face Detection</h1>
+        <p class="text-gray-400">Detect and analyze faces in images using computer vision</p>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="flex space-x-4 mb-6">
+        <button class="tab-button active" onclick="switchTab('upload')">
+            <i class="fas fa-upload mr-2"></i> Upload Image
+        </button>
+        <button class="tab-button" onclick="switchTab('camera')">
+            <i class="fas fa-video mr-2"></i> Camera Detection
+        </button>
+        <button class="tab-button" onclick="switchTab('history')">
+            <i class="fas fa-history mr-2"></i> Detection History
+        </button>
+    </div>
+    
+    <!-- Upload Tab -->
+    <div id="uploadTab" class="tab-content active">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Upload Section -->
+            <div>
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-300 mb-2">Drag and drop an image here or click to browse</p>
+                    <p class="text-gray-500 text-sm">Supports: JPG, PNG, JPEG (Max 10MB)</p>
+                    <input type="file" id="imageInput" accept="image/*" class="hidden">
+                </div>
+                
+                <div class="mt-4 flex space-x-4">
+                    <button id="detectBtn" class="btn btn-primary" disabled>
+                        <i class="fas fa-search mr-2"></i> Detect Faces
+                    </button>
+                    <button id="clearBtn" class="btn btn-secondary" disabled>
+                        <i class="fas fa-times mr-2"></i> Clear
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Results Section -->
+            <div>
+                <div id="imagePreview" class="mb-4"></div>
+                <div id="detectionResults"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Camera Tab -->
+    <div id="cameraTab" class="tab-content">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Camera Section -->
+            <div>
+                <div class="camera-container">
+                    <video id="cameraFeed" autoplay playsinline></video>
+                    <canvas id="detectionCanvas"></canvas>
+                </div>
+                
+                <div class="mt-4 flex space-x-4">
+                    <button id="startCameraBtn" class="btn btn-primary">
+                        <i class="fas fa-video mr-2"></i> Start Camera
+                    </button>
+                    <button id="stopCameraBtn" class="btn btn-secondary" disabled>
+                        <i class="fas fa-stop mr-2"></i> Stop Camera
+                    </button>
+                    <button id="detectCameraBtn" class="btn btn-primary" disabled>
+                        <i class="fas fa-search mr-2"></i> Start Detection
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Camera Results -->
+            <div>
+                <div id="cameraResults"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- History Tab -->
+    <div id="historyTab" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-white">Detection History</h2>
+            <button id="deleteAllBtn" class="btn btn-danger">
+                <i class="fas fa-trash mr-2"></i> Delete All
+            </button>
+        </div>
+        
+        <div id="recentDetections" class="recent-detections">
+            <div class="text-center text-gray-400 py-8">
+                <i class="fas fa-history text-6xl mb-4"></i>
+                <p>No detection history yet. Start detecting faces!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let stream = null;
+let isDetecting = false;
+let detectionInterval = null;
+
+// Tab switching
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + 'Tab').classList.add('active');
+    
+    // Add active class to clicked button
+    event.target.classList.add('active');
+    
+    // Load data if history tab
+    if (tabName === 'history') {
+        loadDetectionHistory();
+    }
+}
+
+// Upload functionality
+const uploadArea = document.getElementById('uploadArea');
+const imageInput = document.getElementById('imageInput');
+const detectBtn = document.getElementById('detectBtn');
+const clearBtn = document.getElementById('clearBtn');
+
+uploadArea.addEventListener('click', () => imageInput.click());
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleImageFile(files[0]);
+    }
+});
+
+imageInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleImageFile(e.target.files[0]);
+    }
+});
+
+function handleImageFile(file) {
+    if (!file.type.startsWith('image/')) {
+        showToast('Please select an image file', 'error');
+        return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) {
+        showToast('File size must be less than 10MB', 'error');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('imagePreview').innerHTML = `
+            <img src="${e.target.result}" class="w-full rounded-lg">
+        `;
+        detectBtn.disabled = false;
+        clearBtn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+}
+
+detectBtn.addEventListener('click', detectFaces);
+clearBtn.addEventListener('click', clearUpload);
+
+async function detectFaces() {
+    const formData = new FormData();
+    formData.append('image', imageInput.files[0]);
+    
+    detectBtn.disabled = true;
+    detectBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Detecting...';
+    
+    try {
+        const response = await fetch('/face/detect_upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayDetectionResults(result);
+            showToast(`Detected ${result.faces_count} face(s)`, 'success');
+        } else {
+            showToast(result.error, 'error');
+        }
+    } catch (error) {
+        showToast('Error: ' + error.message, 'error');
+    } finally {
+        detectBtn.disabled = false;
+        detectBtn.innerHTML = '<i class="fas fa-search mr-2"></i> Detect Faces';
+    }
+}
+
+function clearUpload() {
+    document.getElementById('imagePreview').innerHTML = '';
+    document.getElementById('detectionResults').innerHTML = '';
+    imageInput.value = '';
+    detectBtn.disabled = true;
+    clearBtn.disabled = true;
+}
+
+function displayDetectionResults(result) {
+    let html = `
+        <div class="detection-result">
+            <h3 class="text-lg font-semibold text-white mb-3">Detection Results</h3>
+    `;
+    
+    if (result.faces && result.faces.length > 0) {
+        html += '<div class="space-y-2">';
+        result.faces.forEach((face, index) => {
+            html += `
+                <div class="face-item">
+                    <span class="text-white">${face.name}</span>
+                    <span class="face-confidence">${(face.confidence * 100).toFixed(1)}%</span>
+                </div>
+            `;
+        });
+        html += '</div>';
+        
+        // Update image with annotations
+        if (result.annotated_image) {
+            document.getElementById('imagePreview').innerHTML = `
+                <img src="${result.annotated_image}" class="w-full rounded-lg">
+            `;
+        }
+    } else {
+        html += '<p class="text-gray-400">No faces detected in the image</p>';
+    }
+    
+    html += `
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">${result.faces_count || 0}</div>
+                <div class="stat-label">Faces Detected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${result.processing_time.toFixed(3)}s</div>
+                <div class="stat-label">Processing Time</div>
+            </div>
+        </div>
+    </div>
+    `;
+    
+    document.getElementById('detectionResults').innerHTML = html;
+}
+
+// Camera functionality
+const startCameraBtn = document.getElementById('startCameraBtn');
+const stopCameraBtn = document.getElementById('stopCameraBtn');
+const detectCameraBtn = document.getElementById('detectCameraBtn');
+
+startCameraBtn.addEventListener('click', startCamera);
+stopCameraBtn.addEventListener('click', stopCamera);
+detectCameraBtn.addEventListener('click', toggleCameraDetection);
+
+async function startCamera() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: { ideal: 640 },
+                height: { ideal: 480 }
+            } 
+        });
+        
+        const video = document.getElementById('cameraFeed');
+        video.srcObject = stream;
+        
+        startCameraBtn.disabled = true;
+        stopCameraBtn.disabled = false;
+        detectCameraBtn.disabled = false;
+        
+        showToast('Camera started successfully', 'success');
+    } catch (error) {
+        showToast('Error accessing camera: ' + error.message, 'error');
+    }
+}
+
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+        
+        const video = document.getElementById('cameraFeed');
+        video.srcObject = null;
+        
+        startCameraBtn.disabled = false;
+        stopCameraBtn.disabled = true;
+        detectCameraBtn.disabled = true;
+        
+        if (isDetecting) {
+            toggleCameraDetection();
+        }
+        
+        showToast('Camera stopped', 'info');
+    }
+}
+
+function toggleCameraDetection() {
+    if (isDetecting) {
+        stopCameraDetection();
+    } else {
+        startCameraDetection();
+    }
+}
+
+function startCameraDetection() {
+    isDetecting = true;
+    detectCameraBtn.innerHTML = '<i class="fas fa-stop mr-2"></i> Stop Detection';
+    detectCameraBtn.classList.remove('btn-primary');
+    detectCameraBtn.classList.add('btn-danger');
+    
+    detectionInterval = setInterval(() => {
+        detectCameraFaces();
+    }, 2000);
+    
+    showToast('Face detection started', 'success');
+}
+
+function stopCameraDetection() {
+    isDetecting = false;
+    detectCameraBtn.innerHTML = '<i class="fas fa-search mr-2"></i> Start Detection';
+    detectCameraBtn.classList.remove('btn-danger');
+    detectCameraBtn.classList.add('btn-primary');
+    
+    if (detectionInterval) {
+        clearInterval(detectionInterval);
+        detectionInterval = null;
+    }
+    
+    // Clear canvas
+    const canvas = document.getElementById('detectionCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    showToast('Face detection stopped', 'info');
+}
+
+async function detectCameraFaces() {
+    const video = document.getElementById('cameraFeed');
+    const canvas = document.getElementById('detectionCanvas');
+    
+    // Set canvas size to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Capture current frame
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Get image data
+    const imageData = canvas.toDataURL('image/jpeg');
+    
+    try {
+        const response = await fetch('/face/detect_camera', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                image: imageData
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayCameraResults(result);
+            drawFaceBoxes(result.bounding_boxes);
+        }
+    } catch (error) {
+        console.error('Camera detection error:', error);
+    }
+}
+
+function displayCameraResults(result) {
+    let html = `
+        <div class="detection-result">
+            <h3 class="text-lg font-semibold text-white mb-3">Live Detection</h3>
+    `;
+    
+    if (result.faces && result.faces.length > 0) {
+        html += '<div class="space-y-2">';
+        result.faces.forEach((face, index) => {
+            html += `
+                <div class="face-item">
+                    <span class="text-white">${face.name}</span>
+                    <span class="face-confidence">${(face.confidence * 100).toFixed(1)}%</span>
+                </div>
+            `;
+        });
+        html += '</div>';
+    } else {
+        html += '<p class="text-gray-400">No faces detected</p>';
+    }
+    
+    html += `
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">${result.faces_count || 0}</div>
+                <div class="stat-label">Faces Detected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${result.processing_time.toFixed(3)}s</div>
+                <div class="stat-label">Processing Time</div>
+            </div>
+        </div>
+    </div>
+    `;
+    
+    document.getElementById('cameraResults').innerHTML = html;
+}
+
+function drawFaceBoxes(boundingBoxes) {
+    const video = document.getElementById('cameraFeed');
+    const canvas = document.getElementById('detectionCanvas');
+    
+    if (!boundingBoxes || boundingBoxes.length === 0) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+    }
+    
+    // Set canvas size to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    boundingBoxes.forEach((box, index) => {
+        const x1 = box.x1;
+        const y1 = box.y1;
+        const x2 = box.x2;
+        const y2 = box.y2;
+        const confidence = box.confidence;
+        
+        // Choose color based on confidence
+        if (confidence > 0.8) {
+            ctx.strokeStyle = '#00ff00'; // Green
+        } else if (confidence > 0.6) {
+            ctx.strokeStyle = '#ffff00'; // Yellow
+        } else {
+            ctx.strokeStyle = '#ff0000'; // Red
+        }
+        
+        // Draw bounding box
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+        
+        // Draw label
+        const label = `Face ${index + 1}: ${(confidence * 100).toFixed(1)}%`;
+        ctx.font = 'bold 14px Arial';
+        const textMetrics = ctx.measureText(label);
+        const textWidth = textMetrics.width;
+        const padding = 4;
+        
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.fillRect(x1, y1 - 20, textWidth + padding * 2, 20);
+        
+        ctx.fillStyle = 'white';
+        ctx.fillText(label, x1 + padding, y1 - 5);
+    });
+}
+
+// History functionality
+async function loadDetectionHistory() {
+    try {
+        const response = await fetch('/api/recent-detections?type=face');
+        const result = await response.json();
+        
+        if (result.success && result.detections.length > 0) {
+            displayDetectionHistory(result.detections);
+        } else {
+            document.getElementById('recentDetections').innerHTML = `
+                <div class="text-center text-gray-400 py-8">
+                    <i class="fas fa-history text-6xl mb-4"></i>
+                    <p>No detection history yet. Start detecting faces!</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        showToast('Error loading detection history', 'error');
+    }
+}
+
+function displayDetectionHistory(detections) {
+    const html = detections.map(detection => `
+        <div class="detection-card">
+            <img src="/detection/uploads/${detection.image_path}" alt="Detection" class="detection-image">
+            <div class="detection-info">
+                <div class="detection-header">
+                    <span class="text-white font-semibold">Face Detection</span>
+                    <button class="delete-btn" onclick="deleteDetection(${detection.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="text-gray-400 text-sm mb-2">
+                    ${new Date(detection.timestamp).toLocaleString()}
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-400">Faces:</span>
+                    <span class="text-blue-400">${detection.objects_detected ? detection.objects_detected.length : 0}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-400">Processing:</span>
+                    <span class="text-blue-400">${detection.processing_time.toFixed(3)}s</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('recentDetections').innerHTML = html;
+}
+
+async function deleteDetection(detectionId) {
+    if (!confirm('Are you sure you want to delete this detection?')) return;
+    
+    try {
+        const response = await fetch(`/face/delete_detection/${detectionId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Detection deleted successfully', 'success');
+            loadDetectionHistory();
+        } else {
+            showToast(result.error, 'error');
+        }
+    } catch (error) {
+        showToast('Error deleting detection', 'error');
+    }
+}
+
+// Delete all functionality
+document.getElementById('deleteAllBtn').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to delete all face detections? This action cannot be undone.')) return;
+    
+    try {
+        const response = await fetch('/face/delete_all', {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(result.message, 'success');
+            loadDetectionHistory();
+        } else {
+            showToast(result.error, 'error');
+        }
+    } catch (error) {
+        showToast('Error deleting all detections', 'error');
+    }
+});
+
+// Toast notification
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    
+    const bgColor = type === 'success' ? 'bg-green-600' : 
+                     type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+    
+    toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full mb-2`;
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+            toastContainer.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    // Set canvas size on video load
+    const video = document.getElementById('cameraFeed');
+    video.addEventListener('loadedmetadata', () => {
+        const canvas = document.getElementById('detectionCanvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+    });
+});
+</script>
+{% endblock %}

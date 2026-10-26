@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Databricks
+.databricks/
+
+# Pytest
+.pytest_cache/
+
+# VS Code
+.vscode/
+
+# IDE
+.idea/
+
+# Other
+.DS_Store
+Thumbs.db

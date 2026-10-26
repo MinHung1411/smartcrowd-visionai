@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - VisionAI Object Detection{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <h1 class="text-3xl font-bold">Settings</h1>
+        <a href="{{ url_for('main.dashboard') }}" class="btn-primary px-6 py-2 rounded-lg text-white">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+    </div>
+    
+    <!-- User Profile -->
+    <div class="card p-6 rounded-lg">
+        <h2 class="text-xl font-bold mb-4">User Profile</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                <input type="text" value="{{ current_user.username }}" readonly 
+                       class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                <input type="email" value="{{ current_user.email }}" readonly 
+                       class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Role</label>
+                <input type="text" value="{{ current_user.role|title }}" readonly 
+                       class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Member Since</label>
+                <input type="text" value="{{ current_user.created_at.strftime('%Y-%m-%d') if current_user.created_at else 'N/A' }}" readonly 
+                       class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detection Settings -->
+    <div class="card p-6 rounded-lg">
+        <h2 class="text-xl font-bold mb-4">Detection Settings</h2>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Confidence Threshold</label>
+                <select class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300">
+                    <option value="0.25">Low (25%) - Detect more objects</option>
+                    <option value="0.50" selected>Medium (50%) - Balanced</option>
+                    <option value="0.75">High (75%) - Only high confidence</option>
+                </select>
+                <p class="text-sm text-gray-400 mt-1">Minimum confidence level for object detection</p>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Detection Language</label>
+                <select class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300">
+                    <option value="both" selected>Both English & Vietnamese</option>
+                    <option value="en">English Only</option>
+                    <option value="vi">Vietnamese Only</option>
+                </select>
+                <p class="text-sm text-gray-400 mt-1">Language preference for detection results</p>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Auto-save Detections</label>
+                <label class="flex items-center">
+                    <input type="checkbox" checked class="mr-2 rounded">
+                    <span class="text-gray-300">Automatically save all detection results</span>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Information -->
+    <div class="card p-6 rounded-lg">
+        <h2 class="text-xl font-bold mb-4">System Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="font-medium mb-2">Application</h3>
+                <div class="space-y-1 text-sm">
+                    <p class="text-gray-400">Version: 1.0.0</p>
+                    <p class="text-gray-400">Framework: Flask</p>
+                    <p class="text-gray-400">AI Model: YOLOv8</p>
+                </div>
+            </div>
+            <div>
+                <h3 class="font-medium mb-2">Statistics</h3>
+                <div class="space-y-1 text-sm">
+                    <p class="text-gray-400">Total Users: 1</p>
+                    <p class="text-gray-400">Total Detections: 0</p>
+                    <p class="text-gray-400">System Uptime: 0h 0m</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex space-x-4">
+        <button class="btn-primary px-6 py-2 rounded-lg text-white">
+            <i class="fas fa-save mr-2"></i>Save Settings
+        </button>
+        {% if current_user.is_admin() %}
+        <a href="{{ url_for('main.activity') }}" class="btn-secondary px-6 py-2 rounded-lg text-white">
+            <i class="fas fa-users mr-2"></i>User Management
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

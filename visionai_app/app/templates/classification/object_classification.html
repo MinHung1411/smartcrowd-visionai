@@ -1,0 +1,614 @@
+{% extends "base.html" %}
+
+{% block title %}Object Classification - VisionAI{% endblock %}
+
+{% block content %}
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2">Object Classification</h1>
+        <p class="text-gray-400">Phân loại và nhận diện vật thể chi tiết</p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="mb-6 border-b border-gray-700">
+        <nav class="-mb-px flex space-x-8">
+            <button onclick="showTab('upload')" id="uploadTab" class="tab-btn py-2 px-1 border-b-2 border-teal-500 font-medium text-sm text-teal-500">
+                Upload Image
+            </button>
+            <button onclick="showTab('camera')" id="cameraTab" class="tab-btn py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-400 hover:text-gray-300 hover:border-gray-300">
+                Camera Classification
+            </button>
+        </nav>
+    </div>
+
+    <!-- Upload Tab -->
+    <div id="uploadContent" class="tab-content">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+                <div class="card p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-4">Upload Image</h3>
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label class="block text-gray-300 text-sm font-medium mb-2">
+                                Select Image
+                            </label>
+                            <input type="file" id="imageInput" name="image" accept="image/*" 
+                                   class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-600 file:text-white hover:file:bg-teal-700">
+                        </div>
+                        <button type="submit" class="bg-teal-600 hover:bg-teal-700 px-6 py-2 rounded-lg text-white font-medium">
+                            Classify Objects
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Classification Results -->
+                <div id="classificationResults" class="card p-6 rounded-lg mt-6" style="display: none;">
+                    <h3 class="text-xl font-bold mb-4">Classification Results</h3>
+                    <div id="resultsContent"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-4">Preview</h3>
+                    <div id="imagePreview" class="bg-gray-800 rounded-lg h-96 flex items-center justify-center">
+                        <p class="text-gray-400">No image selected</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Tab -->
+    <div id="cameraContent" class="tab-content" style="display: none;">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+                <div class="card p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-4">Camera Feed</h3>
+                    <div class="relative">
+                        <video id="cameraFeed" class="w-full rounded-lg" autoplay></video>
+                        <canvas id="detectionCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+                    </div>
+                    <div class="mt-4 flex space-x-4">
+                        <button id="startCamera" class="bg-teal-600 hover:bg-teal-700 px-6 py-2 rounded-lg text-white">
+                            <i class="fas fa-play mr-2"></i>Start Camera
+                        </button>
+                        <button id="stopCamera" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg text-white" disabled>
+                            <i class="fas fa-stop mr-2"></i>Stop Camera
+                        </button>
+                        <button id="toggleDetection" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg text-white" disabled>
+                            <i class="fas fa-eye mr-2"></i>Start Classification
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-4">Classification Results</h3>
+                    <div id="cameraResults" class="space-y-4">
+                        <p class="text-gray-400">Start camera classification to see results</p>
+                    </div>
+                </div>
+
+                <div id="processingInfo" class="card p-4 rounded-lg mt-4" style="display: none;">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400">Processing Time:</span>
+                        <span id="processingTime" class="text-teal-400 font-mono">0.000s</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-gray-400">Objects Classified:</span>
+                        <span id="objectsCount" class="text-teal-400 font-mono">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Classifications -->
+    <div class="mt-8">
+        <div class="card p-6 rounded-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Recent Object Classifications</h2>
+                <button onclick="deleteAllClassifications()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm flex items-center">
+                    <i class="fas fa-trash-alt mr-2"></i> Delete All
+                </button>
+            </div>
+            <div id="recentClassifications" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="text-center text-gray-400 col-span-full py-8">
+                    <i class="fas fa-history text-6xl mb-4"></i>
+                    <p>No recent object classifications.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let stream = null;
+let isDetecting = false;
+let detectionInterval = null;
+let isProcessing = false;
+let lastDetectionTime = 0;
+const DETECTION_INTERVAL = 2000;
+
+// Tab switching
+function showTab(tabName) {
+    // Hide all content
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.style.display = 'none';
+    });
+    
+    // Remove active state from all tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-teal-500', 'text-teal-500');
+        btn.classList.add('border-transparent', 'text-gray-400');
+    });
+    
+    // Show selected content
+    document.getElementById(tabName + 'Content').style.display = 'block';
+    
+    // Add active state to selected tab
+    const activeTab = document.getElementById(tabName + 'Tab');
+    activeTab.classList.remove('border-transparent', 'text-gray-400');
+    activeTab.classList.add('border-teal-500', 'text-teal-500');
+    
+    // Load recent classifications when switching tabs
+    loadRecentClassifications();
+}
+
+// Load recent classifications
+async function loadRecentClassifications() {
+    try {
+        const response = await fetch('/classification/api/recent-classifications');
+        const result = await response.json();
+        
+        if (result.success && result.classifications.length > 0) {
+            displayRecentClassifications(result.classifications);
+        } else {
+            displayRecentClassifications([]);
+        }
+    } catch (error) {
+        console.error('Error loading recent classifications:', error);
+        displayRecentClassifications([]);
+    }
+}
+
+// Display recent classifications
+function displayRecentClassifications(classifications) {
+    const recentDiv = document.getElementById('recentClassifications');
+    
+    if (classifications.length === 0) {
+        recentDiv.innerHTML = `
+            <div class="text-center text-gray-400 col-span-full py-8">
+                <i class="fas fa-history text-6xl mb-4"></i>
+                <p>No recent object classifications.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    recentDiv.innerHTML = classifications.map(classification => `
+        <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors">
+            <div class="flex justify-between items-start mb-3">
+                <span class="text-sm text-gray-400">${new Date(classification.timestamp).toLocaleString()}</span>
+                <button onclick="deleteClassification(${classification.id})" class="text-red-400 hover:text-red-300">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="mb-3">
+                <img src="/classification/uploads/${classification.image_path}" alt="Classification" class="w-full h-32 object-cover rounded">
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="font-medium text-white">Dominant Class</span>
+                    <span class="text-teal-400">${classification.dominant_class}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400">Confidence</span>
+                    <span class="text-teal-400">${(classification.confidence * 100).toFixed(1)}%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400">Processing Time</span>
+                    <span class="text-teal-400">${classification.processing_time.toFixed(3)}s</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Delete classification
+async function deleteClassification(id) {
+    if (!confirm('Are you sure you want to delete this classification?')) return;
+    
+    try {
+        const response = await fetch(`/api/detection/${id}/delete`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Classification deleted successfully', 'success');
+            loadRecentClassifications();
+        } else {
+            showToast('Error deleting classification', 'error');
+        }
+    } catch (error) {
+        showToast('Error deleting classification', 'error');
+    }
+}
+
+// Delete all classifications
+async function deleteAllClassifications() {
+    if (!confirm('Are you sure you want to delete all object classifications?')) return;
+    
+    try {
+        const response = await fetch('/api/detections/delete-all?type=classification', {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('All classifications deleted successfully', 'success');
+            loadRecentClassifications();
+        } else {
+            showToast('Error deleting classifications', 'error');
+        }
+    } catch (error) {
+        showToast('Error deleting classifications', 'error');
+    }
+}
+
+// Upload form
+document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const fileInput = document.getElementById('imageInput');
+    
+    if (!fileInput.files[0]) {
+        showToast('Please select an image', 'error');
+        return;
+    }
+    
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('imagePreview').innerHTML = `<img src="${e.target.result}" class="w-full h-full object-contain rounded-lg">`;
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+    
+    try {
+        const response = await fetch('/classification/classify_upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayResults(result);
+            showToast('Object classification completed successfully!', 'success');
+            loadRecentClassifications();
+        } else {
+            showToast(result.error, 'error');
+        }
+    } catch (error) {
+        showToast('Error: ' + error.message, 'error');
+    }
+});
+
+// Camera controls
+document.getElementById('startCamera').addEventListener('click', startCamera);
+document.getElementById('stopCamera').addEventListener('click', stopCamera);
+document.getElementById('toggleDetection').addEventListener('click', toggleDetection);
+
+async function startCamera() {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: { ideal: 640 },
+                height: { ideal: 480 }
+            } 
+        });
+        
+        const video = document.getElementById('cameraFeed');
+        video.srcObject = stream;
+        
+        // Update button states
+        document.getElementById('startCamera').disabled = true;
+        document.getElementById('stopCamera').disabled = false;
+        document.getElementById('toggleDetection').disabled = false;
+        
+        // Setup canvas
+        video.addEventListener('loadedmetadata', () => {
+            const canvas = document.getElementById('detectionCanvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+        });
+        
+        showToast('Camera started successfully!', 'success');
+    } catch (error) {
+        showToast('Error accessing camera: ' + error.message, 'error');
+    }
+}
+
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
+    
+    const video = document.getElementById('cameraFeed');
+    video.srcObject = null;
+    
+    // Update button states
+    document.getElementById('startCamera').disabled = false;
+    document.getElementById('stopCamera').disabled = true;
+    document.getElementById('toggleDetection').disabled = true;
+    
+    // Clear results
+    document.getElementById('cameraResults').innerHTML = '<p class="text-gray-400">Start camera classification to see results</p>';
+    document.getElementById('processingInfo').style.display = 'none';
+    
+    // Clear canvas
+    const canvas = document.getElementById('detectionCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (isDetecting) {
+        stopDetection();
+    }
+    
+    showToast('Camera stopped', 'info');
+}
+
+function toggleDetection() {
+    if (isDetecting) {
+        stopDetection();
+    } else {
+        startDetection();
+    }
+}
+
+function startDetection() {
+    isDetecting = true;
+    const btn = document.getElementById('toggleDetection');
+    btn.innerHTML = '<i class="fas fa-eye-slash mr-2"></i>Stop Classification';
+    btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+    btn.classList.add('bg-orange-600', 'hover:bg-orange-700');
+    
+    detectFrame();
+    detectionInterval = setInterval(detectFrame, DETECTION_INTERVAL);
+    
+    showToast('Object classification started', 'success');
+}
+
+function stopDetection() {
+    isDetecting = false;
+    const btn = document.getElementById('toggleDetection');
+    btn.innerHTML = '<i class="fas fa-eye mr-2"></i>Start Classification';
+    btn.classList.remove('bg-orange-600', 'hover:bg-orange-700');
+    btn.classList.add('bg-green-600', 'hover:bg-green-700');
+    
+    if (detectionInterval) {
+        clearInterval(detectionInterval);
+        detectionInterval = null;
+    }
+    
+    // Clear canvas
+    const canvas = document.getElementById('detectionCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    showToast('Object classification stopped', 'info');
+}
+
+async function detectFrame() {
+    if (!isDetecting || isProcessing) return;
+    
+    const currentTime = Date.now();
+    if (currentTime - lastDetectionTime < DETECTION_INTERVAL) return;
+    
+    isProcessing = true;
+    lastDetectionTime = currentTime;
+    
+    try {
+        const video = document.getElementById('cameraFeed');
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        
+        const imageData = canvas.toDataURL('image/jpeg', 0.8);
+        
+        const response = await fetch('/classification/classify_camera', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ image: imageData })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && isDetecting) {
+            drawClassifications(result);
+            updateResults(result);
+            updateProcessingInfo(result);
+        }
+    } catch (error) {
+        console.error('Classification error:', error);
+    } finally {
+        isProcessing = false;
+    }
+}
+
+function drawClassifications(result) {
+    const canvas = document.getElementById('detectionCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (result.bounding_boxes && result.bounding_boxes.length > 0) {
+        result.bounding_boxes.forEach(box => {
+            const confidence = box.confidence;
+            const confidencePercent = (confidence * 100).toFixed(1);
+            
+            let color;
+            if (confidence > 0.8) {
+                color = '#00ff00';
+            } else if (confidence > 0.6) {
+                color = '#ffaa00';
+            } else {
+                color = '#ff4444';
+            }
+            
+            const x1 = box.x1;
+            const y1 = box.y1;
+            const x2 = box.x2;
+            const y2 = box.y2;
+            const width = x2 - x1;
+            const height = y2 - y1;
+            
+            // Draw bounding box
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x1, y1, width, height);
+            
+            // Draw label
+            const label = `${box.class_name} ${confidencePercent}%`;
+            ctx.font = 'bold 14px Arial';
+            const textMetrics = ctx.measureText(label);
+            const textWidth = textMetrics.width;
+            const padding = 4;
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(x1, y1 - 20, textWidth + padding * 2, 20);
+            
+            ctx.fillStyle = 'white';
+            ctx.fillText(label, x1 + padding, y1 - 5);
+        });
+    }
+}
+
+function updateResults(result) {
+    const resultsDiv = document.getElementById('cameraResults');
+    
+    if (result.objects && result.objects.length > 0) {
+        let html = '<div class="space-y-2">';
+        
+        result.objects.forEach((obj, index) => {
+            const confidencePercent = (obj.confidence * 100).toFixed(1);
+            html += `
+                <div class="flex items-center justify-between p-2 bg-gray-800 rounded">
+                    <div>
+                        <span class="font-medium">${obj.name}</span>
+                        <span class="text-gray-400 ml-2">Object ${index + 1}</span>
+                    </div>
+                    <span class="text-teal-400">${confidencePercent}%</span>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        resultsDiv.innerHTML = html;
+    } else {
+        resultsDiv.innerHTML = `
+            <div class="text-center text-gray-400 py-4">
+                <i class="fas fa-search-minus text-4xl mb-2"></i>
+                <p>No objects classified in this frame.</p>
+            </div>
+        `;
+    }
+}
+
+function updateProcessingInfo(result) {
+    document.getElementById('processingTime').textContent = result.processing_time.toFixed(3) + 's';
+    document.getElementById('objectsCount').textContent = result.objects ? result.objects.length : 0;
+    document.getElementById('processingInfo').style.display = 'block';
+}
+
+function displayResults(result) {
+    const resultsContent = document.getElementById('resultsContent');
+    
+    if (result.annotated_image) {
+        resultsContent.innerHTML = `
+            <div class="mb-4">
+                <img src="${result.annotated_image}" class="w-full rounded-lg" alt="Classified objects">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h4 class="font-semibold text-white mb-2">Dominant Class</h4>
+                    <p class="text-2xl text-teal-400">${result.dominant_class}</p>
+                    <p class="text-gray-400">Confidence: ${(result.confidence * 100).toFixed(1)}%</p>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <h4 class="font-semibold text-white mb-2">Processing Time</h4>
+                    <p class="text-2xl text-teal-400">${result.processing_time.toFixed(3)}s</p>
+                </div>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <h4 class="font-semibold text-white mb-2">All Objects</h4>
+                <div class="space-y-2">
+                    ${result.objects.map(obj => `
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">${obj.name}</span>
+                            <span class="text-teal-400">${(obj.confidence * 100).toFixed(1)}%</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('classificationResults').style.display = 'block';
+    }
+}
+
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    
+    const bgColor = type === 'success' ? 'bg-green-600' : 
+                     type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+    
+    toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+        toast.classList.add('translate-x-0');
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+            toastContainer.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+// Load recent classifications on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadRecentClassifications();
+});
+</script>
+{% endblock %}
