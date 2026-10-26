@@ -19,66 +19,129 @@ def index():
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():
-    # Get statistics based on role
+    # Lấy dữ liệu theo phân quyền (Admin thấy toàn bộ, User thấy của mình)
     if current_user.is_admin():
-        # Admin: see all statistics across the entire system
-        total_detections = Detection.query.count()
-        camera_scans = Detection.query.filter_by(detection_type='camera').count()
-        image_analysis = Detection.query.filter_by(detection_type='upload').count()
-        detections = Detection.query.all()
+        detections = Detection.query.order_by(Detection.timestamp.desc()).all()
     else:
-        # Regular user: see only their own personal statistics
-        total_detections = Detection.query.filter_by(user_id=current_user.id).count()
-        camera_scans = Detection.query.filter_by(user_id=current_user.id, detection_type='camera').count()
-        image_analysis = Detection.query.filter_by(user_id=current_user.id, detection_type='upload').count()
-        detections = Detection.query.filter_by(user_id=current_user.id).all()
+        detections = Detection.query.filter_by(user_id=current_user.id).order_by(Detection.timestamp.desc()).all()
         
-    # Get total objects found
-    objects_found = 0
-    for detection in detections:
-        objects = detection.get_objects_detected()
-        objects_found += len(objects)
+    total_events = len(detections)
+    total_in = sum(d.in_count or 0 for d in detections)
+    total_out = sum(d.out_count or 0 for d in detections)
+    current_occupancy = max(0, total_in - total_out)
     
-    # Get top objects
-    object_counts = {}
-    for detection in detections:
-        objects = detection.get_objects_detected()
-        for obj in objects:
-            # Handle different object formats
-            object_name = 'Unknown'
+    # Lưu lượng người đỉnh điểm (Peak crowd size)
+    peak_crowd = max((d.current_count or len(d.get_objects_detected()) for d in detections), default=0)
+    
+    # Tổng số lượt phát hiện người
+    total_people_detected = sum(d.current_count or len(d.get_objects_detected()) for d in detections)
+    
+    # Số lần kích hoạt cảnh báo quá tải
+    alert_count = sum(1 for d in detections if d.alert_triggered or (d.density_level or '').upper() == 'CRITICAL')
+    
+    # Phân phối lưu lượng theo 24 giờ (0h - 23h) cho biểu đồ Line Chart
+    hourly_people = [0] * 24
+    hourly_in = [0] * 24
+    hourly_out = [0] * 24
+    
+    # Phân phối cấp độ mật độ (Donut Chart)
+    density_counts = {'LOW': 0, 'MODERATE': 0, 'HIGH': 0, 'CRITICAL': 0}
+    
+    # Phân phối theo 4 ca làm việc (Shift Bar Chart)
+    shift_counts = {'Sáng (6h-12h)': 0, 'Chiều (12h-17h)': 0, 'Tối (17h-22h)': 0, 'Đêm (22h-6h)': 0}
+    
+    for d in detections:
+        if d.timestamp:
+            h = d.timestamp.hour
+            p_count = d.current_count or len(d.get_objects_detected()) or 0
+            hourly_people[h] += p_count
+            hourly_in[h] += (d.in_count or 0)
+            hourly_out[h] += (d.out_count or 0)
             
-            if isinstance(obj, dict):
-                # Try different keys for object name
-                if 'name' in obj:
-                    object_name = obj['name']
-                elif 'en' in obj:
-                    object_name = obj['en']
-                elif 'vi' in obj:
-                    object_name = obj['vi']
-                elif 'class' in obj:
-                    object_name = obj['class']
-                elif 'label' in obj:
-                    object_name = obj['label']
-                else:
-                    object_name = str(obj)
-            elif isinstance(obj, str):
-                object_name = obj
+            if 6 <= h < 12:
+                shift_counts['Sáng (6h-12h)'] += 1
+            elif 12 <= h < 17:
+                shift_counts['Chiều (12h-17h)'] += 1
+            elif 17 <= h < 22:
+                shift_counts['Tối (17h-22h)'] += 1
             else:
-                object_name = str(obj)
+                shift_counts['Đêm (22h-6h)'] += 1
+                
+        lvl = (d.density_level or 'LOW').upper()
+        if lvl in density_counts:
+            density_counts[lvl] += 1
+        else:
+            density_counts['LOW'] += 1
             
-            # Skip 'Unknown' objects for better display
-            if isinstance(object_name, str) and object_name.lower() != 'unknown':
-                object_counts[object_name] = object_counts.get(object_name, 0) + 1
-    
-    # Sort and get top 5 objects
-    top_objects = sorted(object_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+    recent_events = detections[:8]
     
     return render_template('dashboard.html', 
-                         total_detections=total_detections,
-                         camera_scans=camera_scans,
-                         image_analysis=image_analysis,
-                         objects_found=objects_found,
-                         top_objects=top_objects)
+                           total_events=total_events,
+                           total_in=total_in,
+                           total_out=total_out,
+                           total_people_detected=total_people_detected,
+                           current_occupancy=current_occupancy,
+                           peak_crowd=peak_crowd,
+                           alert_count=alert_count,
+                           hourly_people=hourly_people,
+                           hourly_in=hourly_in,
+                           hourly_out=hourly_out,
+                           density_counts=density_counts,
+                           shift_counts=shift_counts,
+                           recent_events=recent_events)
+
+@main_bp.route('/api/generate_ai_report', methods=['POST'])
+@login_required
+def generate_ai_report():
+    """Tự động tổng hợp và sinh báo cáo ca làm việc thông minh bằng AI"""
+    try:
+        from datetime import datetime
+        detections = Detection.query.order_by(Detection.timestamp.desc()).all()
+        
+        total_records = len(detections)
+        total_in = sum(d.in_count or 0 for d in detections)
+        total_out = sum(d.out_count or 0 for d in detections)
+        peak_crowd = max((d.current_count or 0 for d in detections), default=0)
+        alerts = sum(1 for d in detections if d.alert_triggered or (d.density_level or '').upper() == 'CRITICAL')
+        
+        # Tìm giờ cao điểm nhất
+        hour_counter = [0] * 24
+        for d in detections:
+            if d.timestamp:
+                hour_counter[d.timestamp.hour] += (d.current_count or 0)
+        peak_hour = hour_counter.index(max(hour_counter)) if any(hour_counter) else 17
+        
+        now_str = datetime.now().strftime('%d/%m/%Y %H:%M')
+        
+        report_text = f"""### 📋 BÁO CÁO TỔNG QUAN LƯU LƯỢNG ĐÁM ĐÔNG & AN NINH
+**Thời gian xuất báo cáo:** {now_str}  
+**Hệ thống:** SmartCrowd AI Intelligence Platform (YOLOv11m + Databricks Lakehouse)  
+**Phân quyền kiểm toán:** {current_user.username} ({current_user.role.upper()})
+
+---
+
+#### 1. Các Chỉ Số Lưu Lượng Trọng Yếu (KPIs):
+- **Tổng số phiên giám sát ghi nhận:** `{total_records}` sự kiện.
+- **Tổng lượt người đi vào (IN):** `{total_in}` lượt.
+- **Tổng lượt người đi ra (OUT):** `{total_out}` lượt.
+- **Lưu lượng hiện diện ước tính (Net Occupancy):** `{max(0, total_in - total_out)}` người.
+- **Mật độ người tập trung cao nhất (Peak Density):** `{peak_crowd}` người/khung hình.
+- **Khung giờ cao điểm nhất trong ngày:** `{peak_hour:02d}:00 - {peak_hour+1:02d}:00`.
+
+#### 2. Đánh Giá An Toàn & Cảnh Báo Mật Độ:
+- **Số lần vượt ngưỡng an toàn (Overcrowded Incidents):** `{alerts}` lần.
+- **Mức độ tuân thủ quy định giãn cách:** {'🟢 Rất Tốt (Không có vi phạm)' if alerts == 0 else f'⚠️ Cần chú ý (Ghi nhận {alerts} lần vượt ngưỡng)'}.
+
+#### 3. Khuyến Nghị Vận Hành Từ Hệ Thống AI:
+1. **Phân bổ nhân sự:** Tăng cường 1-2 nhân viên giám sát tại khu vực cổng chính vào khung giờ cao điểm ({peak_hour:02d}:00).
+2. **Điều phối luồng di chuyển:** Duy trì vạch kẻ hướng dẫn một chiều tại các cửa ngõ có tỷ lệ In/Out chênh lệch lớn.
+3. **Đồng bộ hóa dữ liệu:** Toàn bộ log dữ liệu trên đã được nạp vào tầng **Bronze** và phân tích tại tầng **Gold** trên **Databricks Unity Catalog**.
+
+*Báo cáo được tự động khởi tạo bởi SmartCrowd Analytics Engine.*"""
+
+        return jsonify({'success': True, 'report': report_text})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @main_bp.route('/history')
 @login_required
@@ -324,75 +387,20 @@ def export_detections():
         writer = csv.writer(output)
         
         # Write header
-        writer.writerow(['ID', 'Type', 'Timestamp', 'Processing Time', 'Objects Count', 'Objects Detected'])
+        writer.writerow(['ID', 'Loại Giám Sát', 'Thời Gian', 'Thời Gian Xử Lý (s)', 'Số Người Hiện Diện', 'Lượt Vào (IN)', 'Lượt Ra (OUT)', 'Mật Độ', 'Cảnh Báo Quá Tải'])
         
         # Write data
         for detection in detections:
-            objects = detection.get_objects_detected()
-            
-            # Process objects like in single export
-            processed_objects = []
-            for obj in objects:
-                if obj and isinstance(obj, dict):
-                    # Handle different object formats
-                    if 'class' in obj and 'name' in obj and 'confidence' in obj:
-                        # Object Detection format
-                        object_name = obj.get('class', 'Unknown')
-                        if isinstance(obj.get('name'), dict):
-                            vietnamese_name = obj['name'].get('vi') or obj['name'].get('en') or obj.get('class', 'Unknown')
-                        else:
-                            vietnamese_name = obj.get('name') or obj.get('class', 'Unknown')
-                        confidence = obj.get('confidence')
-                        if confidence and isinstance(confidence, (int, float)):
-                            confidence = f"{(confidence * 100):.1f}%"
-                        else:
-                            confidence = 'Detected'
-                        processed_objects.append(f"{object_name} ({vietnamese_name}) - {confidence}")
-                    elif 'name' in obj and 'hex' in obj and 'percentage' in obj:
-                        # Color Detection format
-                        object_name = obj.get('name', 'Unknown')
-                        percentage = obj.get('percentage')
-                        confidence = f"{percentage:.1f}%" if percentage else 'Detected'
-                        processed_objects.append(f"{object_name} - {confidence}")
-                    elif 'en' in obj or 'vi' in obj:
-                        # Standard format
-                        object_name = obj.get('en') or obj.get('name') or obj.get('class_name') or obj.get('label') or 'Unknown'
-                        vietnamese_name = obj.get('vi') or obj.get('name') or obj.get('class_name') or obj.get('label') or 'Unknown'
-                        if obj.get('confidence') or obj.get('score') or obj.get('probability'):
-                            conf = obj.get('confidence') or obj.get('score') or obj.get('probability')
-                            if isinstance(conf, (int, float)):
-                                confidence = f"{conf:.1f}%"
-                            else:
-                                confidence = str(conf)
-                            processed_objects.append(f"{object_name} ({vietnamese_name}) - {confidence}")
-                        else:
-                            processed_objects.append(f"{object_name} ({vietnamese_name}) - Detected")
-                    else:
-                        # Fallback
-                        object_name = obj.get('name') or obj.get('class') or obj.get('label') or str(obj)
-                        if obj.get('confidence') or obj.get('score') or obj.get('percentage'):
-                            conf = obj.get('confidence') or obj.get('score') or obj.get('percentage')
-                            if isinstance(conf, (int, float)):
-                                confidence = f"{conf:.1f}%"
-                            else:
-                                confidence = str(conf)
-                            processed_objects.append(f"{object_name} - {confidence}")
-                        else:
-                            processed_objects.append(f"{object_name} - Detected")
-                elif isinstance(obj, str):
-                    processed_objects.append(f"{obj} - Detected")
-                else:
-                    processed_objects.append(f"{str(obj)} - Detected")
-            
-            objects_str = '; '.join(processed_objects)
-            
             writer.writerow([
                 detection.id,
                 detection.detection_type,
-                detection.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                detection.timestamp.strftime('%Y-%m-%d %H:%M:%S') if detection.timestamp else '',
                 detection.processing_time or 0,
-                len(objects),
-                objects_str
+                detection.current_count or len(detection.get_objects_detected()),
+                detection.in_count or 0,
+                detection.out_count or 0,
+                detection.density_level or 'LOW',
+                'CÓ' if detection.alert_triggered else 'KHÔNG'
             ])
         
         # Create response

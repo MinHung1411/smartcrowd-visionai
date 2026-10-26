@@ -41,36 +41,43 @@
                                     {% endif %}
                                 </div>
                                 <div>
-                                    <div class="font-medium text-sm">
-                                        {% if detection.detection_type == 'camera' %}
-                                            Camera Detection
-                                        {% elif detection.detection_type == 'color' %}
-                                            Color Detection
-                                        {% elif detection.detection_type == 'face_upload' %}
-                                            Face Detection
+                                    <div class="font-bold text-sm text-white flex items-center space-x-2">
+                                        <span>
+                                            {% if detection.detection_type == 'crowd_live' or detection.detection_type == 'camera' %}
+                                                <i class="fas fa-video text-teal-400 mr-1.5"></i>Live Camera Tracking
+                                            {% else %}
+                                                <i class="fas fa-file-image text-purple-400 mr-1.5"></i>Image Analysis
+                                            {% endif %}
+                                        </span>
+                                        {% if detection.alert_triggered or detection.density_level == 'CRITICAL' %}
+                                            <span class="bg-red-950 text-red-300 border border-red-800 text-[10px] px-2 py-0.5 rounded font-black">QUÁ TẢI</span>
                                         {% else %}
-                                            Image Detection
+                                            <span class="bg-teal-950 text-teal-300 border border-teal-800 text-[10px] px-2 py-0.5 rounded font-semibold">{{ detection.density_level or 'NORMAL' }}</span>
                                         {% endif %}
                                     </div>
-                                    <div class="text-xs text-gray-400">
-                                        {{ detection.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    <div class="text-xs text-gray-400 mt-1 flex items-center space-x-3">
+                                        <span><i class="fas fa-clock mr-1"></i>{{ detection.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                                        <span>•</span>
+                                        <span>In: <strong class="text-emerald-400">+{{ detection.in_count or 0 }}</strong></span>
+                                        <span>•</span>
+                                        <span>Out: <strong class="text-orange-400">-{{ detection.out_count or 0 }}</strong></span>
                                     </div>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-3">
                                 <div class="text-right">
-                                    <div class="text-sm font-medium">
-                                        {{ detection.get_objects_detected()|length }} objects
+                                    <div class="text-sm font-black text-teal-300">
+                                        {{ detection.current_count or detection.get_objects_detected()|length }} người
                                     </div>
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-[11px] text-gray-400">
                                         {{ "%.3f"|format(detection.processing_time or 0) }}s
                                     </div>
                                 </div>
                                 <div class="flex space-x-2">
-                                    <button onclick="showDetails('{{ detection.id }}')" class="bg-blue-600 hover:bg-blue-700 p-2 rounded text-white text-sm">
+                                    <button onclick="showDetails('{{ detection.id }}')" class="bg-teal-600 hover:bg-teal-500 p-2 rounded text-white text-sm" title="Chi tiết">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <button onclick="deleteDetection('{{ detection.id }}')" class="bg-red-600 hover:bg-red-700 p-2 rounded text-white text-sm">
+                                    <button onclick="deleteDetection('{{ detection.id }}')" class="bg-red-600 hover:bg-red-700 p-2 rounded text-white text-sm" title="Xóa">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
