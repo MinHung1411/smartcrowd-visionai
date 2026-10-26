@@ -260,6 +260,41 @@
     </div>
 </div>
 
+<style>
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    #aiReportModal, #aiReportModal * {
+        visibility: visible !important;
+    }
+    #aiReportModal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        background: white !important;
+        color: black !important;
+        padding: 0 !important;
+    }
+    #aiReportModal .bg-gray-900,
+    #aiReportModal .bg-gray-950 {
+        background: white !important;
+        color: #111827 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    #aiReportModal button {
+        display: none !important;
+    }
+    #aiReportContent {
+        color: #111827 !important;
+        border: 1px solid #e5e7eb !important;
+        max-height: none !important;
+    }
+}
+</style>
+
 <!-- Chart.js Script -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>

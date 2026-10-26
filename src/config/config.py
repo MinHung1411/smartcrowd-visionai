@@ -30,8 +30,8 @@ class Config:
     
     # Upload settings
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'uploads')
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'mp4', 'avi', 'mov'}
+    MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 100MB max file size for CCTV clips
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'mp4', 'avi', 'mov', 'mkv'}
     
     # Session settings
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)

@@ -1,0 +1,490 @@
+{% extends "base.html" %}
+
+{% block title %}Video Analytics - SmartCrowd AI Platform{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center space-x-3">
+                <span class="p-2.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl text-indigo-400">
+                    <i class="fas fa-film text-xl"></i>
+                </span>
+                <div>
+                    <h1 class="text-2xl lg:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-indigo-300">
+                        CCTV Video Crowd Analytics
+                    </h1>
+                    <p class="text-xs text-gray-400 mt-0.5">YOLOv11m + ByteTrack Multithreaded Trajectory Tracking & Flow Profiling</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <a href="{{ url_for('detection.camera') }}" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-medium border border-gray-700 transition flex items-center">
+                <i class="fas fa-video mr-2 text-cyan-400"></i> Switch to Live Camera
+            </a>
+            <a href="{{ url_for('main.dashboard') }}" class="btn-primary px-5 py-2 rounded-xl text-white text-sm font-semibold shadow-lg shadow-teal-500/20 flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Upload & Parameter Configuration Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Video Upload Box -->
+        <div class="lg:col-span-2 card p-6 rounded-2xl border border-gray-800">
+            <h2 class="text-base font-bold text-gray-200 mb-3 flex items-center">
+                <i class="fas fa-cloud-upload-alt text-indigo-400 mr-2"></i> Select Surveillance Footage
+            </h2>
+            
+            <div id="videoDropZone" class="border-2 border-dashed border-gray-700 hover:border-indigo-500 rounded-2xl p-8 text-center cursor-pointer transition bg-gray-900/40 hover:bg-indigo-950/10">
+                <input type="file" id="videoFileInput" accept="video/mp4,video/avi,video/quicktime,video/x-matroska" class="hidden">
+                <div class="w-16 h-16 mx-auto mb-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-400 text-3xl">
+                    <i class="fas fa-file-video"></i>
+                </div>
+                <p class="text-sm font-semibold text-gray-200 mb-1">Drag & drop surveillance clip or click to browse</p>
+                <p class="text-xs text-gray-400">Supports MP4, AVI, MOV, MKV (Up to 100MB)</p>
+                <div id="selectedFileInfo" class="mt-3 inline-block px-3 py-1 bg-indigo-500/20 border border-indigo-500/40 rounded-full text-xs text-indigo-300" style="display: none;"></div>
+            </div>
+
+            <!-- Upload Action Buttons -->
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <button id="startProcessBtn" disabled class="btn-primary px-6 py-2.5 rounded-xl text-white font-semibold text-sm opacity-50 cursor-not-allowed transition flex items-center">
+                    <i class="fas fa-play-circle mr-2"></i> Process Video Analysis
+                </button>
+                <button id="resetFormBtn" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-xl text-xs border border-gray-700 transition">
+                    <i class="fas fa-redo-alt mr-1"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Hyperparameters & Inference Engine Options -->
+        <div class="card p-6 rounded-2xl border border-gray-800 space-y-4">
+            <h2 class="text-base font-bold text-gray-200 flex items-center">
+                <i class="fas fa-sliders-h text-teal-400 mr-2"></i> Inference Engine Options
+            </h2>
+
+            <!-- Confidence Slider -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">YOLO Confidence Threshold</span>
+                    <span id="videoConfVal" class="text-teal-400 font-mono font-bold">35%</span>
+                </div>
+                <input type="range" id="videoConfSlider" min="15" max="80" value="35" class="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-teal-500">
+            </div>
+
+            <!-- Frame Skip (Speed vs Accuracy) -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">Frame Skip (Throughput Optimization)</span>
+                    <span id="frameSkipVal" class="text-indigo-400 font-mono font-bold">Step 2 (Balanced)</span>
+                </div>
+                <input type="range" id="frameSkipSlider" min="1" max="5" value="2" class="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                <p class="text-[10px] text-gray-500">Step 1 = Every frame | Step 2 = 2x Speed | Step 4 = Ultra Fast</p>
+            </div>
+
+            <!-- Virtual Line Position -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">Counting Line Ratio</span>
+                    <span id="videoLineVal" class="text-amber-400 font-mono font-bold">50%</span>
+                </div>
+                <input type="range" id="videoLineSlider" min="20" max="80" value="50" class="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-amber-500">
+            </div>
+
+            <!-- Max Processing Duration -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between text-xs">
+                    <span class="text-gray-400">Max Analysis Timeout</span>
+                    <span class="text-cyan-400 font-mono font-bold">180s</span>
+                </div>
+                <select id="maxTimeoutSelect" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-teal-500">
+                    <option value="60">60 seconds (Short clips)</option>
+                    <option value="180" selected>180 seconds (Standard)</option>
+                    <option value="360">360 seconds (Extended)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Status Banner (Hidden until processing) -->
+    <div id="processingBanner" class="p-6 bg-gradient-to-r from-indigo-950/60 to-purple-950/60 border border-indigo-500/40 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4" style="display: none;">
+        <div class="flex items-center space-x-4">
+            <div class="animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent"></div>
+            <div>
+                <h3 class="text-base font-bold text-white">Analyzing Surveillance Video...</h3>
+                <p class="text-xs text-indigo-300">Extracting frames, applying YOLOv11m CrowdHuman, ByteTrack ID linking & line crossing.</p>
+            </div>
+        </div>
+        <div class="text-right">
+            <span class="text-xs text-gray-400">Please keep this window open</span>
+        </div>
+    </div>
+
+    <!-- Results Section (Hidden until done) -->
+    <div id="resultsSection" class="space-y-6" style="display: none;">
+        <!-- 5 KPI Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <!-- Total IN -->
+            <div class="card p-4 rounded-xl border border-gray-800 flex items-center space-x-3">
+                <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl">
+                    <i class="fas fa-sign-in-alt text-lg"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400">Total Entries (IN)</p>
+                    <p id="kpiTotalIn" class="text-2xl font-black text-emerald-400">0</p>
+                </div>
+            </div>
+
+            <!-- Total OUT -->
+            <div class="card p-4 rounded-xl border border-gray-800 flex items-center space-x-3">
+                <div class="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl">
+                    <i class="fas fa-sign-out-alt text-lg"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400">Total Exits (OUT)</p>
+                    <p id="kpiTotalOut" class="text-2xl font-black text-amber-400">0</p>
+                </div>
+            </div>
+
+            <!-- Net Occupancy -->
+            <div class="card p-4 rounded-xl border border-gray-800 flex items-center space-x-3">
+                <div class="p-3 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-xl">
+                    <i class="fas fa-users text-lg"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400">Net Occupancy</p>
+                    <p id="kpiNetOcc" class="text-2xl font-black text-cyan-400">0</p>
+                </div>
+            </div>
+
+            <!-- Peak Crowd -->
+            <div class="card p-4 rounded-xl border border-gray-800 flex items-center space-x-3">
+                <div class="p-3 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl">
+                    <i class="fas fa-chart-line text-lg"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400">Peak In-Frame</p>
+                    <p id="kpiPeakInFrame" class="text-2xl font-black text-purple-400">0</p>
+                </div>
+            </div>
+
+            <!-- Unique Visitors -->
+            <div class="card p-4 rounded-xl border border-gray-800 flex items-center space-x-3 col-span-2 md:col-span-1">
+                <div class="p-3 bg-pink-500/10 border border-pink-500/20 text-pink-400 rounded-xl">
+                    <i class="fas fa-fingerprint text-lg"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400">Unique Persons</p>
+                    <p id="kpiUnique" class="text-2xl font-black text-pink-400">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Player & Heatmap Side-by-side -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Annotated Video Playback -->
+            <div class="card p-6 rounded-2xl border border-gray-800 space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-gray-200 flex items-center">
+                        <i class="fas fa-play text-teal-400 mr-2"></i> Tracked Video Playback
+                    </h3>
+                    <a id="downloadVideoBtn" href="#" download class="text-xs text-teal-400 hover:text-teal-300 flex items-center">
+                        <i class="fas fa-download mr-1"></i> Download MP4
+                    </a>
+                </div>
+                <div class="rounded-xl overflow-hidden bg-black border border-gray-800 aspect-video flex items-center justify-center">
+                    <video id="resultVideoPlayer" controls class="w-full h-full object-contain">
+                        Your browser does not support HTML5 video.
+                    </video>
+                </div>
+            </div>
+
+            <!-- Heatmap View -->
+            <div class="card p-6 rounded-2xl border border-gray-800 space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-gray-200 flex items-center">
+                        <i class="fas fa-fire text-amber-400 mr-2"></i> Accumulated Crowd Heatmap
+                    </h3>
+                    <a id="downloadHeatmapBtn" href="#" download class="text-xs text-amber-400 hover:text-amber-300 flex items-center">
+                        <i class="fas fa-download mr-1"></i> Download Heatmap
+                    </a>
+                </div>
+                <div class="rounded-xl overflow-hidden bg-black border border-gray-800 aspect-video flex items-center justify-center">
+                    <img id="resultHeatmapImg" src="" alt="Crowd Heatmap" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Foot Traffic Density Chart -->
+        <div class="card p-6 rounded-2xl border border-gray-800">
+            <h3 class="text-sm font-bold text-gray-200 mb-3 flex items-center">
+                <i class="fas fa-chart-area text-indigo-400 mr-2"></i> Second-by-Second Traffic Density Timeline
+            </h3>
+            <div class="h-64">
+                <canvas id="timelineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Processing Benchmark Telemetry -->
+        <div class="p-4 bg-gray-900 border border-gray-800 rounded-xl flex flex-wrap items-center justify-between text-xs text-gray-400 gap-4">
+            <div>
+                <span class="text-gray-500">Processed: </span>
+                <span id="teleFrames" class="text-gray-200 font-mono font-bold">-</span> frames
+            </div>
+            <div>
+                <span class="text-gray-500">Inference Time: </span>
+                <span id="teleTime" class="text-gray-200 font-mono font-bold">-</span>s
+            </div>
+            <div>
+                <span class="text-gray-500">Processing Speed: </span>
+                <span id="teleFps" class="text-teal-400 font-mono font-bold">-</span> FPS
+            </div>
+            <div>
+                <span class="text-gray-500">Target Model: </span>
+                <span class="text-indigo-400 font-mono font-bold">YOLOv11m-CrowdHuman</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Tracker: </span>
+                <span class="text-cyan-400 font-mono font-bold">ByteTrack</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const videoDropZone = document.getElementById('videoDropZone');
+    const videoFileInput = document.getElementById('videoFileInput');
+    const selectedFileInfo = document.getElementById('selectedFileInfo');
+    const startProcessBtn = document.getElementById('startProcessBtn');
+    const resetFormBtn = document.getElementById('resetFormBtn');
+
+    const videoConfSlider = document.getElementById('videoConfSlider');
+    const videoConfVal = document.getElementById('videoConfVal');
+    const frameSkipSlider = document.getElementById('frameSkipSlider');
+    const frameSkipVal = document.getElementById('frameSkipVal');
+    const videoLineSlider = document.getElementById('videoLineSlider');
+    const videoLineVal = document.getElementById('videoLineVal');
+    const maxTimeoutSelect = document.getElementById('maxTimeoutSelect');
+
+    const processingBanner = document.getElementById('processingBanner');
+    const resultsSection = document.getElementById('resultsSection');
+
+    let currentSelectedFile = null;
+    let timelineChartInstance = null;
+
+    // Slider Listeners
+    videoConfSlider.addEventListener('input', (e) => {
+        videoConfVal.innerText = `${e.target.value}%`;
+    });
+
+    frameSkipSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        const map = {
+            1: 'Step 1 (Full Fidelity)',
+            2: 'Step 2 (Balanced - Recommended)',
+            3: 'Step 3 (Fast)',
+            4: 'Step 4 (Ultra Fast)',
+            5: 'Step 5 (Maximum Speed)'
+        };
+        frameSkipVal.innerText = map[val] || `Step ${val}`;
+    });
+
+    videoLineSlider.addEventListener('input', (e) => {
+        videoLineVal.innerText = `${e.target.value}%`;
+    });
+
+    // File Selection Handlers
+    videoDropZone.addEventListener('click', () => videoFileInput.click());
+
+    videoDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        videoDropZone.classList.add('border-indigo-500', 'bg-indigo-950/20');
+    });
+
+    videoDropZone.addEventListener('dragleave', () => {
+        videoDropZone.classList.remove('border-indigo-500', 'bg-indigo-950/20');
+    });
+
+    videoDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        videoDropZone.classList.remove('border-indigo-500', 'bg-indigo-950/20');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileSelect(e.dataTransfer.files[0]);
+        }
+    });
+
+    videoFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+
+    function handleFileSelect(file) {
+        currentSelectedFile = file;
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+        selectedFileInfo.innerText = `Selected: ${file.name} (${sizeMb} MB)`;
+        selectedFileInfo.style.display = 'inline-block';
+        startProcessBtn.disabled = false;
+        startProcessBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    resetFormBtn.addEventListener('click', () => {
+        currentSelectedFile = null;
+        videoFileInput.value = '';
+        selectedFileInfo.style.display = 'none';
+        startProcessBtn.disabled = true;
+        startProcessBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        resultsSection.style.display = 'none';
+        processingBanner.style.display = 'none';
+    });
+
+    // Process Video Submission
+    startProcessBtn.addEventListener('click', async () => {
+        if (!currentSelectedFile) return;
+
+        const formData = new FormData();
+        formData.append('file', currentSelectedFile);
+        formData.append('conf', (parseFloat(videoConfSlider.value) / 100).toFixed(2));
+        formData.append('frame_step', frameSkipSlider.value);
+        formData.append('line_ratio', (parseFloat(videoLineSlider.value) / 100).toFixed(2));
+        formData.append('max_seconds', maxTimeoutSelect.value);
+
+        processingBanner.style.display = 'flex';
+        resultsSection.style.display = 'none';
+        startProcessBtn.disabled = true;
+        startProcessBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+        try {
+            const response = await fetch('/detection/process_video', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            processingBanner.style.display = 'none';
+            startProcessBtn.disabled = false;
+            startProcessBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            if (!data.success) {
+                alert('Lỗi xử lý video: ' + (data.error || 'Unknown error'));
+                return;
+            }
+
+            // Hiển thị kết quả KPI
+            document.getElementById('kpiTotalIn').innerText = data.total_in;
+            document.getElementById('kpiTotalOut').innerText = data.total_out;
+            document.getElementById('kpiNetOcc').innerText = data.net_occupancy;
+            document.getElementById('kpiPeakInFrame').innerText = data.peak_in_frame;
+            document.getElementById('kpiUnique').innerText = data.unique_visitors;
+
+            // Telemetry
+            document.getElementById('teleFrames').innerText = `${data.processed_frames} / ${data.total_video_frames}`;
+            document.getElementById('teleTime').innerText = data.processing_time;
+            document.getElementById('teleFps').innerText = data.processing_fps;
+
+            // Video Player
+            const player = document.getElementById('resultVideoPlayer');
+            player.src = data.video_url;
+            player.load();
+
+            const downloadVideoBtn = document.getElementById('downloadVideoBtn');
+            downloadVideoBtn.href = data.video_url;
+
+            // Heatmap
+            if (data.heatmap_url) {
+                const heatmapImg = document.getElementById('resultHeatmapImg');
+                heatmapImg.src = data.heatmap_url;
+                const downloadHeatmapBtn = document.getElementById('downloadHeatmapBtn');
+                downloadHeatmapBtn.href = data.heatmap_url;
+            }
+
+            // Render Timeline Chart
+            renderTimelineChart(data.timeline);
+
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+        } catch (err) {
+            processingBanner.style.display = 'none';
+            startProcessBtn.disabled = false;
+            startProcessBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            alert('Lỗi kết nối máy chủ: ' + err.message);
+        }
+    });
+
+    function renderTimelineChart(timeline) {
+        if (!timeline || timeline.length === 0) return;
+
+        const ctx = document.getElementById('timelineChart').getContext('2d');
+        const labels = timeline.map(t => `${t.time_sec}s`);
+        const counts = timeline.map(t => t.count);
+        const ins = timeline.map(t => t.in);
+        const outs = timeline.map(t => t.out);
+
+        if (timelineChartInstance) {
+            timelineChartInstance.destroy();
+        }
+
+        timelineChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'In-Frame Density (People)',
+                        data: counts,
+                        borderColor: '#818cf8',
+                        backgroundColor: 'rgba(129, 140, 248, 0.15)',
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 2,
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'Total Cumulative IN',
+                        data: ins,
+                        borderColor: '#10b981',
+                        borderDash: [5, 5],
+                        borderWidth: 1.5,
+                        fill: false,
+                        pointRadius: 0
+                    },
+                    {
+                        label: 'Total Cumulative OUT',
+                        data: outs,
+                        borderColor: '#f59e0b',
+                        borderDash: [5, 5],
+                        borderWidth: 1.5,
+                        fill: false,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#9ca3af', font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#6b7280', maxTicksLimit: 12 },
+                        grid: { color: '#1f2937' }
+                    },
+                    y: {
+                        ticks: { color: '#6b7280' },
+                        grid: { color: '#1f2937' },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

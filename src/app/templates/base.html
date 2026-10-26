@@ -105,6 +105,9 @@
                 <a href="{{ url_for('detection.camera') }}" class="sidebar-item block py-2.5 px-4 rounded-xl text-sm font-medium mb-1 {% if request.endpoint == 'detection.camera' %}active text-white font-bold{% else %}text-gray-300 hover:text-white{% endif %}">
                     <i class="fas fa-video mr-3 text-cyan-400"></i> Live Camera Tracking
                 </a>
+                <a href="{{ url_for('detection.video') }}" class="sidebar-item block py-2.5 px-4 rounded-xl text-sm font-medium mb-1 {% if request.endpoint == 'detection.video' %}active text-white font-bold{% else %}text-gray-300 hover:text-white{% endif %}">
+                    <i class="fas fa-film mr-3 text-indigo-400"></i> Video Analytics
+                </a>
                 <a href="{{ url_for('detection.upload') }}" class="sidebar-item block py-2.5 px-4 rounded-xl text-sm font-medium mb-1 {% if request.endpoint == 'detection.upload' %}active text-white font-bold{% else %}text-gray-300 hover:text-white{% endif %}">
                     <i class="fas fa-file-upload mr-3 text-emerald-400"></i> Image Analysis
                 </a>

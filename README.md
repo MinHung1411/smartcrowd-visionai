@@ -25,6 +25,8 @@
 - [Key Features](#-key-features)
 - [System Architecture](#-system-architecture)
 - [Model Evaluation & Benchmarks](#-model-evaluation--benchmarks)
+- [Surveillance Virtual Fence (Polygon ROI)](#-surveillance-virtual-fence-polygon-roi)
+- [Video Analytics & Traffic Timeline](#-video-analytics--traffic-timeline)
 - [Databricks Medallion Lakehouse](#-databricks-medallion-lakehouse)
 - [Quick Start](#-quick-start)
 - [Project Structure](#-project-structure)
@@ -39,7 +41,9 @@
 
 The system seamlessly bridges **Edge Computer Vision** with a **Cloud-Native Data Lakehouse**:
 1. **Real-time Edge Vision**: Utilizes a fine-tuned **YOLOv11 Medium** model combined with **ByteTrack** multi-object tracking to detect persons in dense crowds, maintain unique identities, and track bi-directional virtual line crossing (**IN / OUT**).
-2. **Cloud Data Lakehouse (Medallion Pipeline)**: Continuously streams traffic events and density metrics into **Databricks Unity Catalog**, running automated **Bronze → Silver → Gold** ETL pipelines for real-time BI reporting, peak hour detection, and safety compliance audits.
+2. **Surveillance Virtual Fence (Polygon ROI)**: Allows security operators to draw custom restricted zones on live CCTV feeds, detecting intrusions with millisecond latency and triggering automated audio-visual alarms.
+3. **CCTV Video Analytics Pipeline**: Upload and analyze surveillance footage (`.mp4`, `.avi`, `.mov`) with timeline traffic profiling, unique visitor counting, and downloadable annotated video.
+4. **Cloud Data Lakehouse (Medallion Pipeline)**: Continuously streams traffic events and density metrics into **Databricks Unity Catalog**, running automated **Bronze → Silver → Gold** ETL pipelines for real-time BI reporting, peak hour detection, and safety compliance audits.
 
 > 🌐 **Live Model Demo**: [minhunhooo-crowd-people-counter.hf.space](https://minhunhooo-crowd-people-counter.hf.space/)
 
@@ -51,9 +55,13 @@ The system seamlessly bridges **Edge Computer Vision** with a **Cloud-Native Dat
 |---|---|---|
 | 🚶‍♂️ **Dense Crowd Detection** | Detects people in overlapping, crowded scenes without missing small/occluded bodies | YOLOv11m fine-tuned on CrowdHuman |
 | 🔄 **Bi-directional Counting** | Virtual crossing line detects direction: entry (**IN +1**) vs exit (**OUT +1**) | ByteTrack + Line Crossing Vector |
+| 🛡️ **Surveillance Virtual Fence** | Draw custom polygon restricted zones on CCTV view with intrusion detection | OpenCV `pointPolygonTest` + Audio Synth |
+| 📹 **Full Video Analytics** | Upload surveillance videos with speed/accuracy slider, generating timeline charts & MP4 export | Multithreaded ByteTrack Video Pipeline |
 | 🏢 **Occupancy Monitoring** | Live calculation of current persons in the area and net occupancy ($\text{IN} - \text{OUT}$) | Real-time Sliding Window State |
 | ⚠️ **Overcrowding Safety Alert** | Immediate visual alarm and database flag when crowd count exceeds safety threshold | Dynamic Threshold Detector |
 | 🎨 **Crowd Density Heatmap** | Accumulates movement paths and overlays a thermal density map on CCTV view | Gaussian Blur + OpenCV Colormap JET |
+| 🚨 **Incident Dispatcher** | Instant security incident notification with photo snapshots | Telegram Bot API + Webhook Integration |
+| 📑 **AI Executive Briefing** | Generates executive shift reports with 1-click clean PDF / Print export | Local Analytics LLM Engine |
 | 📊 **Databricks Analytics** | Hourly traffic distribution, peak shift summary, and safety violation audit logs | Databricks Unity Catalog (SQL) |
 | 🔐 **User Management** | Role-based access control (Admin / Operator), audit logging, and CSV export | Flask-Login + bcrypt |
 
@@ -63,28 +71,29 @@ The system seamlessly bridges **Edge Computer Vision** with a **Cloud-Native Dat
 
 ```mermaid
 graph TD
-    A[📷 CCTV / Webcam Stream] -->|Base64 Frames| B[🌐 Flask Web Application]
+    A[📷 CCTV / Webcam / Video File] -->|Video Frames| B[🌐 Flask Web Application]
     B -->|Inference Frame| C[🤖 YOLOv11m Engine]
     C -->|Bounding Boxes| D[🎯 ByteTrack Multi-Object Tracker]
-    D -->|Centroid Trajectories| E[📐 Line Crossing Vector Engine]
+    D -->|Centroid Trajectories| E[📐 Line Crossing & Polygon ROI Engine]
     
-    E -->|Real-time HUD| F[🖥️ Live Monitoring UI]
+    E -->|Real-time HUD & Alarm| F[🖥️ Live CCTV Interface]
     E -->|Thermal Coordinates| G[🎨 Crowd Heatmap Generator]
+    E -->|Security Alerts| H[🚨 Telegram Bot / Webhook]
     
-    E -->|Crowd Metrics & Events| H[(🗄️ Databricks Unity Catalog)]
+    E -->|Crowd Metrics & Events| I[(🗄️ Databricks Unity Catalog)]
     
-    H --> I[🥉 Bronze Layer<br/>Raw Traffic Logs]
-    I --> J[🥈 Silver Layer<br/>Feature Engineering & Shift Classification]
-    J --> K[🥇 Gold Layer<br/>Hourly Aggregates & Safety Violation Logs]
-    K --> L[📊 Executive BI Dashboard]
+    I --> J[🥉 Bronze Layer<br/>Raw Traffic Logs]
+    J --> K[🥈 Silver Layer<br/>Feature Engineering & Shift Classification]
+    K --> L[🥇 Gold Layer<br/>Hourly Aggregates & Safety Violation Logs]
+    L --> M[📊 Executive BI Dashboard & AI Shift Briefing]
 
     style A fill:#4CAF50,color:#fff
     style B fill:#2196F3,color:#fff
     style C fill:#FF6B35,color:#fff
     style D fill:#9C27B0,color:#fff
-    style H fill:#E24A4A,color:#fff
-    style K fill:#FFD700,color:#000
-    style L fill:#00BCD4,color:#fff
+    style I fill:#E24A4A,color:#fff
+    style L fill:#FFD700,color:#000
+    style M fill:#00BCD4,color:#fff
 ```
 
 ---
@@ -103,6 +112,26 @@ The core vision model was fine-tuned from **YOLOv11m** on the challenging **Crow
 | **Recall** | **90.1%** | Detects heavily occluded persons |
 | **Inference Latency** | **~8ms (GPU) / ~35ms (CPU)** | 60+ FPS Real-time capability |
 | **Tracking Algorithm** | **ByteTrack (`bytetrack.yaml`)** | ID-consistent tracking |
+
+---
+
+## 🛡️ Surveillance Virtual Fence (Polygon ROI)
+
+Operators can dynamically draw arbitrary polygon zones on the camera feed:
+- **Interactive ROI Canvas**: Click to place boundary vertices on the CCTV canvas.
+- **Intrusion Detection**: Uses ray-casting point-in-polygon tests (`cv2.pointPolygonTest`) against pedestrian foot centroids.
+- **Audio-Visual Alarm**: Highlights intruders in neon red, triggers Web Audio API alarm synthesizer, and dispatches incident snapshot to Telegram.
+- **Preset Quick-Zones**: Includes 1-click presets for *Main Entrance (Center)*, *Corridor (Left)*, and *Stage Area (Bottom)*.
+
+---
+
+## 📹 Video Analytics & Traffic Timeline
+
+Upload surveillance footage to run batch analytics:
+- **Throughput Optimization**: Frame skipping slider (Full Fidelity vs 2x/4x Ultra Fast).
+- **Timeline Foot Traffic**: Second-by-second pedestrian density graph rendered via Chart.js.
+- **Output Video**: Download annotated MP4 with trajectory tracks, IDs, and HUD overlays.
+- **Accumulated Video Heatmap**: Instant thermal hotspot snapshot summarizing the entire video.
 
 ---
 
@@ -136,7 +165,7 @@ Cleaned and enriched with **6 engineered analytical features**:
 ### Prerequisites
 - Python 3.10+
 - Webcam or video file
-- (Optional) Databricks workspace credentials
+- (Optional) Databricks workspace credentials or SQLite fallback (auto-configured)
 
 ### 1. Clone & Set Up Virtual Environment
 
@@ -150,13 +179,19 @@ venv\Scripts\activate       # On Windows
 # source venv/bin/activate  # On macOS/Linux
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r src/requirements.txt
 ```
 
-### 2. Launch the Web Application
+### 2. Configure Environment (Optional)
 
 ```bash
-# Navigate to src and run
+cp src/.env.example src/.env
+# Edit src/.env with Telegram Bot Token or Databricks credentials if desired
+```
+
+### 3. Launch the Web Application
+
+```bash
 cd src
 python run.py
 ```
@@ -178,13 +213,16 @@ smartcrowd-visionai/
 │   ├── app/
 │   │   ├── models/                    # SQLAlchemy ORM (User, Detection)
 │   │   ├── services/
-│   │   │   ├── crowd_service.py       # YOLOv11m + ByteTrack + Line Crossing Engine
+│   │   │   ├── crowd_service.py       # YOLOv11m + ByteTrack + ROI + Video Engine
+│   │   │   ├── alert_service.py       # Telegram & Webhook Incident Dispatcher
 │   │   │   └── db_service.py          # Database & Databricks synchronization
-│   │   ├── templates/                 # Jinja2 HTML (Tailwind CSS Dark HUD)
-│   │   │   ├── detection/camera.html  # Live CCTV People Counting interface
-│   │   │   ├── detection/upload.html  # Image analysis interface
-│   │   │   └── dashboard.html         # Analytics & Charts
-│   │   └── views/                     # Flask Blueprints
+│   │   ├── templates/                 # Jinja2 HTML (Cyberpunk Dark HUD)
+│   │   │   ├── detection/camera.html  # Live CCTV People Counting & Virtual Fence
+│   │   │   ├── detection/video.html   # Video Footage Analytics & Timeline Profiler
+│   │   │   ├── detection/upload.html  # Image Crowd Density Analysis
+│   │   │   ├── dashboard.html         # Executive Analytics & AI Shift Briefing
+│   │   │   └── history.html           # Historical Audit Log
+│   │   └── views/                     # Flask Blueprints (main, detection, auth)
 │   ├── best.pt                        # YOLOv11m fine-tuned model (~40.5 MB)
 │   ├── config/config.py               # Application configurations
 │   ├── requirements.txt               # Dependencies

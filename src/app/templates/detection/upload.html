@@ -1,91 +1,124 @@
 {% extends "base.html" %}
 
-{% block title %}Image Detection - VisionAI Object Detection{% endblock %}
+{% block title %}Image Analysis - SmartCrowd VisionAI{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-        <h1 class="text-3xl font-bold">AI Image Analysis</h1>
-        <a href="{{ url_for('main.dashboard') }}" class="btn-primary px-6 py-2 rounded-lg text-white">
-            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
-        </a>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center space-x-3">
+                <span class="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
+                    <i class="fas fa-camera text-xl"></i>
+                </span>
+                <div>
+                    <h1 class="text-2xl lg:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-emerald-300">
+                        Image Crowd Density & Counting Analysis
+                    </h1>
+                    <p class="text-xs text-gray-400 mt-0.5">YOLOv11m CrowdHuman Deep Feature Extraction</p>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <a href="{{ url_for('detection.video') }}" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-medium border border-gray-700 transition flex items-center">
+                <i class="fas fa-film mr-2 text-indigo-400"></i> Video Analytics
+            </a>
+            <a href="{{ url_for('main.dashboard') }}" class="btn-primary px-5 py-2 rounded-xl text-white text-sm font-semibold shadow-lg shadow-teal-500/20 flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Dashboard
+            </a>
+        </div>
     </div>
     
-    <!-- Upload Section -->
+    <!-- Upload & Results Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Upload Area -->
-        <div class="card p-6 rounded-lg">
-            <h2 class="text-xl font-bold mb-4">Upload Image</h2>
-            <div id="dropZone" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-teal-500 transition-colors cursor-pointer">
+        <div class="card p-6 rounded-2xl border border-gray-800 space-y-4">
+            <h2 class="text-base font-bold text-gray-200 flex items-center">
+                <i class="fas fa-cloud-upload-alt text-emerald-400 mr-2"></i> Upload Photo (CCTV Snapshot / Crowd Scene)
+            </h2>
+            <div id="dropZone" class="border-2 border-dashed border-gray-700 rounded-2xl p-8 text-center hover:border-emerald-500 transition cursor-pointer bg-gray-900/40 hover:bg-emerald-950/10">
                 <input type="file" id="fileInput" accept="image/*" class="hidden">
-                <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
-                <p class="text-gray-300 mb-2">Drag & drop an image here or click to browse</p>
-                <p class="text-sm text-gray-500">Supported formats: PNG, JPG, JPEG, GIF, BMP, WebP</p>
-                <p class="text-sm text-gray-500">Maximum file size: 16MB</p>
+                <div class="w-16 h-16 mx-auto mb-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 text-3xl">
+                    <i class="fas fa-image"></i>
+                </div>
+                <p class="text-sm font-semibold text-gray-200 mb-1">Drag & drop an image here or click to browse</p>
+                <p class="text-xs text-gray-400">Supported formats: PNG, JPG, JPEG, WebP (Up to 16MB)</p>
             </div>
             
             <!-- Preview Area -->
-            <div id="previewArea" class="mt-4" style="display: none;">
-                <h3 class="font-medium mb-2">Preview:</h3>
-                <img id="previewImage" class="w-full rounded-lg" alt="Preview">
-                <div class="mt-4 flex space-x-4">
-                    <button id="detectBtn" class="btn-primary px-6 py-2 rounded-lg text-white">
-                        <i class="fas fa-search mr-2"></i>Detect Objects
+            <div id="previewArea" class="space-y-4" style="display: none;">
+                <div class="rounded-xl overflow-hidden bg-black border border-gray-800 aspect-video flex items-center justify-center">
+                    <img id="previewImage" class="w-full h-full object-contain" alt="Preview">
+                </div>
+                <div class="flex items-center justify-between">
+                    <button id="detectBtn" class="btn-primary px-6 py-2.5 rounded-xl text-white font-semibold text-sm shadow-lg shadow-teal-500/20 flex items-center">
+                        <i class="fas fa-search mr-2"></i> Run Crowd Detection
                     </button>
-                    <button id="clearBtn" class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-lg text-white">
-                        <i class="fas fa-times mr-2"></i>Clear
+                    <button id="clearBtn" class="bg-gray-800 hover:bg-gray-700 px-4 py-2.5 rounded-xl text-gray-300 text-sm font-medium border border-gray-700 transition flex items-center">
+                        <i class="fas fa-times mr-2"></i> Clear
                     </button>
                 </div>
             </div>
         </div>
         
-        <!-- Detection Results -->
-        <div class="card rounded-lg overflow-hidden">
-            <h2 class="text-xl font-bold p-6 pb-4">Detection Results</h2>
-            <div id="detectionResults" class="space-y-4">
-                <div class="text-center text-gray-400 py-8">
-                    <i class="fas fa-search text-6xl mb-4"></i>
-                    <p>Upload an image to start object detection.</p>
+        <!-- Detection Results Card -->
+        <div class="card p-6 rounded-2xl border border-gray-800 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
+                    <h2 class="text-base font-bold text-gray-200 flex items-center">
+                        <i class="fas fa-poll text-teal-400 mr-2"></i> Detection Insights & HUD
+                    </h2>
+                    <span id="resultDensityBadge" class="hidden text-xs px-2.5 py-1 rounded-full font-bold">
+                        LOW
+                    </span>
+                </div>
+
+                <div id="detectionResults" class="space-y-4">
+                    <div class="text-center text-gray-500 py-12">
+                        <i class="fas fa-user-friends text-5xl mb-3 opacity-40"></i>
+                        <p class="text-sm">Select an image to detect pedestrian density and count.</p>
+                    </div>
                 </div>
             </div>
             
-            <!-- Processing Info -->
-            <div id="processingInfo" class="mt-6 p-4 bg-gray-800 rounded-lg" style="display: none;">
-                <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-400">Processing Time:</span>
-                    <span id="processingTime" class="text-sm font-medium">-</span>
-                </div>
-                <div class="flex items-center justify-between mt-2">
-                    <span class="text-sm text-gray-400">Objects Detected:</span>
-                    <span id="objectsCount" class="text-sm font-medium">-</span>
+            <!-- Processing Telemetry -->
+            <div id="processingInfo" class="mt-4 p-4 bg-gray-900 border border-gray-800 rounded-xl space-y-2" style="display: none;">
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <span class="text-gray-500">Inference Time:</span>
+                        <span id="processingTime" class="ml-1 text-gray-200 font-mono font-bold">-</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">People Detected:</span>
+                        <span id="objectsCount" class="ml-1 text-teal-400 font-mono font-bold">-</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
     
-    <!-- Detection History -->
-    <div class="card p-6 rounded-lg">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold">Recent Image Detections</h2>
-            <button onclick="deleteAllDetections()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
-                <i class="fas fa-trash-alt mr-2"></i>Delete All
-            </button>
+    <!-- Annotated Result Modal / Display -->
+    <div id="annotatedDisplayCard" class="card p-6 rounded-2xl border border-gray-800 space-y-3" style="display: none;">
+        <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-gray-200 flex items-center">
+                <i class="fas fa-check-circle text-teal-400 mr-2"></i> Annotated Crowd Detection Image
+            </h3>
+            <a id="downloadAnnotatedBtn" href="#" download class="text-xs text-teal-400 hover:text-teal-300 font-medium flex items-center">
+                <i class="fas fa-download mr-1"></i> Download Annotated Image
+            </a>
         </div>
-        <div id="recentDetections" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="text-center text-gray-400 col-span-full py-8">
-                <i class="fas fa-history text-6xl mb-4"></i>
-                <p>No recent detections from uploaded images.</p>
-            </div>
+        <div class="rounded-xl overflow-hidden bg-black border border-gray-800 flex items-center justify-center max-h-[600px]">
+            <img id="annotatedResultImg" src="" alt="Annotated Result" class="w-full h-auto object-contain">
         </div>
     </div>
+</div>
 
 <!-- Loading Modal -->
-<div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
-    <div class="bg-gray-800 p-6 rounded-lg text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto mb-4"></div>
-        <p class="text-white">Detecting objects...</p>
+<div id="loadingModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50" style="display: none;">
+    <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl text-center shadow-2xl space-y-4">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent mx-auto"></div>
+        <h3 class="text-base font-bold text-white">Running YOLOv11m Crowd Inference...</h3>
+        <p class="text-xs text-gray-400">Extracting pedestrian bounding boxes and computing density level.</p>
     </div>
 </div>
 {% endblock %}
@@ -99,54 +132,45 @@
     const detectBtn = document.getElementById('detectBtn');
     const clearBtn = document.getElementById('clearBtn');
     const loadingModal = document.getElementById('loadingModal');
+    const annotatedDisplayCard = document.getElementById('annotatedDisplayCard');
+    const annotatedResultImg = document.getElementById('annotatedResultImg');
+    const downloadAnnotatedBtn = document.getElementById('downloadAnnotatedBtn');
+    const resultDensityBadge = document.getElementById('resultDensityBadge');
     let selectedFile = null;
     
-    // Click to upload
-    dropZone.addEventListener('click', () => {
-        fileInput.click();
-    });
+    dropZone.addEventListener('click', () => fileInput.click());
     
-    // File selection
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
-        if (file) {
-            handleFile(file);
-        }
+        if (file) handleFile(file);
     });
     
-    // Drag and drop
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.classList.add('border-teal-500', 'bg-gray-800');
+        dropZone.classList.add('border-emerald-500', 'bg-emerald-950/20');
     });
     
-    dropZone.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('border-teal-500', 'bg-gray-800');
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-emerald-500', 'bg-emerald-950/20');
     });
     
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('border-teal-500', 'bg-gray-800');
-        
+        dropZone.classList.remove('border-emerald-500', 'bg-emerald-950/20');
         const file = e.dataTransfer.files[0];
         if (file && file.type.startsWith('image/')) {
             handleFile(file);
         } else {
-            alert('Please upload a valid image file.');
+            alert('Vui lòng chọn file ảnh hợp lệ.');
         }
     });
     
     function handleFile(file) {
-        // Check file size (16MB limit)
         if (file.size > 16 * 1024 * 1024) {
-            alert('File size must be less than 16MB.');
+            alert('Dung lượng ảnh phải nhỏ hơn 16MB.');
             return;
         }
-        
         selectedFile = file;
-        
-        // Show preview
         const reader = new FileReader();
         reader.onload = (e) => {
             previewImage.src = e.target.result;
@@ -156,31 +180,30 @@
         reader.readAsDataURL(file);
     }
     
-    // Clear selection
     clearBtn.addEventListener('click', () => {
         selectedFile = null;
         fileInput.value = '';
         previewArea.style.display = 'none';
         dropZone.style.display = 'block';
+        annotatedDisplayCard.style.display = 'none';
+        resultDensityBadge.classList.add('hidden');
         document.getElementById('detectionResults').innerHTML = `
-            <div class="text-center text-gray-400 py-8">
-                <i class="fas fa-search text-6xl mb-4"></i>
-                <p>Upload an image to start object detection.</p>
+            <div class="text-center text-gray-500 py-12">
+                <i class="fas fa-user-friends text-5xl mb-3 opacity-40"></i>
+                <p class="text-sm">Select an image to detect pedestrian density and count.</p>
             </div>
         `;
         document.getElementById('processingInfo').style.display = 'none';
     });
     
-    // Detect objects
     detectBtn.addEventListener('click', async () => {
         if (!selectedFile) {
-            alert('Please select an image first.');
+            alert('Vui lòng chọn ảnh trước.');
             return;
         }
         
         const formData = new FormData();
         formData.append('file', selectedFile);
-        
         loadingModal.style.display = 'flex';
         
         try {
@@ -190,318 +213,59 @@
             });
             
             const result = await response.json();
+            loadingModal.style.display = 'none';
             
             if (result.success) {
-                displayDetectionResults(result);
-                updateProcessingInfo(result);
-                loadRecentDetections(); // Refresh recent detections
+                // Density badge
+                resultDensityBadge.classList.remove('hidden');
+                resultDensityBadge.innerText = `DENSITY: ${result.density_level}`;
+                if (result.density_level === 'CRITICAL' || result.density_level === 'HIGH') {
+                    resultDensityBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-rose-950 text-rose-300 border border-rose-700';
+                } else {
+                    resultDensityBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-teal-950 text-teal-300 border border-teal-700';
+                }
+
+                // Show Results HUD
+                document.getElementById('detectionResults').innerHTML = `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-gray-900 border border-gray-800 rounded-xl">
+                            <span class="text-xs text-gray-400">Total People Count</span>
+                            <p class="text-3xl font-black text-white mt-1">${result.person_count}</p>
+                        </div>
+                        <div class="p-4 bg-gray-900 border border-gray-800 rounded-xl">
+                            <span class="text-xs text-gray-400">Crowd Level</span>
+                            <p class="text-xl font-bold text-teal-400 mt-2">${result.density_level}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                        ${result.objects.slice(0, 15).map(o => `
+                            <div class="flex justify-between items-center text-xs p-2 bg-gray-900/60 rounded-lg border border-gray-800">
+                                <span class="text-gray-300"><i class="fas fa-user mr-1.5 text-teal-400"></i>${o.name}</span>
+                                <span class="font-mono text-teal-400 font-semibold">${(o.confidence * 100).toFixed(1)}%</span>
+                            </div>
+                        `).join('')}
+                        ${result.objects.length > 15 ? `<p class="text-[10px] text-gray-500 text-center">+ ${result.objects.length - 15} more individuals</p>` : ''}
+                    </div>
+                `;
+
+                // Telemetry
+                document.getElementById('processingTime').innerText = `${result.processing_time}s`;
+                document.getElementById('objectsCount').innerText = `${result.person_count} individuals`;
+                document.getElementById('processingInfo').style.display = 'block';
+
+                // Annotated Image
+                annotatedResultImg.src = result.annotated_image;
+                downloadAnnotatedBtn.href = result.annotated_image;
+                annotatedDisplayCard.style.display = 'block';
+                annotatedDisplayCard.scrollIntoView({ behavior: 'smooth' });
+
             } else {
-                alert('Detection failed: ' + result.error);
+                alert('Lỗi nhận diện: ' + result.error);
             }
         } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred during detection.');
-        } finally {
             loadingModal.style.display = 'none';
+            alert('Lỗi kết nối máy chủ: ' + error.message);
         }
     });
-    
-    function displayDetectionResults(result) {
-        const resultsDiv = document.getElementById('detectionResults');
-        
-        if (result.objects && result.objects.length > 0) {
-            let html = '<div class="space-y-3">';
-            
-            // Display annotated image
-            if (result.annotated_image) {
-                html += `<img src="${result.annotated_image}" alt="Detection Result" class="w-full">`;
-            }
-            
-            // Display detected objects
-            html += '<h3 class="font-bold text-lg mb-3">Detected Objects:</h3>';
-            result.objects.forEach((obj, index) => {
-                const confidence = result.confidence_scores[index] || 0;
-                const confidencePercent = (confidence * 100).toFixed(1);
-                
-                // Handle different object formats
-                let objectName = obj;
-                let englishName = '';
-                let vietnameseName = '';
-                
-                if (typeof obj === 'object' && obj !== null) {
-                    if (obj.name && typeof obj.name === 'object') {
-                        // New format: {name: {en: 'horse', vi: 'Ngựa'}}
-                        englishName = obj.name.en || '';
-                        vietnameseName = obj.name.vi || '';
-                        objectName = englishName || vietnameseName || 'Unknown';
-                    } else if (obj.en || obj.vi) {
-                        // Old format: {en: 'horse', vi: 'Ngựa'}
-                        englishName = obj.en || '';
-                        vietnameseName = obj.vi || '';
-                        objectName = englishName || vietnameseName || 'Unknown';
-                    } else if (obj.bilingual) {
-                        // Bilingual format: {bilingual: {en: 'horse', vi: 'Ngựa'}}
-                        englishName = obj.bilingual.en || '';
-                        vietnameseName = obj.bilingual.vi || '';
-                        objectName = englishName || vietnameseName || 'Unknown';
-                    } else {
-                        // Fallback
-                        objectName = obj.name || obj.class || 'Unknown';
-                    }
-                }
-                
-                html += `
-                    <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                        <div>
-                            <span class="font-medium">${objectName}</span>
-                            ${englishName && vietnameseName && englishName !== vietnameseName ? 
-                                `<span class="text-gray-400 ml-2">/ ${vietnameseName}</span>` : ''}
-                        </div>
-                        <div class="text-right">
-                            <span class="text-sm text-gray-400">Confidence:</span>
-                            <span class="ml-2 font-medium ${confidence > 0.7 ? 'text-green-500' : confidence > 0.5 ? 'text-yellow-500' : 'text-red-500'}">
-                                ${confidencePercent}%
-                            </span>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            resultsDiv.innerHTML = html;
-        } else {
-            resultsDiv.innerHTML = `
-                <div class="text-center text-gray-400 py-8">
-                    <i class="fas fa-search-minus text-6xl mb-4"></i>
-                    <p>No objects detected in this image.</p>
-                </div>
-            `;
-        }
-    }
-    
-    function updateProcessingInfo(result) {
-        const infoDiv = document.getElementById('processingInfo');
-        const timeSpan = document.getElementById('processingTime');
-        const countSpan = document.getElementById('objectsCount');
-        
-        if (result.processing_time) {
-            timeSpan.textContent = result.processing_time.toFixed(3) + 's';
-        }
-        
-        if (result.objects) {
-            countSpan.textContent = result.objects.length;
-        }
-        
-        infoDiv.style.display = 'block';
-    }
-    
-    async function loadRecentDetections() {
-        try {
-            const response = await fetch('/api/recent-detections?type=upload');
-            const result = await response.json();
-            
-            const recentDiv = document.getElementById('recentDetections');
-            if (result.success && result.detections.length > 0) {
-            let html = '';
-            result.detections.forEach(detection => {
-                    const objects = detection.objects_detected || [];
-                    const objectsCount = objects.length;
-                    
-                    html += `
-                        <div class="bg-gray-800 rounded-lg p-4">
-                            <img src="/detection/uploads/${detection.image_path}" alt="Detection" class="w-full h-32 object-cover rounded mb-2">
-                            <p class="text-sm text-gray-400">${new Date(detection.timestamp).toLocaleDateString('vi-VN')} ${new Date(detection.timestamp).toLocaleTimeString('vi-VN')}</p>
-                            <p class="text-sm">${objectsCount} objects detected</p>
-                            <div class="mt-2 flex space-x-2">
-                                <button onclick="downloadDetection(${detection.id})" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-white text-sm">
-                                    <i class="fas fa-download"></i> Download
-                                </button>
-                                <button onclick="deleteDetection(${detection.id})" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-white text-sm">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                recentDiv.innerHTML = html;
-            } else {
-                recentDiv.innerHTML = `
-                    <div class="text-center text-gray-400 col-span-full py-8">
-                        <i class="fas fa-history text-6xl mb-4"></i>
-                        <p>No recent detections from uploaded images.</p>
-                    </div>
-                `;
-            }
-        } catch (error) {
-            console.error('Error loading recent detections:', error);
-        }
-    }
-    
-    async function deleteDetection(detectionId) {
-        // Create custom modal dialog
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        modal.innerHTML = `
-            <div class="bg-gray-800 p-6 rounded-lg max-w-md mx-4">
-                <h3 class="text-lg font-semibold text-white mb-4">Confirm Delete</h3>
-                <p class="text-gray-300 mb-6">Are you sure you want to delete this detection? This action cannot be undone.</p>
-                <div class="flex justify-end space-x-4">
-                    <button onclick="closeDeleteModal()" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white">
-                        Cancel
-                    </button>
-                    <button onclick="confirmDelete(${detectionId})" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
-                        Delete
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Add modal to page
-        document.body.appendChild(modal);
-        
-        // Store reference
-        window.deleteModal = modal;
-        window.deleteCallback = () => {
-            performDelete(detectionId);
-        };
-    }
-    
-    function closeDeleteModal() {
-        if (window.deleteModal) {
-            document.body.removeChild(window.deleteModal);
-            window.deleteModal = null;
-            window.deleteCallback = null;
-        }
-    }
-    
-    function confirmDelete(detectionId) {
-        if (window.deleteCallback) {
-            window.deleteCallback();
-            closeDeleteModal();
-        }
-    }
-    
-    async function performDelete(detectionId) {
-        try {
-            const response = await fetch(`/api/detection/${detectionId}/delete`, {
-                method: 'DELETE'
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                loadRecentDetections(); // Refresh list
-                showToast('Detection deleted successfully', 'success');
-            } else {
-                showToast(result.error, 'error');
-            }
-        } catch (error) {
-            showToast('Error deleting detection', 'error');
-        }
-    }
-    
-    async function deleteAllDetections() {
-        // Create custom modal dialog
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        modal.innerHTML = `
-            <div class="bg-gray-800 p-6 rounded-lg max-w-md mx-4">
-                <h3 class="text-lg font-semibold text-white mb-4">Confirm Delete All</h3>
-                <p class="text-gray-300 mb-6">Are you sure you want to delete all upload detections? This action cannot be undone.</p>
-                <div class="flex justify-end space-x-4">
-                    <button onclick="closeDeleteModal()" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white">
-                        Cancel
-                    </button>
-                    <button onclick="confirmDeleteAll()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
-                        Delete All
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Add modal to page
-        document.body.appendChild(modal);
-        
-        // Store reference
-        window.deleteModal = modal;
-        window.deleteCallback = () => {
-            performDeleteAll();
-        };
-    }
-    
-    function closeDeleteModal() {
-        if (window.deleteModal) {
-            document.body.removeChild(window.deleteModal);
-            window.deleteModal = null;
-            window.deleteCallback = null;
-        }
-    }
-    
-    function confirmDeleteAll() {
-        if (window.deleteCallback) {
-            window.deleteCallback();
-            closeDeleteModal();
-        }
-    }
-    
-    async function performDeleteAll() {
-        try {
-            const response = await fetch('/api/detections/delete-all?type=upload', {
-                method: 'DELETE'
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                loadRecentDetections(); // Refresh list
-                showToast(result.message, 'success');
-            } else {
-                showToast(result.error, 'error');
-            }
-        } catch (error) {
-            showToast('Error deleting all detections', 'error');
-        }
-    }
-    
-    async function downloadDetection(detectionId) {
-        try {
-            const response = await fetch(`/api/detection/${detectionId}/download`);
-            
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `detection_${detectionId}_annotated.jpg`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            } else {
-                const result = await response.json();
-                showToast(result.error, 'error');
-            }
-        } catch (error) {
-            showToast('Error downloading detection', 'error');
-        }
-    }
-    
-    function showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 ${
-            type === 'success' ? 'bg-green-600' : 
-            type === 'error' ? 'bg-red-600' : 'bg-blue-600'
-        }`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    }
-    
-    // Load recent detections on page load
-    loadRecentDetections();
 </script>
 {% endblock %}

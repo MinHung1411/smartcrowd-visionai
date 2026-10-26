@@ -13,28 +13,39 @@
                     <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
                 </span>
                 <h1 class="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-300">
-                    SmartCrowd: Real-Time People Counting & Tracking
+                    SmartCrowd: Real-Time CCTV Surveillance & People Counting
                 </h1>
             </div>
             <p class="text-sm text-gray-400 mt-1 flex items-center space-x-2">
                 <span>Model: <strong class="text-teal-300">YOLOv11m (CrowdHuman fine-tuned)</strong></span>
                 <span>•</span>
-                <span>Tracker: <strong class="text-cyan-300">ByteTrack (Multi-Object)</strong></span>
+                <span>Tracker: <strong class="text-cyan-300">ByteTrack</strong></span>
+                <span>•</span>
+                <span id="fenceStatusText" class="text-amber-400">Fence: {% if has_roi %}Active{% else %}None{% endif %}</span>
             </p>
         </div>
         <div class="flex items-center space-x-3">
-            <button id="openHeatmapBtn" class="bg-purple-600 hover:bg-purple-500 px-4 py-2.5 rounded-xl text-white font-medium shadow-lg shadow-purple-900/30 transition flex items-center space-x-2">
+            <button id="audioAlarmToggleBtn" class="bg-gray-800 hover:bg-gray-700 px-3.5 py-2 rounded-xl text-gray-300 text-sm font-medium border border-gray-700 transition flex items-center space-x-2">
+                <i id="alarmAudioIcon" class="fas fa-volume-up text-teal-400"></i>
+                <span id="alarmAudioText">Còi: BẬT</span>
+            </button>
+            <button id="openHeatmapBtn" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-xl text-white font-medium shadow-lg shadow-purple-900/30 transition flex items-center space-x-2">
                 <i class="fas fa-fire"></i>
                 <span>Xem Heatmap</span>
             </button>
-            <a href="{{ url_for('main.dashboard') }}" class="bg-gray-800 hover:bg-gray-700 px-4 py-2.5 rounded-xl text-gray-300 font-medium transition flex items-center space-x-2">
+            <a href="{{ url_for('detection.video') }}" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl text-white font-medium shadow-lg shadow-indigo-900/30 transition flex items-center space-x-2">
+                <i class="fas fa-film"></i>
+                <span>Video Analytics</span>
+            </a>
+            <a href="{{ url_for('main.dashboard') }}" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-xl text-gray-300 font-medium transition flex items-center space-x-2">
                 <i class="fas fa-arrow-left"></i>
                 <span>Dashboard</span>
             </a>
         </div>
     </div>
 
-    <!-- Alert Notification Banner (Hidden by default) -->
+    <!-- Alert Notification Banners -->
+    <!-- Overcrowded Alert -->
     <div id="overcrowdedAlert" class="hidden bg-gradient-to-r from-red-900/90 via-red-800 to-rose-900 border-2 border-red-500 text-white p-4 rounded-2xl shadow-2xl animate-pulse">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -50,6 +61,22 @@
         </div>
     </div>
 
+    <!-- Security Zone Intrusion Alert -->
+    <div id="intrusionAlert" class="hidden bg-gradient-to-r from-rose-950 via-red-900 to-orange-950 border-2 border-red-500 text-white p-4 rounded-2xl shadow-2xl animate-pulse">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-radiation text-3xl text-red-400 animate-spin"></i>
+                <div>
+                    <h3 class="text-lg font-black tracking-wide text-red-300">CẢNH BÁO AN NINH: XÂM NHẬP VÙNG CẤM!</h3>
+                    <p class="text-sm text-red-200">Phát hiện đối tượng di chuyển vào vùng cấm (Restricted Polygon Fence) trên camera!</p>
+                </div>
+            </div>
+            <span class="text-xs uppercase font-extrabold bg-red-600 px-4 py-2 rounded-xl border border-red-400">
+                ZONE BREACH
+            </span>
+        </div>
+    </div>
+
     <!-- 4 Real-Time Traffic Metric Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Current In Frame -->
@@ -59,28 +86,31 @@
             </div>
             <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 flex items-center space-x-1.5">
                 <i class="fas fa-eye text-teal-400"></i>
-                <span>Đang trong khung hình</span>
+                <span>Hiện diện trong Frame</span>
             </span>
             <div class="mt-2 flex items-baseline space-x-2">
-                <span id="metricCurrent" class="text-4xl font-extrabold text-teal-400">0</span>
+                <span id="metricCurrent" class="text-4xl font-extrabold text-white">0</span>
                 <span class="text-sm text-gray-400">người</span>
             </div>
-            <div class="mt-2 text-xs flex items-center space-x-2">
-                <span id="metricDensity" class="px-2 py-0.5 rounded-md bg-teal-950 text-teal-300 border border-teal-800 font-semibold">Mật độ: THẤP</span>
+            <div class="mt-2 text-xs flex items-center justify-between">
+                <span id="metricDensity" class="px-2 py-0.5 rounded-md bg-teal-950 text-teal-300 border border-teal-800 font-semibold">
+                    Mật độ: THẤP
+                </span>
+                <span class="text-gray-400">Ngưỡng: <strong id="metricThresholdText" class="text-teal-400">{{ alert_threshold }}</strong></span>
             </div>
         </div>
 
         <!-- Total IN -->
         <div class="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-800 p-5 rounded-2xl shadow-lg relative overflow-hidden">
-            <div class="absolute -right-2 -bottom-2 opacity-10 text-emerald-400 text-7xl font-black">
+            <div class="absolute -right-2 -bottom-2 opacity-10 text-green-400 text-7xl font-black">
                 <i class="fas fa-sign-in-alt"></i>
             </div>
             <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 flex items-center space-x-1.5">
-                <i class="fas fa-arrow-down text-emerald-400"></i>
+                <i class="fas fa-arrow-down text-green-400"></i>
                 <span>Lượt đi VÀO (IN)</span>
             </span>
             <div class="mt-2 flex items-baseline space-x-2">
-                <span id="metricIn" class="text-4xl font-extrabold text-emerald-400">0</span>
+                <span id="metricIn" class="text-4xl font-extrabold text-green-400">0</span>
                 <span class="text-sm text-gray-400">lượt</span>
             </div>
             <span class="mt-2 text-xs text-gray-400 block">Qua vạch ảo hướng A &rarr; B</span>
@@ -143,8 +173,14 @@
                 <video id="webcam" class="hidden" autoplay playsinline muted></video>
                 
                 <!-- Display Canvas -->
-                <canvas id="displayCanvas" class="w-full h-full object-contain"></canvas>
+                <canvas id="displayCanvas" class="w-full h-full object-contain cursor-crosshair"></canvas>
                 
+                <!-- Overlay message while drawing Polygon ROI -->
+                <div id="drawingRoiHint" class="hidden absolute top-4 left-4 bg-red-950/90 border border-red-500 text-red-200 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md">
+                    <i class="fas fa-draw-polygon mr-1.5 text-red-400"></i>
+                    Nhấp chuột lên màn hình để chọn các điểm đỉnh vùng cấm (Tối thiểu 3 điểm). Bấm "Lưu Vùng Cấm" khi xong.
+                </div>
+
                 <!-- Placeholder when camera stopped -->
                 <div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-950/90 text-gray-400 p-6 text-center space-y-3">
                     <div class="h-16 w-16 rounded-full bg-teal-500/10 flex items-center justify-center border border-teal-500/30 text-teal-400 text-3xl">
@@ -225,6 +261,57 @@
                 </div>
             </div>
 
+            <!-- Restricted Zone (Polygon ROI / Virtual Fence) Section -->
+            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-xl space-y-4">
+                <h3 class="text-base font-bold text-gray-200 border-b border-gray-800 pb-3 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-draw-polygon text-rose-400"></i>
+                        <span>Vùng Cấm An Ninh (Polygon Fence)</span>
+                    </div>
+                    <span id="roiBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700">None</span>
+                </h3>
+
+                <p class="text-xs text-gray-400">
+                    Khoanh vùng khu vực hạn chế. Hệ thống sẽ phát chuông báo và gửi cảnh báo khi có người bước vào.
+                </p>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="toggleDrawRoiBtn" class="bg-rose-950/60 hover:bg-rose-900 border border-rose-700 text-rose-300 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center space-x-1.5">
+                        <i class="fas fa-pencil-alt"></i>
+                        <span id="drawRoiBtnText">Vẽ Vùng Cấm</span>
+                    </button>
+                    <button id="clearRoiBtn" class="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center space-x-1.5">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Xóa Vùng Cấm</span>
+                    </button>
+                </div>
+
+                <!-- Presets -->
+                <div class="space-y-1.5 pt-1">
+                    <span class="text-[11px] text-gray-500 font-medium">Vùng mẫu có sẵn (Presets):</span>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button onclick="applyRoiPreset('left')" class="px-2 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-[10px] text-gray-300 border border-gray-700 text-center">
+                            Hành Lang Trái
+                        </button>
+                        <button onclick="applyRoiPreset('center')" class="px-2 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-[10px] text-gray-300 border border-gray-700 text-center">
+                            Cửa Ra Vào
+                        </button>
+                        <button onclick="applyRoiPreset('stage')" class="px-2 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-[10px] text-gray-300 border border-gray-700 text-center">
+                            Khu Sân Khấu
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Test Alert Notification -->
+                <div class="pt-2 border-t border-gray-800 flex items-center justify-between">
+                    <span class="text-[11px] text-gray-400">Test Incident Dispatcher:</span>
+                    <button id="testAlarmBtn" class="text-xs text-teal-400 hover:text-teal-300 underline font-medium">
+                        <i class="fas fa-paper-plane mr-1"></i> Gửi thử cảnh báo
+                    </button>
+                </div>
+            </div>
+
             <!-- Algorithm & Model Info Box -->
             <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-xl space-y-3">
                 <h4 class="text-sm font-bold uppercase tracking-wider text-gray-400 flex items-center space-x-2">
@@ -238,19 +325,19 @@
                     </div>
                     <div class="flex justify-between py-1 border-b border-gray-800/60">
                         <span class="text-gray-400">Tập dữ liệu:</span>
-                        <span class="font-semibold text-teal-300">CrowdHuman (Fine-tuned)</span>
+                        <span class="font-semibold text-teal-300">CrowdHuman (15,000+ images)</span>
                     </div>
                     <div class="flex justify-between py-1 border-b border-gray-800/60">
-                        <span class="text-gray-400">Độ chính xác mAP@50:</span>
-                        <span class="font-bold text-emerald-400">95.8%</span>
+                        <span class="text-gray-400">Độ chính xác (mAP@50):</span>
+                        <span class="font-bold text-teal-400">95.8%</span>
                     </div>
                     <div class="flex justify-between py-1 border-b border-gray-800/60">
-                        <span class="text-gray-400">Đa đối tượng Tracker:</span>
-                        <span class="font-semibold text-cyan-300">ByteTrack (Kalman + Hung.)</span>
+                        <span class="text-gray-400">Thuật toán Tracking:</span>
+                        <span class="font-semibold text-cyan-300">ByteTrack (Centroid + Trajectory)</span>
                     </div>
                     <div class="flex justify-between py-1">
-                        <span class="text-gray-400">Data Lakehouse:</span>
-                        <span class="font-semibold text-amber-300">Databricks Unity Catalog</span>
+                        <span class="text-gray-400">Lakehouse Medallion:</span>
+                        <span class="font-semibold text-yellow-400">Bronze &rarr; Silver &rarr; Gold</span>
                     </div>
                 </div>
             </div>
@@ -258,51 +345,50 @@
     </div>
 </div>
 
-<!-- Heatmap Modal -->
-<div id="heatmapModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
-    <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4">
+<!-- Modal xem Crowd Heatmap -->
+<div id="heatmapModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4">
         <div class="flex items-center justify-between border-b border-gray-800 pb-3">
-            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                <i class="fas fa-fire text-red-500"></i>
-                <span>Bản Đồ Nhiệt Mật Độ Đám Đông (Crowd Heatmap)</span>
-            </h3>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-fire text-2xl text-purple-400"></i>
+                <h3 class="text-lg font-bold text-white">Bản đồ nhiệt Đám đông (Crowd Traffic Heatmap)</h3>
+            </div>
             <button id="closeHeatmapBtn" class="text-gray-400 hover:text-white text-xl">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="relative aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center">
-            <img id="heatmapImage" class="w-full h-full object-contain" alt="Heatmap">
+        <div class="bg-black rounded-xl overflow-hidden aspect-video border border-gray-800 flex items-center justify-center">
+            <img id="heatmapImage" class="w-full h-full object-contain" src="" alt="Crowd Heatmap">
         </div>
-        <div class="flex items-center justify-between text-xs text-gray-400">
-            <span>Màu sắc: 🔵 Xanh (Ít người) &rarr; 🟡 Vàng (Trung bình) &rarr; 🔴 Đỏ (Tập trung đông)</span>
-            <button id="refreshHeatmapBtn" class="bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-white font-medium">
-                <i class="fas fa-sync-alt mr-1"></i>Làm mới
+        <div class="flex justify-between items-center text-xs text-gray-400 pt-2">
+            <span>Tích lũy từ các tọa độ tâm người đã xuất hiện từ khi khởi động server.</span>
+            <button id="refreshHeatmapBtn" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg font-medium transition">
+                <i class="fas fa-sync-alt mr-1"></i> Làm mới
             </button>
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const webcam = document.getElementById('webcam');
     const displayCanvas = document.getElementById('displayCanvas');
     const ctx = displayCanvas.getContext('2d');
     const placeholder = document.getElementById('cameraPlaceholder');
-    
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
     const resetCounterBtn = document.getElementById('resetCounterBtn');
     const logDatabricksBtn = document.getElementById('logDatabricksBtn');
-    
-    // Sliders
+
     const lineSlider = document.getElementById('lineSlider');
     const lineVal = document.getElementById('lineVal');
     const confSlider = document.getElementById('confSlider');
     const confVal = document.getElementById('confVal');
     const alertSlider = document.getElementById('alertSlider');
     const alertVal = document.getElementById('alertVal');
-    
-    // Metrics
+
     const metricCurrent = document.getElementById('metricCurrent');
     const metricIn = document.getElementById('metricIn');
     const metricOut = document.getElementById('metricOut');
@@ -310,43 +396,108 @@ document.addEventListener('DOMContentLoaded', () => {
     const metricPeak = document.getElementById('metricPeak');
     const metricLatency = document.getElementById('metricLatency');
     const metricDensity = document.getElementById('metricDensity');
+    const metricThresholdText = document.getElementById('metricThresholdText');
+
     const overcrowdedAlert = document.getElementById('overcrowdedAlert');
     const alertCountBadge = document.getElementById('alertCountBadge');
-    
-    // Heatmap Modal
-    const heatmapModal = document.getElementById('heatmapModal');
+    const intrusionAlert = document.getElementById('intrusionAlert');
+
     const openHeatmapBtn = document.getElementById('openHeatmapBtn');
     const closeHeatmapBtn = document.getElementById('closeHeatmapBtn');
     const refreshHeatmapBtn = document.getElementById('refreshHeatmapBtn');
+    const heatmapModal = document.getElementById('heatmapModal');
     const heatmapImage = document.getElementById('heatmapImage');
 
-    let stream = null;
+    // ROI Polygon Elements
+    const toggleDrawRoiBtn = document.getElementById('toggleDrawRoiBtn');
+    const drawRoiBtnText = document.getElementById('drawRoiBtnText');
+    const clearRoiBtn = document.getElementById('clearRoiBtn');
+    const roiBadge = document.getElementById('roiBadge');
+    const drawingRoiHint = document.getElementById('drawingRoiHint');
+    const testAlarmBtn = document.getElementById('testAlarmBtn');
+    const audioAlarmToggleBtn = document.getElementById('audioAlarmToggleBtn');
+    const alarmAudioIcon = document.getElementById('alarmAudioIcon');
+    const alarmAudioText = document.getElementById('alarmAudioText');
+
     let isRunning = false;
     let isProcessing = false;
     let sendLogNext = false;
-    
-    // Slider Events
+    let stream = null;
+    let audioAlarmEnabled = true;
+    let lastAudioBeepTime = 0;
+
+    // ROI Drawing State
+    let isDrawingRoi = false;
+    let activeRoiPoints = []; // [[normX, normY], ...]
+
+    // Web Audio Synthesizer Beep (No audio files needed)
+    let audioCtx = null;
+    function playAlarmBeep(frequency = 880, duration = 0.25) {
+        if (!audioAlarmEnabled) return;
+        const now = Date.now();
+        if (now - lastAudioBeepTime < 1500) return; // Cooldown
+        lastAudioBeepTime = now;
+
+        try {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(frequency / 2, audioCtx.currentTime + duration);
+
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch (e) {
+            console.warn('Audio play failed:', e);
+        }
+    }
+
+    audioAlarmToggleBtn.addEventListener('click', () => {
+        audioAlarmEnabled = !audioAlarmEnabled;
+        if (audioAlarmEnabled) {
+            alarmAudioIcon.className = 'fas fa-volume-up text-teal-400';
+            alarmAudioText.textContent = 'Còi: BẬT';
+        } else {
+            alarmAudioIcon.className = 'fas fa-volume-mute text-gray-500';
+            alarmAudioText.textContent = 'Còi: TẮT';
+        }
+    });
+
+    // Sliders
     lineSlider.addEventListener('input', (e) => lineVal.textContent = `${e.target.value}%`);
     confSlider.addEventListener('input', (e) => confVal.textContent = `${e.target.value}%`);
-    alertSlider.addEventListener('input', (e) => alertVal.textContent = `${e.target.value} người`);
+    alertSlider.addEventListener('input', (e) => {
+        alertVal.textContent = `${e.target.value} người`;
+        metricThresholdText.textContent = e.target.value;
+    });
 
     // Start Camera
     startBtn.addEventListener('click', async () => {
         try {
             stream = await navigator.mediaDevices.getUserMedia({
-                video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+                video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+                audio: false
             });
             webcam.srcObject = stream;
             await webcam.play();
-            
-            displayCanvas.width = webcam.videoWidth || 640;
-            displayCanvas.height = webcam.videoHeight || 480;
-            
+            isRunning = true;
             placeholder.classList.add('hidden');
             startBtn.disabled = true;
             stopBtn.disabled = false;
-            isRunning = true;
-            
+
+            displayCanvas.width = 640;
+            displayCanvas.height = 480;
             requestAnimationFrame(processLoop);
         } catch (err) {
             alert('Không thể mở Camera: ' + err.message);
@@ -362,6 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
         placeholder.classList.remove('hidden');
         startBtn.disabled = false;
         stopBtn.disabled = true;
+        overcrowdedAlert.classList.add('hidden');
+        intrusionAlert.classList.add('hidden');
     });
 
     // Reset Counter
@@ -379,13 +532,128 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Log to Databricks
+    // Log to DB
     logDatabricksBtn.addEventListener('click', () => {
         sendLogNext = true;
         logDatabricksBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Đã ghi nhận!';
         setTimeout(() => {
             logDatabricksBtn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Lưu Snapshot vào DB';
         }, 1500);
+    });
+
+    // ROI Polygon Drawing on Canvas
+    toggleDrawRoiBtn.addEventListener('click', () => {
+        isDrawingRoi = !isDrawingRoi;
+        if (isDrawingRoi) {
+            activeRoiPoints = [];
+            drawingRoiHint.classList.remove('hidden');
+            drawRoiBtnText.textContent = 'Lưu Vùng Cấm';
+            toggleDrawRoiBtn.classList.replace('bg-rose-950/60', 'bg-emerald-600');
+            toggleDrawRoiBtn.classList.replace('text-rose-300', 'text-white');
+        } else {
+            drawingRoiHint.classList.add('hidden');
+            drawRoiBtnText.textContent = 'Vẽ Vùng Cấm';
+            toggleDrawRoiBtn.classList.replace('bg-emerald-600', 'bg-rose-950/60');
+            toggleDrawRoiBtn.classList.replace('text-white', 'text-rose-300');
+            saveCurrentRoi();
+        }
+    });
+
+    displayCanvas.addEventListener('click', (e) => {
+        if (!isDrawingRoi) return;
+        const rect = displayCanvas.getBoundingClientRect();
+        const normX = (e.clientX - rect.left) / rect.width;
+        const normY = (e.clientY - rect.top) / rect.height;
+        activeRoiPoints.push([parseFloat(normX.toFixed(3)), parseFloat(normY.toFixed(3))]);
+
+        // Draw temporary preview dot
+        ctx.fillStyle = '#ff0055';
+        ctx.beginPath();
+        ctx.arc(normX * displayCanvas.width, normY * displayCanvas.height, 6, 0, 2 * Math.PI);
+        ctx.fill();
+    });
+
+    async function saveCurrentRoi() {
+        if (activeRoiPoints.length < 3) {
+            if (activeRoiPoints.length > 0) {
+                alert('Vùng cấm cần tối thiểu 3 điểm đỉnh để tạo thành đa giác.');
+            }
+            return;
+        }
+
+        try {
+            const res = await fetch('/detection/set_polygon_roi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ polygon: activeRoiPoints })
+            });
+            const data = await res.json();
+            if (data.success) {
+                roiBadge.textContent = 'Custom ROI';
+                roiBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-700 font-bold';
+            }
+        } catch (e) {
+            console.error('Save ROI error:', e);
+        }
+    }
+
+    clearRoiBtn.addEventListener('click', async () => {
+        activeRoiPoints = [];
+        isDrawingRoi = false;
+        drawingRoiHint.classList.add('hidden');
+        drawRoiBtnText.textContent = 'Vẽ Vùng Cấm';
+        try {
+            await fetch('/detection/set_polygon_roi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ polygon: null })
+            });
+            roiBadge.textContent = 'None';
+            roiBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700';
+            intrusionAlert.classList.add('hidden');
+        } catch (e) {
+            console.error('Clear ROI error:', e);
+        }
+    });
+
+    // ROI Presets
+    window.applyRoiPreset = async function(type) {
+        let pts = [];
+        if (type === 'left') {
+            pts = [[0.05, 0.2], [0.35, 0.2], [0.35, 0.95], [0.05, 0.95]];
+        } else if (type === 'center') {
+            pts = [[0.3, 0.4], [0.7, 0.4], [0.7, 0.9], [0.3, 0.9]];
+        } else if (type === 'stage') {
+            pts = [[0.15, 0.65], [0.85, 0.65], [0.95, 0.98], [0.05, 0.98]];
+        }
+
+        activeRoiPoints = pts;
+        try {
+            const res = await fetch('/detection/set_polygon_roi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ polygon: pts })
+            });
+            const data = await res.json();
+            if (data.success) {
+                roiBadge.textContent = `${type.toUpperCase()} Preset`;
+                roiBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-700 font-bold';
+            }
+        } catch (e) {
+            console.error('Preset error:', e);
+        }
+    };
+
+    // Test Alert Notification
+    testAlarmBtn.addEventListener('click', async () => {
+        playAlarmBeep(1100, 0.4);
+        try {
+            const res = await fetch('/detection/test_alert', { method: 'POST' });
+            const data = await res.json();
+            alert('Thông báo thử nghiệm đã được phát thành công!\nChi tiết: ' + JSON.stringify(data.payload || data));
+        } catch (e) {
+            alert('Lỗi test alarm: ' + e.message);
+        }
     });
 
     // Main Capture & Processing Loop
@@ -395,7 +663,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isProcessing && webcam.readyState >= 2) {
             isProcessing = true;
             
-            // Capture frame to temporary canvas
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = displayCanvas.width;
             tempCanvas.height = displayCanvas.height;
@@ -424,7 +691,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Update Annotated Frame on Canvas
                     const img = new Image();
                     img.onload = () => {
                         ctx.drawImage(img, 0, 0, displayCanvas.width, displayCanvas.height);
@@ -439,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     metricPeak.textContent = data.peak_count;
                     metricLatency.textContent = `${Math.round(performance.now() - startTime)}ms`;
 
-                    // Update Density Badge
+                    // Density Badge
                     metricDensity.textContent = `Mật độ: ${data.density_level}`;
                     if (data.density_level === 'CRITICAL') {
                         metricDensity.className = 'px-2 py-0.5 rounded-md bg-red-950 text-red-300 border border-red-800 font-semibold';
@@ -449,12 +715,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         metricDensity.className = 'px-2 py-0.5 rounded-md bg-teal-950 text-teal-300 border border-teal-800 font-semibold';
                     }
 
-                    // Alert Banner
+                    // Overcrowd Alert
                     if (data.is_alert) {
                         overcrowdedAlert.classList.remove('hidden');
                         alertCountBadge.textContent = `${data.current_count} Người`;
+                        playAlarmBeep(700, 0.2);
                     } else {
                         overcrowdedAlert.classList.add('hidden');
+                    }
+
+                    // Intrusion Alert
+                    if (data.has_intrusion) {
+                        intrusionAlert.classList.remove('hidden');
+                        playAlarmBeep(1200, 0.35);
+                    } else {
+                        intrusionAlert.classList.add('hidden');
                     }
                 }
             } catch (err) {
@@ -467,8 +742,8 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(processLoop);
     }
 
-    // Heatmap Modal Logic
-    openHeatmapBtn.addEventListener('click', async () => {
+    // Heatmap Modal
+    openHeatmapBtn.addEventListener('click', () => {
         heatmapModal.classList.remove('hidden');
         heatmapModal.classList.add('flex');
         loadHeatmap();
