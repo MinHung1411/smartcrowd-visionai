@@ -1,366 +1,218 @@
-<p align="center">
-  <img src="docs/images/banner.png" alt="VisionAI Banner" width="100%"/>
-</p>
+<div align="center">
+
+# 🚶‍♂️ SmartCrowd: Real-Time Crowd Analytics & People Counting Platform
+### AI-Powered Multi-Object Tracking (YOLOv11 + ByteTrack) with Cloud Data Lakehouse Architecture (Databricks Unity Catalog)
+
+[![Live Demo](https://img.shields.io/badge/%F0%9F%A4%97%20LIVE%20DEMO-Try%20Now!-FF6B35?style=for-the-badge)](https://minhunhooo-crowd-people-counter.hf.space/)&nbsp;&nbsp;[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MinHung1411/smartcrowd-visionai)&nbsp;&nbsp;[![Author](https://img.shields.io/badge/Author-Ho%20Minh%20Hung-2ea44f?style=for-the-badge)](https://github.com/MinHung1411)
 
 <p align="center">
-  <strong>🔍 AI-Powered Real-time Object Detection Platform with Data Lakehouse Architecture</strong>
-</p>
-
-<p align="center">
-  <a href="https://github.com/dovanminh1001/visionai-databricks/actions"><img src="https://github.com/dovanminh1001/visionai-databricks/actions/workflows/ci.yml/badge.svg" alt="CI/CD"></a>
-  <img src="https://img.shields.io/badge/python-3.11-blue?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/YOLOv11m-Ultralytics-FF6B35?logo=yolo&logoColor=white" alt="YOLOv11">
+  <img src="https://img.shields.io/badge/Tracking-ByteTrack-00C49F" alt="ByteTrack">
+  <img src="https://img.shields.io/badge/mAP@50-95.8%25-brightgreen" alt="mAP">
   <img src="https://img.shields.io/badge/Flask-2.3-green?logo=flask&logoColor=white" alt="Flask">
-  <img src="https://img.shields.io/badge/YOLOv8-Ultralytics-purple?logo=yolo&logoColor=white" alt="YOLOv8">
   <img src="https://img.shields.io/badge/Databricks-Unity_Catalog-red?logo=databricks&logoColor=white" alt="Databricks">
   <img src="https://img.shields.io/badge/Docker-Containerized-blue?logo=docker&logoColor=white" alt="Docker">
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
 </p>
 
-<p align="center">
-  <a href="#-features">Features</a> •
-  <a href="#-architecture">Architecture</a> •
-  <a href="#-quick-start">Quick Start</a> •
-  <a href="#-tech-stack">Tech Stack</a> •
-  <a href="#-project-structure">Project Structure</a> •
-  <a href="#-deployment">Deployment</a> •
-  <a href="#-contributors">Contributors</a>
-</p>
+</div>
 
 ---
 
-## 📋 Overview
-
-**VisionAI** is a full-stack, production-ready AI platform that combines **real-time computer vision** with a **cloud-native Data Lakehouse** architecture. The system enables users to detect objects, recognize faces, analyze colors, and classify images through an intuitive web interface — while all analytical data flows through a **Medallion (Bronze → Silver → Gold)** pipeline on **Databricks Unity Catalog** for advanced business intelligence.
-
-> 🌐 **Live Demo**: [visionai-databricks.onrender.com](https://visionai-databricks.onrender.com)
-
----
-
-## ✨ Features
-
-| Feature | Description | Model/Algorithm |
-|---------|-------------|-----------------|
-| 🎯 **Object Detection** | Real-time detection of 80+ object classes via camera or image upload | YOLOv8 Nano |
-| 👤 **Face Recognition** | Detect & identify registered faces with template matching | Haar Cascade + OpenCV |
-| 🎨 **Color Analysis** | Extract 5 dominant colors from any image with HEX/RGB values | K-Means Clustering |
-| 📊 **Object Classification** | Classify objects with bilingual labels (English/Vietnamese) | YOLOv8 + Custom Labels |
-| 😀 **Emotion Detection** | Detect facial emotions from camera or uploaded images | OpenCV Cascade |
-| 📈 **Analytics Dashboard** | Real-time statistics, charts, and detection history | Databricks SQL + Gold Tables |
-| 👥 **User Management** | Role-based access control (Admin/User), profile management | Flask-Login + bcrypt |
-| 📤 **Data Export** | Export detection history as CSV with full details | Flask Response |
+## 📋 Table of Contents
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [System Architecture](#-system-architecture)
+- [Model Evaluation & Benchmarks](#-model-evaluation--benchmarks)
+- [Databricks Medallion Lakehouse](#-databricks-medallion-lakehouse)
+- [Quick Start](#-quick-start)
+- [Project Structure](#-project-structure)
+- [Author](#-author)
+- [License](#-license)
 
 ---
 
-## 🏗 Architecture
+## 🔍 Overview
 
-<p align="center">
-  <img src="docs/images/architecture.png" alt="System Architecture" width="90%"/>
-</p>
+**SmartCrowd** is an enterprise-grade Computer Vision and Big Data analytics platform engineered to monitor, count, and analyze pedestrian flow and crowd density in public spaces (smart buildings, retail stores, transit stations, and events).
 
-### Data Flow & Medallion Architecture
+The system seamlessly bridges **Edge Computer Vision** with a **Cloud-Native Data Lakehouse**:
+1. **Real-time Edge Vision**: Utilizes a fine-tuned **YOLOv11 Medium** model combined with **ByteTrack** multi-object tracking to detect persons in dense crowds, maintain unique identities, and track bi-directional virtual line crossing (**IN / OUT**).
+2. **Cloud Data Lakehouse (Medallion Pipeline)**: Continuously streams traffic events and density metrics into **Databricks Unity Catalog**, running automated **Bronze → Silver → Gold** ETL pipelines for real-time BI reporting, peak hour detection, and safety compliance audits.
+
+> 🌐 **Live Model Demo**: [minhunhooo-crowd-people-counter.hf.space](https://minhunhooo-crowd-people-counter.hf.space/)
+
+---
+
+## ✨ Key Features
+
+| Feature | Description | Technology |
+|---|---|---|
+| 🚶‍♂️ **Dense Crowd Detection** | Detects people in overlapping, crowded scenes without missing small/occluded bodies | YOLOv11m fine-tuned on CrowdHuman |
+| 🔄 **Bi-directional Counting** | Virtual crossing line detects direction: entry (**IN +1**) vs exit (**OUT +1**) | ByteTrack + Line Crossing Vector |
+| 🏢 **Occupancy Monitoring** | Live calculation of current persons in the area and net occupancy ($\text{IN} - \text{OUT}$) | Real-time Sliding Window State |
+| ⚠️ **Overcrowding Safety Alert** | Immediate visual alarm and database flag when crowd count exceeds safety threshold | Dynamic Threshold Detector |
+| 🎨 **Crowd Density Heatmap** | Accumulates movement paths and overlays a thermal density map on CCTV view | Gaussian Blur + OpenCV Colormap JET |
+| 📊 **Databricks Analytics** | Hourly traffic distribution, peak shift summary, and safety violation audit logs | Databricks Unity Catalog (SQL) |
+| 🔐 **User Management** | Role-based access control (Admin / Operator), audit logging, and CSV export | Flask-Login + bcrypt |
+
+---
+
+## 🏗️ System Architecture
 
 ```mermaid
-graph LR
-    A[📷 Camera / Image Upload] -->|Base64 / File| B[🌐 Flask Web App]
-    B -->|YOLOv8 Inference| C[🤖 AI Engine]
-    C -->|Detection Results| D[(🗄️ Databricks Unity Catalog)]
-    B -->|Upload Image| E[🤗 Hugging Face Dataset]
-
-    D --> F[🥉 Bronze Layer<br/>Raw Detections]
-    F --> G[🥈 Silver Layer<br/>Feature Engineering]
-    G --> H[🥇 Gold Layer<br/>Aggregated Analytics]
-    H --> I[📊 Databricks Dashboard]
+graph TD
+    A[📷 CCTV / Webcam Stream] -->|Base64 Frames| B[🌐 Flask Web Application]
+    B -->|Inference Frame| C[🤖 YOLOv11m Engine]
+    C -->|Bounding Boxes| D[🎯 ByteTrack Multi-Object Tracker]
+    D -->|Centroid Trajectories| E[📐 Line Crossing Vector Engine]
+    
+    E -->|Real-time HUD| F[🖥️ Live Monitoring UI]
+    E -->|Thermal Coordinates| G[🎨 Crowd Heatmap Generator]
+    
+    E -->|Crowd Metrics & Events| H[(🗄️ Databricks Unity Catalog)]
+    
+    H --> I[🥉 Bronze Layer<br/>Raw Traffic Logs]
+    I --> J[🥈 Silver Layer<br/>Feature Engineering & Shift Classification]
+    J --> K[🥇 Gold Layer<br/>Hourly Aggregates & Safety Violation Logs]
+    K --> L[📊 Executive BI Dashboard]
 
     style A fill:#4CAF50,color:#fff
     style B fill:#2196F3,color:#fff
-    style C fill:#9C27B0,color:#fff
-    style D fill:#FF5722,color:#fff
-    style E fill:#FFD700,color:#000
-    style I fill:#00BCD4,color:#fff
+    style C fill:#FF6B35,color:#fff
+    style D fill:#9C27B0,color:#fff
+    style H fill:#E24A4A,color:#fff
+    style K fill:#FFD700,color:#000
+    style L fill:#00BCD4,color:#fff
 ```
 
-### Medallion Layers Detail
+---
 
-| Layer | Table | Purpose | Update Frequency |
-|-------|-------|---------|-----------------|
-| 🥉 **Bronze** | `bronze.raw_detections` | Raw data VIEW joining detections + users | Real-time (on write) |
-| 🥈 **Silver** | `silver.detections_enriched` | +6 engineered features (time_shift, speed_grade, etc.) | Every 15 minutes |
-| 🥇 **Gold** | `gold.detection_by_feature` | Aggregated stats by AI feature | Every hour |
-| 🥇 **Gold** | `gold.detection_by_shift` | Activity breakdown by work shift | Every hour |
-| 🥇 **Gold** | `gold.hourly_activity` | Hourly usage patterns | Every hour |
-| 🥇 **Gold** | `gold.speed_analysis` | AI processing speed analytics | Every hour |
-| 🥇 **Gold** | `gold.ml_experiment_log` | MLflow-style model training history | Daily at 2 AM |
+## 📊 Model Evaluation & Benchmarks
+
+The core vision model was fine-tuned from **YOLOv11m** on the challenging **CrowdHuman Benchmark** (15,000 train images, 4,370 validation images) using NVIDIA Tesla T4 GPU acceleration:
+
+| Metric | Value | Comparison vs Baseline |
+|---|:---:|:---:|
+| **Architecture** | **YOLOv11 Medium (`best.pt`)** | SOTA Ultralytics release |
+| **Dataset** | **CrowdHuman (Dense Crowds)** | Benchmark standard |
+| **mAP@50** | **95.8%** | +24.8% over COCO default |
+| **mAP@50-95** | **84.8%** | +39.8% over COCO default |
+| **Precision** | **88.0%** | Minimal false positives |
+| **Recall** | **90.1%** | Detects heavily occluded persons |
+| **Inference Latency** | **~8ms (GPU) / ~35ms (CPU)** | 60+ FPS Real-time capability |
+| **Tracking Algorithm** | **ByteTrack (`bytetrack.yaml`)** | ID-consistent tracking |
 
 ---
 
-## 📸 Screen Demos & Platform Integration
+## ☁️ Databricks Medallion Lakehouse
 
-Here are some screenshots demonstrating the frontend web application and the Databricks Lakehouse data engineering backend:
+Traffic metrics and safety alerts flow through 3 structured Delta Lake layers:
 
-### 1. Web Application - Dashboard Overview
-The main dashboard provides real-time statistics of total detections, quick shortcuts to all 5 AI features, recent activity stream, and connection status.
-<p align="center">
-  <img src="docs/images/dashboard_overview.png" alt="Dashboard Overview" width="90%"/>
-</p>
+### 1. 🥉 Bronze Layer (`bronze.raw_crowd_detections`)
+Raw view joining web telemetry and user audit trails: captures timestamp, camera identifier, `people_in_frame`, `total_entered`, `total_exited`, `density_level`, and `is_overcrowded`.
 
-### 2. Web Application - Activity Log & Admin Panel
-The admin area provides user management and a comprehensive detection log. Admins can view detailed parameters of each detection, download CSV records, and manage account details.
-<p align="center">
-  <img src="docs/images/activity_log.png" alt="Activity Log & Admin Panel" width="90%"/>
-</p>
+### 2. 🥈 Silver Layer (`silver.crowd_traffic_enriched`)
+Cleaned and enriched with **6 engineered analytical features**:
+- `hour_of_day`: 0 – 23 hour bucket.
+- `time_shift`: `MORNING_PEAK`, `AFTERNOON`, `EVENING_PEAK`, `NIGHT_OFFPEAK`.
+- `traffic_intensity`: `LIGHT` (<5), `MODERATE` (5-15), `HEAVY` (16-25), `CRITICAL_CONGESTION` (>25).
+- `net_occupancy`: $\max(0, \text{total\_entered} - \text{total\_exited})$.
+- `latency_grade`: `REALTIME_FAST` (<50ms) vs `ACCEPTABLE`.
+- `is_weekend`: Weekday vs Weekend traffic flag.
 
-### 3. Databricks - Unity Catalog (Bronze Layer)
-Detection events and metadata are sent directly to the Databricks Unity Catalog (`bronze.raw_detections`), providing a centralized, secure, and governed audit trail.
-<p align="center">
-  <img src="docs/images/databricks_catalog.png" alt="Databricks Unity Catalog" width="90%"/>
-</p>
-
-### 4. Databricks - Workflow Jobs & Pipelines
-Automated jobs manage the pipeline lifecycle on Databricks: scheduling ingestion (every 15 min), system monitoring analytics updates (every hour), and daily machine learning model evaluation runs.
-<p align="center">
-  <img src="docs/images/databricks_jobs.png" alt="Databricks Workflow Jobs" width="90%"/>
-</p>
-
----
-
-## 🛠 Tech Stack
-
-<table>
-<tr>
-<td valign="top" width="33%">
-
-### 🖥️ Backend
-- Python 3.11
-- Flask + SQLAlchemy
-- Flask-Login (Auth)
-- Gunicorn (WSGI)
-- bcrypt (Password Hashing)
-
-</td>
-<td valign="top" width="33%">
-
-### 🤖 AI / ML
-- YOLOv8 (Ultralytics)
-- OpenCV (Computer Vision)
-- Haar Cascade (Face Detection)
-- K-Means (Color Analysis)
-- PyTorch (CPU-optimized)
-
-</td>
-<td valign="top" width="33%">
-
-### ☁️ Cloud & Data
-- Databricks Unity Catalog
-- Delta Lake (Medallion)
-- Hugging Face Datasets
-- Docker + Nginx
-- GitHub Actions CI/CD
-
-</td>
-</tr>
-</table>
+### 3. 🥇 Gold Layer (Executive Analytics Tables)
+- `gold.hourly_crowd_traffic`: Hourly volume, inflow/outflow, and peak crowd sizes.
+- `gold.shift_occupancy_summary`: Density distribution by operational work shifts.
+- `gold.overcrowding_safety_alerts`: Audit trail of all safety limit violations for compliance reporting.
+- `gold.ai_inference_performance`: Latency percentiles, min/max runtime, and effective processing FPS.
+- `gold.ml_experiment_log`: Benchmark history comparing YOLOv8, YOLOv10, and YOLOv11.
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+- Python 3.10+
+- Webcam or video file
+- (Optional) Databricks workspace credentials
 
-- Python 3.9+ and pip
-- Docker & Docker Compose (optional, for containerized deployment)
-- Databricks workspace with Unity Catalog (for data pipeline)
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/dovanminh1001/visionai-databricks.git
-cd visionai-databricks
-```
-
-### 2. Web Application Setup (branch `web-app-deploy`)
+### 1. Clone & Set Up Virtual Environment
 
 ```bash
-git checkout web-app-deploy
+git clone https://github.com/MinHung1411/smartcrowd-visionai.git
+cd smartcrowd-visionai
+
+# Create virtual environment
 python -m venv venv
-venv\Scripts\activate          # Windows
-# source venv/bin/activate     # macOS/Linux
+venv\Scripts\activate       # On Windows
+# source venv/bin/activate  # On macOS/Linux
 
+# Install dependencies
 pip install -r requirements.txt
-cp .env.example .env           # Edit with your Databricks credentials
-python run.py                  # Visit http://localhost:5000
 ```
 
-### 3. Data Pipeline Setup (branch `main`)
+### 2. Launch the Web Application
 
 ```bash
-git checkout main
-pip install -r requirements.txt
-
-# Deploy Medallion SQL jobs to Databricks
-python deploy_separate_jobs.py
+# Navigate to src and run
+cd src
+python run.py
 ```
 
-### 4. Docker Deployment
+Open your browser at **`http://localhost:5000`**
 
-```bash
-# Development
-docker-compose -f docker/docker-compose.yml up -d
-
-# Production (with Nginx + SSL + 2 replicas)
-docker-compose -f docker/docker-compose.production.yml up -d
-```
+**Default Credentials:**
+- **Username:** `admin`
+- **Password:** `admin123`
 
 ---
 
 ## 📁 Project Structure
 
 ```
-visionai-databricks/
+smartcrowd-visionai/
 │
-├── 🌐 Web Application (branch: web-app-deploy)
+├── src/                               # Web Application Source
 │   ├── app/
-│   │   ├── models/              # SQLAlchemy ORM (User, Detection)
-│   │   ├── views/               # Flask Blueprints
-│   │   │   ├── auth.py          # Authentication (login/register/logout)
-│   │   │   ├── main.py          # Dashboard, History, Admin, CSV Export
-│   │   │   ├── detection.py     # YOLOv8 Object Detection (camera + upload)
-│   │   │   ├── face_detection.py # Haar Cascade Face Recognition
-│   │   │   ├── color_detection.py # K-Means Color Analysis
-│   │   │   └── classification.py # Object Classification
+│   │   ├── models/                    # SQLAlchemy ORM (User, Detection)
 │   │   ├── services/
-│   │   │   ├── db_service.py    # Centralized DB + HF upload + Pipeline sync
-│   │   │   └── classification_service.py
-│   │   ├── templates/           # Jinja2 HTML (Tailwind CSS)
-│   │   └── static/              # CSS, JS, Images
-│   ├── config/config.py         # App configuration + bilingual labels
-│   ├── docker/                  # Dockerfile, docker-compose, nginx.conf
-│   ├── scripts/                 # Deploy scripts (AWS, GCP, Azure, Local)
-│   ├── Dockerfile               # Production Docker image (CPU-optimized)
-│   ├── requirements.txt
-│   └── run.py                   # Application entrypoint
+│   │   │   ├── crowd_service.py       # YOLOv11m + ByteTrack + Line Crossing Engine
+│   │   │   └── db_service.py          # Database & Databricks synchronization
+│   │   ├── templates/                 # Jinja2 HTML (Tailwind CSS Dark HUD)
+│   │   │   ├── detection/camera.html  # Live CCTV People Counting interface
+│   │   │   ├── detection/upload.html  # Image analysis interface
+│   │   │   └── dashboard.html         # Analytics & Charts
+│   │   └── views/                     # Flask Blueprints
+│   ├── best.pt                        # YOLOv11m fine-tuned model (~40.5 MB)
+│   ├── config/config.py               # Application configurations
+│   ├── requirements.txt               # Dependencies
+│   └── run.py                         # Application entrypoint
 │
-├── 📊 Data Pipeline (branch: main)
-│   ├── sql/
-│   │   ├── 01_create_schemas.sql    # Create bronze/silver/gold schemas
-│   │   ├── 02_bronze_from_app.sql   # Bronze VIEW from raw app data
-│   │   ├── 03_silver_enriched.sql   # Silver TABLE with 6 new features
-│   │   ├── 04_gold_tables.sql       # 4 Gold aggregation tables
-│   │   └── 05_mlflow_experiment.sql # ML experiment tracking table
-│   ├── src/
-│   │   ├── ingestion/              # Bronze layer ingestion scripts
-│   │   ├── processing/             # Silver layer processing
-│   │   └── training/               # YOLOv8 training simulation + MLflow
-│   ├── tests/                      # PyTest unit tests
-│   ├── .github/workflows/ci.yml    # GitHub Actions CI/CD pipeline
-│   ├── databricks.yml              # Databricks Asset Bundle config
-│   ├── deploy_separate_jobs.py     # Auto-deploy 3 Workflow Jobs via REST API
-│   └── requirements.txt
+├── sql/                               # Databricks Lakehouse SQL Pipelines
+│   ├── 01_create_schemas.sql          # Bronze, Silver, Gold schemas
+│   ├── 02_bronze_from_app.sql         # Raw traffic data view
+│   ├── 03_silver_enriched.sql         # Feature engineering table
+│   ├── 04_gold_tables.sql             # 4 Business intelligence summary tables
+│   └── 05_mlflow_experiment.sql       # MLflow experiment log & benchmark
 │
-└── 📄 docs/                        # Documentation & architecture diagrams
+├── docker/                            # Production Docker configurations
+├── docs/                              # Architecture diagrams and demo images
+└── README.md                          # Project documentation
 ```
 
 ---
 
-## 🔄 CI/CD Pipeline
+## 👨‍💻 Author
 
-The project uses **GitHub Actions** for continuous integration:
-
-```mermaid
-graph LR
-    A[📝 Git Push / PR] --> B[🧪 PyTest]
-    B --> C[✅ Databricks Bundle Validate]
-    C --> D[🚀 Deploy Ready]
-
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style D fill:#9C27B0,color:#fff
-```
-
-| Step | Tool | Purpose |
-|------|------|---------|
-| 1 | `pytest` | Run unit tests for ingestion & processing modules |
-| 2 | `databricks bundle validate` | Verify Databricks deployment configuration |
-| 3 | Auto-deploy | Push to `main` triggers pipeline sync |
-
----
-
-## 🐳 Docker Services
-
-| Environment | Services | Config File |
-|-------------|----------|-------------|
-| **Development** | Flask App + PostgreSQL | `docker/docker-compose.yml` |
-| **Production** | Flask (2 replicas) + PostgreSQL + Nginx (SSL) | `docker/docker-compose.production.yml` |
-
-**Key optimizations for production:**
-- CPU-only PyTorch (`--index-url https://download.pytorch.org/whl/cpu`)
-- Single worker + single thread Gunicorn to minimize RAM usage
-- `torch.set_num_threads(1)` for constrained environments
-- Auto-restart policy (`unless-stopped`)
-- Health checks every 30 seconds
-
----
-
-## 📊 Databricks Workflow Jobs
-
-Three automated jobs manage the data pipeline:
-
-| Job Name | Tasks | Schedule | Purpose |
-|----------|-------|----------|---------|
-| **VisionAI Model Deployment** | Create Schemas → Bronze → Silver | Every 15 min | Data ingestion & enrichment |
-| **VisionAI Model Training** | MLflow Experiment Log | Daily at 2 AM | Track model training metrics |
-| **VisionAI System Monitoring** | Gold Tables (4 tables) | Every hour | Dashboard analytics refresh |
-
----
-
-## 🔐 Environment Variables
-
-```env
-# Required
-DATABASE_URL=databricks://token:YOUR_TOKEN@YOUR_HOST...
-SECRET_KEY=your-secret-key
-
-# Optional
-HF_TOKEN=your-huggingface-token
-YOLO_MODEL_PATH=yolov8n.pt
-FLASK_ENV=production
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+**Hồ Minh Hưng**
+- GitHub: [@MinHung1411](https://github.com/MinHung1411)
+- Hugging Face: [@minhunhooo](https://huggingface.co/minhunhooo)
+- Email: `hmhung1411@gmail.com`
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
----
-
-## 👨‍💻 Contributors
-
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/dovanminh1001">
-        <sub><b>Đỗ Văn Minh</b></sub>
-        <sub><b>- Võ Trần Gia Huy</b></sub>
-      </a>
-    </td>
-  </tr>
-</table>
-
----
-
-<p align="center">
-  <sub>Built with ❤️ using Python, YOLOv8, Databricks & Docker</sub>
-</p>
+This project is open-source and licensed under the [MIT License](LICENSE).

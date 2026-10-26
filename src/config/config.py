@@ -7,31 +7,41 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-here-change-in-production'
-    # Databricks Unity Catalog connection (required - set DATABASE_URL in .env)
+    # Database connection: Databricks Unity Catalog or SQLite fallback for local dev
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     if not SQLALCHEMY_DATABASE_URI:
-        raise ValueError("DATABASE_URL environment variable is not set. Please configure it in .env file.")
+        basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(basedir, 'smartcrowd.db')}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Engine options for Databricks (higher timeout for cloud connection)
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_pre_ping': True,
-        'pool_recycle': 3600,
-        'connect_args': {
-            '_socket_timeout': 60,
+    # Engine options based on dialect
+    if SQLALCHEMY_DATABASE_URI.startswith('databricks'):
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,
+            'pool_recycle': 3600,
+            'connect_args': {
+                '_socket_timeout': 60,
+            }
         }
-    }
+    else:
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,
+        }
     
     # Upload settings
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'mp4', 'avi', 'mov'}
     
     # Session settings
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
     
-    # YOLO model settings
-    YOLO_MODEL_PATH = os.environ.get('YOLO_MODEL_PATH') or 'yolov8n.pt'
+    # YOLO model settings (YOLOv11 CrowdHuman)
+    YOLO_MODEL_PATH = os.environ.get('YOLO_MODEL_PATH') or 'best.pt'
+    
+    # Crowd Monitoring Settings
+    CROWD_ALERT_THRESHOLD = int(os.environ.get('CROWD_ALERT_THRESHOLD', 20))
+    LINE_POSITION_PERCENT = float(os.environ.get('LINE_POSITION_PERCENT', 0.5))
     
     # Bilingual labels
     OBJECT_LABELS = {

@@ -1,68 +1,63 @@
 -- ============================================
--- BƯỚC 3: SILVER - Feature Engineering
--- Biến dữ liệu thô thành dữ liệu phân tích
--- Thêm 6 Feature mới mà Web App không có
+-- BƯỚC 3: SILVER - Feature Engineering & Crowd Analytics
+-- Biến đổi dữ liệu thô thành dữ liệu phân tích lưu lượng thông minh
 -- ============================================
 
 USE CATALOG visionai_catalog;
 
 CREATE SCHEMA IF NOT EXISTS silver;
 
-CREATE OR REPLACE TABLE silver.detections_enriched AS
+CREATE OR REPLACE TABLE silver.crowd_traffic_enriched AS
 SELECT
     detection_id,
     user_id,
     username,
-    image_path,
     detection_type,
-    objects_json,
+    people_in_frame,
+    total_entered,
+    total_exited,
+    GREATEST(0, total_entered - total_exited) AS net_occupancy,
+    density_level,
+    is_overcrowded,
     capture_time,
     processing_time,
 
-    -- ⭐ Feature 1: Giờ trong ngày
+    -- ⭐ Feature 1: Giờ trong ngày (0 - 23)
     HOUR(capture_time) AS hour_of_day,
 
-    -- ⭐ Feature 2: Ca làm việc (Sáng/Chiều/Tối/Đêm)
+    -- ⭐ Feature 2: Ca hoạt động (Sáng / Chiều / Tối / Đêm)
     CASE
-        WHEN HOUR(capture_time) BETWEEN 6 AND 11  THEN 'MORNING'
-        WHEN HOUR(capture_time) BETWEEN 12 AND 17 THEN 'AFTERNOON'
-        WHEN HOUR(capture_time) BETWEEN 18 AND 22 THEN 'EVENING'
-        ELSE 'NIGHT'
+        WHEN HOUR(capture_time) BETWEEN 6 AND 11  THEN 'MORNING_PEAK'
+        WHEN HOUR(capture_time) BETWEEN 12 AND 16 THEN 'AFTERNOON'
+        WHEN HOUR(capture_time) BETWEEN 17 AND 21 THEN 'EVENING_PEAK'
+        ELSE 'NIGHT_OFFPEAK'
     END AS time_shift,
 
-    -- ⭐ Feature 3: Phân loại chức năng AI
+    -- ⭐ Feature 3: Phân cấp mức độ lưu lượng (Traffic Intensity)
     CASE
-        WHEN detection_type = 'upload'         THEN 'Object Detection'
-        WHEN detection_type = 'camera'         THEN 'Realtime Detection'
-        WHEN detection_type = 'face_upload'    THEN 'Face Recognition'
-        WHEN detection_type = 'color'          THEN 'Color Analysis'
-        WHEN detection_type = 'classification' THEN 'Classification'
-        ELSE 'Other'
-    END AS ai_feature,
+        WHEN people_in_frame < 5  THEN 'LIGHT'
+        WHEN people_in_frame < 15 THEN 'MODERATE'
+        WHEN people_in_frame < 25 THEN 'HEAVY'
+        ELSE 'CRITICAL_CONGESTION'
+    END AS traffic_intensity,
 
-    -- ⭐ Feature 4: Tốc độ xử lý AI
+    -- ⭐ Feature 4: Tốc độ suy luận AI (Inference Speed Grade)
     CASE
-        WHEN processing_time < 0.1  THEN 'FAST'
-        WHEN processing_time < 0.5  THEN 'NORMAL'
-        WHEN processing_time < 1.0  THEN 'SLOW'
-        ELSE 'VERY_SLOW'
-    END AS speed_grade,
+        WHEN processing_time < 0.05 THEN 'REALTIME_FAST'
+        WHEN processing_time < 0.15 THEN 'ACCEPTABLE'
+        ELSE 'HIGH_LATENCY'
+    END AS latency_grade,
 
-    -- ⭐ Feature 5: Ngày trong tuần (1=CN, 2=T2, ... 7=T7)
+    -- ⭐ Feature 5: Ngày trong tuần (1 = CN, 7 = T7)
     DAYOFWEEK(capture_time) AS day_of_week,
 
-    -- ⭐ Feature 6: Khoảng cách tính từ hôm nay (ngày)
-    DATEDIFF(current_date(), DATE(capture_time)) AS days_ago,
+    -- ⭐ Feature 6: Phân loại Ngày thường vs Cuối tuần
+    CASE 
+        WHEN DAYOFWEEK(capture_time) IN (1, 7) THEN TRUE 
+        ELSE FALSE 
+    END AS is_weekend,
 
     -- Audit
     current_timestamp() AS processed_at
 
-FROM bronze.raw_detections;
-
-
--- Kiểm tra Silver: xem các Feature mới
-SELECT
-    detection_id, username, detection_type, ai_feature,
-    hour_of_day, time_shift, speed_grade, days_ago
-FROM silver.detections_enriched
-ORDER BY capture_time DESC;
+FROM bronze.raw_crowd_detections;

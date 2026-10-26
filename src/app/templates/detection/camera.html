@@ -1,560 +1,498 @@
 {% extends "base.html" %}
 
-{% block title %}Camera Detection - VisionAI Object Detection{% endblock %}
+{% block title %}SmartCrowd - Real-time People Counting & Tracking{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-        <h1 class="text-3xl font-bold">Camera Detection</h1>
-        <a href="{{ url_for('main.dashboard') }}" class="btn-primary px-6 py-2 rounded-lg text-white">
-            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
-        </a>
-    </div>
-    
-    <!-- Camera View -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Live Camera Feed -->
-        <div class="card p-6 rounded-lg">
-            <h2 class="text-xl font-bold mb-4">Live Camera Feed</h2>
-            <div class="relative">
-                <video id="cameraFeed" class="w-full rounded-lg" autoplay></video>
-                <canvas id="detectionCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+    <!-- Header with System Status -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gray-900/80 border border-gray-800 p-5 rounded-2xl shadow-xl backdrop-blur-md">
+        <div>
+            <div class="flex items-center space-x-3">
+                <span class="flex h-3 w-3 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+                </span>
+                <h1 class="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-300">
+                    SmartCrowd: Real-Time People Counting & Tracking
+                </h1>
             </div>
-            <div class="mt-4 flex space-x-4">
-                <button id="startCamera" class="btn-primary px-6 py-2 rounded-lg text-white">
-                    <i class="fas fa-play mr-2"></i>Start Camera
-                </button>
-                <button id="stopCamera" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg text-white" disabled>
-                    <i class="fas fa-stop mr-2"></i>Stop Camera
-                </button>
-                <button id="toggleDetection" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg text-white" disabled>
-                    <i class="fas fa-eye mr-2"></i>Start Detection
-                </button>
-            </div>
+            <p class="text-sm text-gray-400 mt-1 flex items-center space-x-2">
+                <span>Model: <strong class="text-teal-300">YOLOv11m (CrowdHuman fine-tuned)</strong></span>
+                <span>•</span>
+                <span>Tracker: <strong class="text-cyan-300">ByteTrack (Multi-Object)</strong></span>
+            </p>
         </div>
-        
-        <!-- Detection Results -->
-        <div class="card p-6 rounded-lg">
-            <h2 class="text-xl font-bold mb-4">Detection Results</h2>
-            <div id="detectionResults" class="space-y-4">
-                <div class="text-center text-gray-400 py-8">
-                    <i class="fas fa-search text-6xl mb-4"></i>
-                    <p>No detections yet. Start the camera and capture an image to begin detection.</p>
-                </div>
-            </div>
-            
-            <!-- Processing Info -->
-            <div id="processingInfo" class="mt-6 p-4 bg-gray-800 rounded-lg" style="display: none;">
-                <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-400">Processing Time:</span>
-                    <span id="processingTime" class="text-sm font-medium">-</span>
-                </div>
-                <div class="flex items-center justify-between mt-2">
-                    <span class="text-sm text-gray-400">Objects Detected:</span>
-                    <span id="objectsCount" class="text-sm font-medium">-</span>
-                </div>
-            </div>
+        <div class="flex items-center space-x-3">
+            <button id="openHeatmapBtn" class="bg-purple-600 hover:bg-purple-500 px-4 py-2.5 rounded-xl text-white font-medium shadow-lg shadow-purple-900/30 transition flex items-center space-x-2">
+                <i class="fas fa-fire"></i>
+                <span>Xem Heatmap</span>
+            </button>
+            <a href="{{ url_for('main.dashboard') }}" class="bg-gray-800 hover:bg-gray-700 px-4 py-2.5 rounded-xl text-gray-300 font-medium transition flex items-center space-x-2">
+                <i class="fas fa-arrow-left"></i>
+                <span>Dashboard</span>
+            </a>
         </div>
     </div>
-    
-    <!-- Recent Camera Detections -->
-    <div class="card p-6 rounded-lg">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold">Recent Camera Detections</h2>
-            <button onclick="deleteAllDetections()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
-                <i class="fas fa-trash-alt mr-2"></i>Delete All
+
+    <!-- Alert Notification Banner (Hidden by default) -->
+    <div id="overcrowdedAlert" class="hidden bg-gradient-to-r from-red-900/90 via-red-800 to-rose-900 border-2 border-red-500 text-white p-4 rounded-2xl shadow-2xl animate-pulse">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-exclamation-triangle text-3xl text-yellow-300"></i>
+                <div>
+                    <h3 class="text-lg font-bold">CẢNH BÁO QUÁ TẢI MẬT ĐỘ ĐÁM ĐÔNG!</h3>
+                    <p class="text-sm text-red-200">Số lượng người trong khung hình đã vượt quá ngưỡng an toàn cho phép!</p>
+                </div>
+            </div>
+            <span id="alertCountBadge" class="text-2xl font-black bg-red-600 px-4 py-1.5 rounded-xl border border-red-400">
+                0 Người
+            </span>
+        </div>
+    </div>
+
+    <!-- 4 Real-Time Traffic Metric Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Current In Frame -->
+        <div class="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-800 p-5 rounded-2xl shadow-lg relative overflow-hidden">
+            <div class="absolute -right-2 -bottom-2 opacity-10 text-teal-400 text-7xl font-black">
+                <i class="fas fa-users"></i>
+            </div>
+            <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 flex items-center space-x-1.5">
+                <i class="fas fa-eye text-teal-400"></i>
+                <span>Đang trong khung hình</span>
+            </span>
+            <div class="mt-2 flex items-baseline space-x-2">
+                <span id="metricCurrent" class="text-4xl font-extrabold text-teal-400">0</span>
+                <span class="text-sm text-gray-400">người</span>
+            </div>
+            <div class="mt-2 text-xs flex items-center space-x-2">
+                <span id="metricDensity" class="px-2 py-0.5 rounded-md bg-teal-950 text-teal-300 border border-teal-800 font-semibold">Mật độ: THẤP</span>
+            </div>
+        </div>
+
+        <!-- Total IN -->
+        <div class="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-800 p-5 rounded-2xl shadow-lg relative overflow-hidden">
+            <div class="absolute -right-2 -bottom-2 opacity-10 text-emerald-400 text-7xl font-black">
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 flex items-center space-x-1.5">
+                <i class="fas fa-arrow-down text-emerald-400"></i>
+                <span>Lượt đi VÀO (IN)</span>
+            </span>
+            <div class="mt-2 flex items-baseline space-x-2">
+                <span id="metricIn" class="text-4xl font-extrabold text-emerald-400">0</span>
+                <span class="text-sm text-gray-400">lượt</span>
+            </div>
+            <span class="mt-2 text-xs text-gray-400 block">Qua vạch ảo hướng A &rarr; B</span>
+        </div>
+
+        <!-- Total OUT -->
+        <div class="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-800 p-5 rounded-2xl shadow-lg relative overflow-hidden">
+            <div class="absolute -right-2 -bottom-2 opacity-10 text-orange-400 text-7xl font-black">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 flex items-center space-x-1.5">
+                <i class="fas fa-arrow-up text-orange-400"></i>
+                <span>Lượt đi RA (OUT)</span>
+            </span>
+            <div class="mt-2 flex items-baseline space-x-2">
+                <span id="metricOut" class="text-4xl font-extrabold text-orange-400">0</span>
+                <span class="text-sm text-gray-400">lượt</span>
+            </div>
+            <span class="mt-2 text-xs text-gray-400 block">Qua vạch ảo hướng B &rarr; A</span>
+        </div>
+
+        <!-- Occupancy / Peak -->
+        <div class="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-800 p-5 rounded-2xl shadow-lg relative overflow-hidden">
+            <div class="absolute -right-2 -bottom-2 opacity-10 text-cyan-400 text-7xl font-black">
+                <i class="fas fa-building"></i>
+            </div>
+            <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 flex items-center space-x-1.5">
+                <i class="fas fa-balance-scale text-cyan-400"></i>
+                <span>Lưu lượng trong khu vực</span>
+            </span>
+            <div class="mt-2 flex items-baseline space-x-2">
+                <span id="metricOccupancy" class="text-4xl font-extrabold text-cyan-400">0</span>
+                <span class="text-sm text-gray-400">(IN - OUT)</span>
+            </div>
+            <div class="mt-2 text-xs text-gray-400 flex justify-between">
+                <span>Đỉnh điểm: <strong id="metricPeak" class="text-white">0</strong></span>
+                <span>Latency: <strong id="metricLatency" class="text-teal-300">0ms</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Live Screen & Control Panel -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Live Video & Processed Canvas (8 Cols) -->
+        <div class="lg:col-span-8 bg-gray-900 border border-gray-800 p-4 rounded-2xl shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <span class="h-2.5 w-2.5 rounded-full bg-red-500 animate-ping"></span>
+                    <h2 class="text-base font-bold uppercase tracking-wider text-gray-300">CCTV FEED #01 — SMART VISION AI</h2>
+                </div>
+                <div class="flex items-center space-x-2 text-xs text-gray-400">
+                    <i class="fas fa-shield-alt text-teal-400"></i>
+                    <span>Databricks Lakehouse Synchronized</span>
+                </div>
+            </div>
+
+            <!-- Video Viewport -->
+            <div class="relative bg-black rounded-xl overflow-hidden aspect-video border border-gray-800 flex items-center justify-center">
+                <!-- Video Element (Hidden capture source) -->
+                <video id="webcam" class="hidden" autoplay playsinline muted></video>
+                
+                <!-- Display Canvas -->
+                <canvas id="displayCanvas" class="w-full h-full object-contain"></canvas>
+                
+                <!-- Placeholder when camera stopped -->
+                <div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-950/90 text-gray-400 p-6 text-center space-y-3">
+                    <div class="h-16 w-16 rounded-full bg-teal-500/10 flex items-center justify-center border border-teal-500/30 text-teal-400 text-3xl">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-200">Camera đang tạm dừng</h3>
+                        <p class="text-sm text-gray-500 max-w-sm mt-1">Bấm "Khởi động Camera" bên dưới để kích hoạt mô hình YOLOv11m theo dõi và đếm người thời gian thực.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <div class="flex items-center space-x-3">
+                    <button id="startBtn" class="bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-lg shadow-teal-900/30 transition flex items-center space-x-2">
+                        <i class="fas fa-play"></i>
+                        <span>Khởi động Camera</span>
+                    </button>
+                    <button id="stopBtn" disabled class="bg-gray-800 hover:bg-gray-700 text-gray-400 font-semibold px-5 py-2.5 rounded-xl border border-gray-700 transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-stop"></i>
+                        <span>Dừng</span>
+                    </button>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="resetCounterBtn" class="bg-rose-950/80 hover:bg-rose-900 text-rose-300 font-medium px-4 py-2.5 rounded-xl border border-rose-800/60 transition flex items-center space-x-2">
+                        <i class="fas fa-redo"></i>
+                        <span>Đặt lại bộ đếm</span>
+                    </button>
+                    <button id="logDatabricksBtn" class="bg-blue-600/80 hover:bg-blue-600 text-white font-medium px-4 py-2.5 rounded-xl transition flex items-center space-x-2">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Lưu Snapshot vào DB</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings & Interactive Controls (4 Cols) -->
+        <div class="lg:col-span-4 space-y-6">
+            <!-- Line & Threshold Settings -->
+            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-xl space-y-5">
+                <h3 class="text-base font-bold text-gray-200 border-b border-gray-800 pb-3 flex items-center space-x-2">
+                    <i class="fas fa-sliders-h text-teal-400"></i>
+                    <span>Cấu hình Vạch kẻ & Ngưỡng AI</span>
+                </h3>
+
+                <!-- Vị trí Vạch đếm (Line Crossing Ratio) -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label class="text-gray-300 font-medium">Vị trí Vạch đếm IN/OUT:</label>
+                        <span id="lineVal" class="text-teal-400 font-bold">50%</span>
+                    </div>
+                    <input id="lineSlider" type="range" min="15" max="85" value="50" step="1"
+                           class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-teal-400">
+                    <p class="text-xs text-gray-500">Kéo trượt để di chuyển vạch đếm lên/xuống khung hình.</p>
+                </div>
+
+                <!-- Ngưỡng tin cậy (Confidence) -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label class="text-gray-300 font-medium">Ngưỡng tin cậy (Confidence):</label>
+                        <span id="confVal" class="text-teal-400 font-bold">35%</span>
+                    </div>
+                    <input id="confSlider" type="range" min="10" max="85" value="35" step="5"
+                           class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-teal-400">
+                    <p class="text-xs text-gray-500">Giảm ngưỡng để nhận diện người từ xa, tăng ngưỡng để lọc nhiễu.</p>
+                </div>
+
+                <!-- Ngưỡng cảnh báo quá tải -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <label class="text-gray-300 font-medium">Ngưỡng báo động quá tải:</label>
+                        <span id="alertVal" class="text-red-400 font-bold">20 người</span>
+                    </div>
+                    <input id="alertSlider" type="range" min="5" max="100" value="20" step="1"
+                           class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-red-500">
+                    <p class="text-xs text-gray-500">Khi số người trong khung hình &ge; ngưỡng này sẽ kích hoạt còi báo động.</p>
+                </div>
+            </div>
+
+            <!-- Algorithm & Model Info Box -->
+            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-xl space-y-3">
+                <h4 class="text-sm font-bold uppercase tracking-wider text-gray-400 flex items-center space-x-2">
+                    <i class="fas fa-brain text-purple-400"></i>
+                    <span>Thông tin Mô hình & Benchmark</span>
+                </h4>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between py-1 border-b border-gray-800/60">
+                        <span class="text-gray-400">Kiến trúc:</span>
+                        <span class="font-semibold text-white">YOLOv11 Medium</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-gray-800/60">
+                        <span class="text-gray-400">Tập dữ liệu:</span>
+                        <span class="font-semibold text-teal-300">CrowdHuman (Fine-tuned)</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-gray-800/60">
+                        <span class="text-gray-400">Độ chính xác mAP@50:</span>
+                        <span class="font-bold text-emerald-400">95.8%</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-gray-800/60">
+                        <span class="text-gray-400">Đa đối tượng Tracker:</span>
+                        <span class="font-semibold text-cyan-300">ByteTrack (Kalman + Hung.)</span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                        <span class="text-gray-400">Data Lakehouse:</span>
+                        <span class="font-semibold text-amber-300">Databricks Unity Catalog</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Heatmap Modal -->
+<div id="heatmapModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+            <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                <i class="fas fa-fire text-red-500"></i>
+                <span>Bản Đồ Nhiệt Mật Độ Đám Đông (Crowd Heatmap)</span>
+            </h3>
+            <button id="closeHeatmapBtn" class="text-gray-400 hover:text-white text-xl">
+                <i class="fas fa-times"></i>
             </button>
         </div>
-        <div id="recentDetections" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="text-center text-gray-400 col-span-full py-8">
-                <i class="fas fa-history text-6xl mb-4"></i>
-                <p>No recent detections from camera.</p>
-            </div>
+        <div class="relative aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center">
+            <img id="heatmapImage" class="w-full h-full object-contain" alt="Heatmap">
+        </div>
+        <div class="flex items-center justify-between text-xs text-gray-400">
+            <span>Màu sắc: 🔵 Xanh (Ít người) &rarr; 🟡 Vàng (Trung bình) &rarr; 🔴 Đỏ (Tập trung đông)</span>
+            <button id="refreshHeatmapBtn" class="bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-white font-medium">
+                <i class="fas fa-sync-alt mr-1"></i>Làm mới
+            </button>
         </div>
     </div>
 </div>
 
-<!-- Loading Modal -->
-<div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
-    <div class="bg-gray-800 p-6 rounded-lg text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto mb-4"></div>
-        <p class="text-white">Detecting objects...</p>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
 <script>
-    let stream = null;
-    let cameraFeed = document.getElementById('cameraFeed');
-    let detectionCanvas = document.getElementById('detectionCanvas');
-    let startBtn = document.getElementById('startCamera');
-    let stopBtn = document.getElementById('stopCamera');
-    let toggleDetectionBtn = document.getElementById('toggleDetection');
-    let detectionResults = document.getElementById('detectionResults');
-    let processingInfo = document.getElementById('processingInfo');
-    let isDetecting = false;
-    let detectionInterval = null;
-    let isProcessing = false;
-    let lastDetectionTime = 0;
-    const DETECTION_INTERVAL = 1000; // 1 second between detections
-    const DEBOUNCE_DELAY = 300; // Debounce delay
+document.addEventListener('DOMContentLoaded', () => {
+    const webcam = document.getElementById('webcam');
+    const displayCanvas = document.getElementById('displayCanvas');
+    const ctx = displayCanvas.getContext('2d');
+    const placeholder = document.getElementById('cameraPlaceholder');
     
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const resetCounterBtn = document.getElementById('resetCounterBtn');
+    const logDatabricksBtn = document.getElementById('logDatabricksBtn');
+    
+    // Sliders
+    const lineSlider = document.getElementById('lineSlider');
+    const lineVal = document.getElementById('lineVal');
+    const confSlider = document.getElementById('confSlider');
+    const confVal = document.getElementById('confVal');
+    const alertSlider = document.getElementById('alertSlider');
+    const alertVal = document.getElementById('alertVal');
+    
+    // Metrics
+    const metricCurrent = document.getElementById('metricCurrent');
+    const metricIn = document.getElementById('metricIn');
+    const metricOut = document.getElementById('metricOut');
+    const metricOccupancy = document.getElementById('metricOccupancy');
+    const metricPeak = document.getElementById('metricPeak');
+    const metricLatency = document.getElementById('metricLatency');
+    const metricDensity = document.getElementById('metricDensity');
+    const overcrowdedAlert = document.getElementById('overcrowdedAlert');
+    const alertCountBadge = document.getElementById('alertCountBadge');
+    
+    // Heatmap Modal
+    const heatmapModal = document.getElementById('heatmapModal');
+    const openHeatmapBtn = document.getElementById('openHeatmapBtn');
+    const closeHeatmapBtn = document.getElementById('closeHeatmapBtn');
+    const refreshHeatmapBtn = document.getElementById('refreshHeatmapBtn');
+    const heatmapImage = document.getElementById('heatmapImage');
+
+    let stream = null;
+    let isRunning = false;
+    let isProcessing = false;
+    let sendLogNext = false;
+    
+    // Slider Events
+    lineSlider.addEventListener('input', (e) => lineVal.textContent = `${e.target.value}%`);
+    confSlider.addEventListener('input', (e) => confVal.textContent = `${e.target.value}%`);
+    alertSlider.addEventListener('input', (e) => alertVal.textContent = `${e.target.value} người`);
+
+    // Start Camera
     startBtn.addEventListener('click', async () => {
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    width: { ideal: 640 },
-                    height: { ideal: 480 }
-                } 
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
             });
-            cameraFeed.srcObject = stream;
+            webcam.srcObject = stream;
+            await webcam.play();
+            
+            displayCanvas.width = webcam.videoWidth || 640;
+            displayCanvas.height = webcam.videoHeight || 480;
+            
+            placeholder.classList.add('hidden');
             startBtn.disabled = true;
             stopBtn.disabled = false;
-            toggleDetectionBtn.disabled = false;
+            isRunning = true;
             
-            // Setup canvas dimensions when video loads
-            cameraFeed.addEventListener('loadedmetadata', () => {
-                detectionCanvas.width = cameraFeed.videoWidth;
-                detectionCanvas.height = cameraFeed.videoHeight;
-            });
+            requestAnimationFrame(processLoop);
         } catch (err) {
-            console.error('Error accessing camera:', err);
-            alert('Unable to access camera. Please check permissions.');
+            alert('Không thể mở Camera: ' + err.message);
         }
     });
-    
+
+    // Stop Camera
     stopBtn.addEventListener('click', () => {
+        isRunning = false;
         if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            cameraFeed.srcObject = null;
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-            toggleDetectionBtn.disabled = true;
-            
-            // Stop detection if running
-            if (isDetecting) {
-                stopDetection();
+            stream.getTracks().forEach(t => t.stop());
+        }
+        placeholder.classList.remove('hidden');
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+    });
+
+    // Reset Counter
+    resetCounterBtn.addEventListener('click', async () => {
+        try {
+            const res = await fetch('/detection/reset_counter', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                metricIn.textContent = '0';
+                metricOut.textContent = '0';
+                metricOccupancy.textContent = '0';
             }
+        } catch (err) {
+            console.error('Reset error:', err);
         }
     });
-    
-    toggleDetectionBtn.addEventListener('click', () => {
-        if (isDetecting) {
-            stopDetection();
-        } else {
-            startDetection();
-        }
-    });
-    
-    function startDetection() {
-        isDetecting = true;
-        toggleDetectionBtn.innerHTML = '<i class="fas fa-eye-slash mr-2"></i>Stop Detection';
-        toggleDetectionBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
-        toggleDetectionBtn.classList.add('bg-orange-600', 'hover:bg-orange-700');
-        
-        // Start real-time detection loop
-        detectFrame();
-        detectionInterval = setInterval(detectFrame, DETECTION_INTERVAL); // Use defined interval
-    }
-    
-    function stopDetection() {
-        isDetecting = false;
-        toggleDetectionBtn.innerHTML = '<i class="fas fa-eye mr-2"></i>Start Detection';
-        toggleDetectionBtn.classList.remove('bg-orange-600', 'hover:bg-orange-700');
-        toggleDetectionBtn.classList.add('bg-green-600', 'hover:bg-green-700');
-        
-        if (detectionInterval) {
-            clearInterval(detectionInterval);
-            detectionInterval = null;
-        }
-        
-        // Clear canvas
-        const ctx = detectionCanvas.getContext('2d');
-        ctx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
-    }
-    
-    async function detectFrame() {
-        if (!isDetecting || !cameraFeed.videoWidth || isProcessing) return;
-        
-        const currentTime = Date.now();
-        if (currentTime - lastDetectionTime < DETECTION_INTERVAL) return;
-        
-        isProcessing = true;
-        lastDetectionTime = currentTime;
-        
-        try {
-            // Create canvas to capture current frame
-            const canvas = document.createElement('canvas');
-            canvas.width = cameraFeed.videoWidth;
-            canvas.height = cameraFeed.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(cameraFeed, 0, 0);
-            
-            // Convert to base64 with lower quality for faster processing
-            const imageData = canvas.toDataURL('image/jpeg', 0.6);
-            
-            const response = await fetch('/detection/detect_camera', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ image: imageData })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success && isDetecting) { // Only update if still detecting
-                drawDetectionsOnCanvas(result);
-                updateDetectionResults(result);
-                updateProcessingInfo(result);
-            }
-        } catch (error) {
-            console.error('Detection error:', error);
-            // Clear canvas on error to avoid stale detections
-            const ctx = detectionCanvas.getContext('2d');
-            ctx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
-        } finally {
-            isProcessing = false;
-        }
-    }
-    
-    function drawDetectionsOnCanvas(result) {
-        const ctx = detectionCanvas.getContext('2d');
-        
-        // Clear canvas completely
-        ctx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
-        
-        if (result.bounding_boxes && result.bounding_boxes.length > 0) {
-            // Draw simple bounding boxes
-            result.bounding_boxes.forEach((box, index) => {
-                const confidence = box.confidence;
-                const confidencePercent = (confidence * 100).toFixed(1);
-                
-                // Simple color based on confidence
-                let color;
-                if (confidence > 0.7) {
-                    color = '#00ff00'; // Green
-                } else if (confidence > 0.5) {
-                    color = '#ffaa00'; // Orange
-                } else {
-                    color = '#ff4444'; // Red
-                }
-                
-                // Get coordinates
-                const x1 = box.x1;
-                const y1 = box.y1;
-                const x2 = box.x2;
-                const y2 = box.y2;
-                
-                // Draw simple rectangle
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
-                
-                // Draw simple label
-                const label = `${box.class || 'Object'}: ${confidencePercent}%`;
-                ctx.fillStyle = color;
-                ctx.fillRect(x1, y1 - 25, ctx.measureText(label).width + 10, 25);
-                ctx.fillStyle = 'white';
-                ctx.font = '14px Arial';
-                ctx.fillText(label, x1 + 5, y1 - 8);
-            });
-        }
-    }
-    
-    function updateDetectionResults(result) {
-        // Display detection results
-        const resultsDiv = document.getElementById('detectionResults');
-        
-        if (result.success && result.objects && result.objects.length > 0) {
-            let html = '<div class="space-y-3">';
-            
-            result.objects.forEach((obj, index) => {
-                const confidence = result.confidence_scores[index] || 0;
-                const confidencePercent = (confidence * 100).toFixed(1);
-                
-                // Handle different object formats
-                let objectName = '';
-                if (typeof obj === 'object' && obj !== null) {
-                    if (obj.name && typeof obj.name === 'object') {
-                        objectName = obj.name.en || obj.name.vi || 'Unknown';
-                    } else if (obj.name) {
-                        objectName = obj.name;
-                    } else if (obj.en || obj.vi) {
-                        objectName = obj.en || obj.vi || 'Unknown';
-                    } else {
-                        objectName = obj.class || 'Unknown';
-                    }
-                } else {
-                    objectName = obj || 'Unknown';
-                }
-                
-                html += `
-                    <div class="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                        <div>
-                            <span class="font-medium text-white">${objectName}</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-sm ${confidence > 0.7 ? 'text-green-500' : confidence > 0.5 ? 'text-yellow-500' : 'text-red-500'}">
-                                ${confidencePercent}%
-                            </span>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            resultsDiv.innerHTML = html;
-        } else {
-            resultsDiv.innerHTML = `
-                <div class="text-center text-gray-400 py-8">
-                    <i class="fas fa-search-minus text-6xl mb-4"></i>
-                    <p>No objects detected in current frame</p>
-                </div>
-            `;
-        }
-        
-        // Refresh recent detections when new detection is saved
-        if (result.success && result.detection_id) {
-            loadRecentDetections();
-        }
-    }
-    
-    function updateProcessingInfo(result) {
-        const timeSpan = document.getElementById('processingTime');
-        const countSpan = document.getElementById('objectsCount');
-        
-        if (result.processing_time) {
-            timeSpan.textContent = result.processing_time.toFixed(3) + 's';
-        }
-        
-        if (result.objects) {
-            countSpan.textContent = result.objects.length;
-        }
-        
-        processingInfo.style.display = 'block';
-    }
-    
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-        if (detectionInterval) {
-            clearInterval(detectionInterval);
-        }
-    });
-    
-    // Load recent detections on page load
-    loadRecentDetections();
-    
-    async function loadRecentDetections() {
-        try {
-            const response = await fetch('/api/recent-detections?type=camera');
-            const result = await response.json();
-            
-            const recentDiv = document.getElementById('recentDetections');
-            if (result.success && result.detections.length > 0) {
-                let html = '';
-                
-                result.detections.forEach(detection => {
-                    const objects = detection.objects_detected || [];
-                    const objectsCount = objects.length;
-                    
-                    html += `
-                        <div class="bg-gray-800 rounded-lg p-4">
-                            <img src="/detection/uploads/${detection.image_path}" alt="Detection" class="w-full h-32 object-cover rounded mb-2">
-                            <p class="text-sm text-gray-400">${new Date(detection.timestamp).toLocaleDateString('vi-VN')} ${new Date(detection.timestamp).toLocaleTimeString('vi-VN')}</p>
-                            <p class="text-sm">${objectsCount} objects detected</p>
-                            <div class="mt-2 flex space-x-2">
-                                <button onclick="downloadDetection(${detection.id})" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-white text-sm">
-                                    <i class="fas fa-download"></i> Download
-                                </button>
-                                <button onclick="deleteDetection(${detection.id})" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-white text-sm">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                recentDiv.innerHTML = html;
-            } else {
-                recentDiv.innerHTML = `
-                    <div class="text-center text-gray-400 col-span-full py-8">
-                        <i class="fas fa-history text-6xl mb-4"></i>
-                        <p>No recent detections from camera.</p>
-                    </div>
-                `;
-            }
-        } catch (error) {
-            console.error('Error loading recent detections:', error);
-        }
-    }
-    
-    async function deleteDetection(detectionId) {
-        // Create custom modal dialog
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        modal.innerHTML = `
-            <div class="bg-gray-800 p-6 rounded-lg max-w-md mx-4">
-                <h3 class="text-lg font-semibold text-white mb-4">Confirm Delete</h3>
-                <p class="text-gray-300 mb-6">Are you sure you want to delete this detection? This action cannot be undone.</p>
-                <div class="flex justify-end space-x-4">
-                    <button onclick="closeDeleteModal()" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white">
-                        Cancel
-                    </button>
-                    <button onclick="confirmDelete(${detectionId})" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
-                        Delete
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Add modal to page
-        document.body.appendChild(modal);
-        
-        // Store reference
-        window.deleteModal = modal;
-        window.deleteCallback = () => {
-            performDelete(detectionId);
-        };
-    }
-    
-    function closeDeleteModal() {
-        if (window.deleteModal) {
-            document.body.removeChild(window.deleteModal);
-            window.deleteModal = null;
-            window.deleteCallback = null;
-        }
-    }
-    
-    function confirmDelete(detectionId) {
-        if (window.deleteCallback) {
-            window.deleteCallback();
-            closeDeleteModal();
-        }
-    }
-    
-    async function performDelete(detectionId) {
-        try {
-            const response = await fetch(`/api/detection/${detectionId}/delete`, {
-                method: 'DELETE'
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                loadRecentDetections(); // Refresh list
-                showToast('Detection deleted successfully', 'success');
-            } else {
-                showToast(result.error, 'error');
-            }
-        } catch (error) {
-            showToast('Error deleting detection', 'error');
-        }
-    }
-    
-    async function deleteAllDetections() {
-        // Create custom modal dialog
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        modal.innerHTML = `
-            <div class="bg-gray-800 p-6 rounded-lg max-w-md mx-4">
-                <h3 class="text-lg font-semibold text-white mb-4">Confirm Delete All</h3>
-                <p class="text-gray-300 mb-6">Are you sure you want to delete all camera detections? This action cannot be undone.</p>
-                <div class="flex justify-end space-x-4">
-                    <button onclick="closeDeleteModal()" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white">
-                        Cancel
-                    </button>
-                    <button onclick="confirmDeleteAll()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white">
-                        Delete All
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        // Add modal to page
-        document.body.appendChild(modal);
-        
-        // Store reference
-        window.deleteModal = modal;
-        window.deleteCallback = () => {
-            performDeleteAll();
-        };
-    }
-    
-    function closeDeleteModal() {
-        if (window.deleteModal) {
-            document.body.removeChild(window.deleteModal);
-            window.deleteModal = null;
-            window.deleteCallback = null;
-        }
-    }
-    
-    function confirmDeleteAll() {
-        if (window.deleteCallback) {
-            window.deleteCallback();
-            closeDeleteModal();
-        }
-    }
-    
-    async function performDeleteAll() {
-        try {
-            const response = await fetch('/api/detections/delete-all?type=camera', {
-                method: 'DELETE'
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                loadRecentDetections(); // Refresh list
-                showToast(result.message, 'success');
-            } else {
-                showToast(result.error, 'error');
-            }
-        } catch (error) {
-            showToast('Error deleting all detections', 'error');
-        }
-    }
-    
-    async function downloadDetection(detectionId) {
-        try {
-            const response = await fetch(`/api/detection/${detectionId}/download`);
-            
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `detection_${detectionId}_annotated.jpg`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            } else {
-                const result = await response.json();
-                showToast(result.error, 'error');
-            }
-        } catch (error) {
-            showToast('Error downloading detection', 'error');
-        }
-    }
-    
-    function showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 ${
-            type === 'success' ? 'bg-green-600' : 
-            type === 'error' ? 'bg-red-600' : 'bg-blue-600'
-        }`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
+
+    // Log to Databricks
+    logDatabricksBtn.addEventListener('click', () => {
+        sendLogNext = true;
+        logDatabricksBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Đã ghi nhận!';
         setTimeout(() => {
-            toast.remove();
-        }, 3000);
+            logDatabricksBtn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Lưu Snapshot vào DB';
+        }, 1500);
+    });
+
+    // Main Capture & Processing Loop
+    async function processLoop() {
+        if (!isRunning) return;
+
+        if (!isProcessing && webcam.readyState >= 2) {
+            isProcessing = true;
+            
+            // Capture frame to temporary canvas
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = displayCanvas.width;
+            tempCanvas.height = displayCanvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(webcam, 0, 0, tempCanvas.width, tempCanvas.height);
+            
+            const frameBase64 = tempCanvas.toDataURL('image/jpeg', 0.7);
+            const lineRatio = parseFloat(lineSlider.value) / 100.0;
+            const conf = parseFloat(confSlider.value) / 100.0;
+            const alertThreshold = parseInt(alertSlider.value);
+
+            try {
+                const startTime = performance.now();
+                const response = await fetch('/detection/track_frame', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: frameBase64,
+                        line_ratio: lineRatio,
+                        conf: conf,
+                        alert_threshold: alertThreshold,
+                        save_log: sendLogNext
+                    })
+                });
+                sendLogNext = false;
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update Annotated Frame on Canvas
+                    const img = new Image();
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0, displayCanvas.width, displayCanvas.height);
+                    };
+                    img.src = data.annotated_image;
+
+                    // Update Metrics
+                    metricCurrent.textContent = data.current_count;
+                    metricIn.textContent = data.total_in;
+                    metricOut.textContent = data.total_out;
+                    metricOccupancy.textContent = data.occupancy;
+                    metricPeak.textContent = data.peak_count;
+                    metricLatency.textContent = `${Math.round(performance.now() - startTime)}ms`;
+
+                    // Update Density Badge
+                    metricDensity.textContent = `Mật độ: ${data.density_level}`;
+                    if (data.density_level === 'CRITICAL') {
+                        metricDensity.className = 'px-2 py-0.5 rounded-md bg-red-950 text-red-300 border border-red-800 font-semibold';
+                    } else if (data.density_level === 'HIGH') {
+                        metricDensity.className = 'px-2 py-0.5 rounded-md bg-orange-950 text-orange-300 border border-orange-800 font-semibold';
+                    } else {
+                        metricDensity.className = 'px-2 py-0.5 rounded-md bg-teal-950 text-teal-300 border border-teal-800 font-semibold';
+                    }
+
+                    // Alert Banner
+                    if (data.is_alert) {
+                        overcrowdedAlert.classList.remove('hidden');
+                        alertCountBadge.textContent = `${data.current_count} Người`;
+                    } else {
+                        overcrowdedAlert.classList.add('hidden');
+                    }
+                }
+            } catch (err) {
+                console.error('Frame processing error:', err);
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        requestAnimationFrame(processLoop);
     }
+
+    // Heatmap Modal Logic
+    openHeatmapBtn.addEventListener('click', async () => {
+        heatmapModal.classList.remove('hidden');
+        heatmapModal.classList.add('flex');
+        loadHeatmap();
+    });
+
+    closeHeatmapBtn.addEventListener('click', () => {
+        heatmapModal.classList.add('hidden');
+        heatmapModal.classList.remove('flex');
+    });
+
+    refreshHeatmapBtn.addEventListener('click', loadHeatmap);
+
+    async function loadHeatmap() {
+        try {
+            heatmapImage.src = '';
+            const res = await fetch('/detection/heatmap');
+            const data = await res.json();
+            if (data.success) {
+                heatmapImage.src = data.heatmap_image;
+            }
+        } catch (err) {
+            console.error('Heatmap load error:', err);
+        }
+    }
+});
 </script>
 {% endblock %}

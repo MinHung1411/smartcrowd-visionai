@@ -24,26 +24,18 @@ def save_detection(
     detection_type: str,
     objects_detected: list,
     confidence_scores: list,
-    image: None,          # numpy image array (BGR)
+    image=None,          # numpy image array (BGR)
     image_prefix: str = None,
     processing_time: float = 0.0,
-    user_id: int = None
+    user_id: int = None,
+    current_count: int = 0,
+    in_count: int = 0,
+    out_count: int = 0,
+    density_level: str = 'LOW',
+    alert_triggered: bool = False
 ) -> Detection | None:
     """
-    Lưu kết quả nhận diện vào bảng detections trên Databricks Catalog.
-
-    Args:
-        detection_type: Loại nhận diện ('camera', 'upload', 'face_upload',
-                        'face_camera', 'emotion', 'color', 'classification')
-        objects_detected: Danh sách object/kết quả nhận diện (list of dicts)
-        confidence_scores: Danh sách điểm tin cậy tương ứng (list of floats)
-        image: numpy array ảnh (BGR) để lưu thành file .jpg
-        image_prefix: Tiền tố tên file (mặc định = detection_type)
-        processing_time: Thời gian xử lý tính bằng giây
-        user_id: ID user (mặc định lấy từ current_user)
-
-    Returns:
-        Detection object nếu thành công, None nếu thất bại
+    Lưu kết quả nhận diện vào bảng detections trên Database/Databricks Catalog.
     """
     try:
         # Xác định user_id
@@ -61,12 +53,17 @@ def save_detection(
             user_id=user_id,
             image_path=filename,
             detection_type=detection_type,
-            processing_time=processing_time
+            processing_time=processing_time,
+            current_count=current_count or len(objects_detected),
+            in_count=in_count,
+            out_count=out_count,
+            density_level=density_level,
+            alert_triggered=alert_triggered
         )
         detection.set_objects_detected(objects_detected)
         detection.set_confidence_scores(confidence_scores)
 
-        # Ghi vào Databricks Catalog
+        # Ghi vào Database
         db.session.add(detection)
         db.session.commit()
 

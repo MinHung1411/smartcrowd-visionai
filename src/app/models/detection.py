@@ -25,6 +25,13 @@ class Detection(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.now)
     processing_time = db.Column(db.Float)  # in seconds
     
+    # Crowd Analytics & Traffic fields
+    current_count = db.Column(db.Integer, default=0)
+    in_count = db.Column(db.Integer, default=0)
+    out_count = db.Column(db.Integer, default=0)
+    density_level = db.Column(db.String, default='LOW')
+    alert_triggered = db.Column(db.Boolean, default=False)
+    
     def set_objects_detected(self, objects):
         self.objects_detected = json.dumps(objects)
     
@@ -45,6 +52,11 @@ class Detection(db.Model):
             'detection_type': self.detection_type,
             'objects_detected': self.get_objects_detected(),
             'confidence_scores': self.get_confidence_scores(),
+            'current_count': self.current_count or 0,
+            'in_count': self.in_count or 0,
+            'out_count': self.out_count or 0,
+            'density_level': self.density_level or 'LOW',
+            'alert_triggered': bool(self.alert_triggered),
             'timestamp': self.timestamp.isoformat() if self.timestamp else None,
             'processing_time': self.processing_time
         }
