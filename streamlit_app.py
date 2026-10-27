@@ -125,7 +125,38 @@ st.markdown("""
 
 
 # ==========================================
-# 2. MODEL LOADER & CACHING
+# 2. AUTHENTICATION GATE (LOGIN SCREEN)
+# ==========================================
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+
+if not st.session_state["authenticated"]:
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([1, 1.2, 1])
+    with c2:
+        st.markdown("""
+        <div style="background: linear-gradient(145deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.9) 100%);
+                    border: 1px solid rgba(45, 212, 191, 0.3); border-radius: 20px; padding: 28px;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.6); text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 42px; margin-bottom: 6px;">🚶‍♂️</div>
+            <h2 style="margin: 0; font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #2dd4bf 0%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SmartCrowd AI</h2>
+            <p style="color: #9ca3af; font-size: 0.82rem; margin-top: 4px;">Hệ Thống Giám Sát & Đếm Người Đám Đông</p>
+        </div>
+        """, unsafe_allow_html=True)
+        login_user = st.text_input("Tài khoản (Username / Email)", value="admin", key="login_user")
+        login_pass = st.text_input("Mật khẩu", value="admin123", type="password", key="login_pass")
+        
+        if st.button("🔑 Đăng Nhập Hệ Thống", type="primary", use_container_width=True):
+            if (login_user in ["admin", "admin@smartcrowd.ai"]) and login_pass == "admin123":
+                st.session_state["authenticated"] = True
+                st.session_state["user"] = login_user
+                st.rerun()
+            else:
+                st.error("Tài khoản hoặc mật khẩu không đúng! (Mặc định: admin / admin123)")
+    st.stop()
+
+# ==========================================
+# 3. MODEL LOADER & CACHING
 # ==========================================
 @st.cache_resource
 def load_yolo_model():
@@ -210,6 +241,12 @@ with st.sidebar:
         help="Virtual crossing line position relative to frame height (0.50 = center)."
     )
     
+    st.markdown("---")
+    st.markdown(f"👤 **Đang đăng nhập:** `{st.session_state.get('user', 'admin')}`")
+    if st.button("🚪 Đăng Xuất", use_container_width=True):
+        st.session_state["authenticated"] = False
+        st.rerun()
+        
     st.markdown("---")
     st.markdown("""
     **Developer:** Hồ Minh Hưng  
