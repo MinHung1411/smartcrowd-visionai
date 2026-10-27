@@ -28,7 +28,7 @@ class CrowdTrackerService:
         self.hf_space_url = os.environ.get('HF_SPACE_URL', 'https://minhunhooo-crowd-people-counter.hf.space')
         
         # Cấu hình đếm & tracking
-        self.conf_threshold = 0.35
+        self.conf_threshold = 0.25
         self.iou_threshold = 0.5
         self.line_ratio = 0.5  # Vị trí vạch đếm (50% chiều cao khung hình)
         self.alert_threshold = 20  # Ngưỡng cảnh báo quá tải

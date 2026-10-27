@@ -329,5 +329,49 @@ with gr.Blocks(title="SmartCrowd VisionAI", css=custom_css, theme=gr.themes.Soft
         """
     )
 
+# ----------------------------------------------------
+# 3. Mount Full-Stack VisionAI Web Application at Root /
+# ----------------------------------------------------
+try:
+    sys.path.insert(0, os.path.abspath('src'))
+    from app import create_app
+    import gradio.routes
+    from starlette.middleware.wsgi import WSGIMiddleware
+
+    flask_app = create_app()
+
+    class FlaskRoutingMiddleware:
+        def __init__(self, app, flask_wsgi):
+            self.app = app
+            self.flask = WSGIMiddleware(flask_wsgi)
+
+        async def __call__(self, scope, receive, send):
+            if scope["type"] == "http":
+                path = scope.get("path", "")
+                if not path:
+                    path = "/"
+                    scope = dict(scope)
+                    scope["path"] = "/"
+                # Gradio internal endpoints for ZeroGPU supervisor, API info, and queue
+                if path.startswith(("/gradio_api", "/queue", "/assets")) or path in ["/config", "/info", "/startup-events", "/theme.css"]:
+                    await self.app(scope, receive, send)
+                    return
+                # Route everything else to the full Flask VisionAI application
+                await self.flask(scope, receive, send)
+                return
+            await self.app(scope, receive, send)
+
+    _orig_create_app = gradio.routes.App.create_app
+    def _patched_create_app(*args, **kwargs):
+        app = _orig_create_app(*args, **kwargs)
+        app.add_middleware(FlaskRoutingMiddleware, flask_wsgi=flask_app)
+        app.middleware_stack = app.build_middleware_stack()
+        return app
+
+    gradio.routes.App.create_app = _patched_create_app
+    print("[SYSTEM] Patched gradio.routes.App.create_app: Full Flask Web App mounted at root '/'!")
+except Exception as e:
+    print(f"[SYSTEM] Notice mounting Flask app: {e}")
+
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860)
