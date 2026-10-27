@@ -59,7 +59,7 @@ class CrowdTrackerService:
         if env_val in ['0', 'false', 'no']:
             return False
         # Mặc định bật khi chạy trên cloud Render để tránh tràn 512MB RAM
-        return bool(os.environ.get('RENDER') or os.environ.get('PORT'))
+        return bool(os.environ.get('RENDER'))
 
     def get_hf_client(self):
         """Kết nối tới Hugging Face Space của bạn (chạy GPU hoàn toàn miễn phí)"""

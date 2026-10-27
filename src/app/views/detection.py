@@ -322,10 +322,11 @@ def detect_image():
             return jsonify({'error': 'Invalid image file'}), 400
             
         start_time = time.time()
+        conf = float(request.form.get('conf', 0.25))
         
         # Chế độ Remote AI Microservice (Render Cloud)
         if crowd_tracker.is_remote_enabled():
-            remote_res = crowd_tracker.detect_image_remote(filepath, conf=crowd_tracker.conf_threshold)
+            remote_res = crowd_tracker.detect_image_remote(filepath, conf=conf)
             if remote_res is not None:
                 annotated_img, person_count = remote_res
                 processing_time = round(time.time() - start_time, 3)
