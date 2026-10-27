@@ -3,7 +3,7 @@ services:
     name: smartcrowd-visionai
     env: python
     buildCommand: pip install -r src/requirements.txt
-    startCommand: gunicorn wsgi:app
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120 wsgi:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0

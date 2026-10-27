@@ -48,9 +48,16 @@ def create_app(config_class=Config):
     with app.app_context():
         try:
             db.create_all()
-            print("[DB] Tables created/verified on Databricks Catalog")
+            from app.models.user import User
+            if not User.query.filter_by(username='admin').first():
+                admin_user = User(username='admin', email='admin@smartcrowd.ai', role='admin')
+                admin_user.set_password('admin123')
+                db.session.add(admin_user)
+                db.session.commit()
+                print("[DB] Default admin user seeded successfully (admin / admin123)")
+            else:
+                print("[DB] Tables and admin user verified.")
         except Exception as e:
-            print(f"[DB] Warning: db.create_all() skipped — {e}")
-            print("[DB] Run 'python setup_databricks.py' to create tables manually")
+            print(f"[DB] Database init notice: {e}")
     
     return app
