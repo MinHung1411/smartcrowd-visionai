@@ -322,6 +322,57 @@ def detect_image():
             return jsonify({'error': 'Invalid image file'}), 400
             
         start_time = time.time()
+        
+        # Chế độ Remote AI Microservice (Render Cloud)
+        if crowd_tracker.is_remote_enabled():
+            remote_res = crowd_tracker.detect_image_remote(filepath, conf=crowd_tracker.conf_threshold)
+            if remote_res is not None:
+                annotated_img, person_count = remote_res
+                processing_time = round(time.time() - start_time, 3)
+                
+                if person_count < 5:
+                    density = "LOW"
+                elif person_count <= 15:
+                    density = "MODERATE"
+                elif person_count <= 25:
+                    density = "HIGH"
+                else:
+                    density = "CRITICAL"
+                    
+                cv2.putText(annotated_img, f"PEOPLE COUNT: {person_count} | DENSITY: {density}",
+                            (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2, cv2.LINE_AA)
+                
+                annotated_filename = f"annotated_{filename}"
+                annotated_path = os.path.join(current_app.config['UPLOAD_FOLDER'], annotated_filename)
+                cv2.imwrite(annotated_path, annotated_img)
+                
+                confidence_scores = [crowd_tracker.conf_threshold] * person_count
+                objects_detected = [{'name': 'Person', 'confidence': crowd_tracker.conf_threshold} for _ in range(person_count)]
+                
+                detection = save_detection(
+                    detection_type='crowd_image',
+                    objects_detected=objects_detected,
+                    confidence_scores=confidence_scores,
+                    image=annotated_img,
+                    image_prefix='upload',
+                    processing_time=processing_time,
+                    current_count=person_count,
+                    density_level=density,
+                    alert_triggered=(person_count >= crowd_tracker.alert_threshold)
+                )
+                
+                return jsonify({
+                    'success': True,
+                    'person_count': person_count,
+                    'objects': [{'name': f'Người #{i+1}', 'confidence': c} for i, c in enumerate(confidence_scores)],
+                    'confidence_scores': confidence_scores,
+                    'density_level': density,
+                    'processing_time': processing_time,
+                    'annotated_image': f'/detection/uploads/{annotated_filename}',
+                    'detection_id': detection.id if detection else None
+                })
+
+        # Chế độ Local AI
         model = crowd_tracker.get_model()
         results = model(img, conf=crowd_tracker.conf_threshold, imgsz=640, verbose=False)[0]
         processing_time = round(time.time() - start_time, 3)

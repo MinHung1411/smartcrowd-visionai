@@ -11,3 +11,7 @@ services:
         value: best.pt
       - key: FLASK_ENV
         value: production
+      - key: USE_REMOTE_AI
+        value: "true"
+      - key: HF_SPACE_URL
+        value: https://minhunhooo-crowd-people-counter.hf.space
