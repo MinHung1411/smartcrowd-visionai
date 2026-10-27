@@ -53,11 +53,20 @@ class CrowdTrackerService:
         self.max_heatmap_points = 10000
         
     def get_model(self):
-        """Khởi tạo model (lazy load)"""
+        """Khởi tạo model với cơ chế tối ưu hóa RAM tối đa cho môi trường Cloud Free Tier"""
         if self.model is None:
+            import gc
+            import torch
+            torch.set_num_threads(1)
+            torch.set_grad_enabled(False)
             print(f"[AI] Loading YOLOv11 CrowdHuman model from: {self.model_path}")
             self.model = YOLO(self.model_path)
-            print(f"[AI] Model ready! Classes: {self.model.names}")
+            try:
+                self.model.fuse()
+            except Exception:
+                pass
+            gc.collect()
+            print(f"[AI] Model ready & memory optimized! Classes: {self.model.names}")
         return self.model
 
     def update_config(self, conf=None, line_ratio=None, alert_threshold=None):
