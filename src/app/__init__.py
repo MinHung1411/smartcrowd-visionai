@@ -18,9 +18,22 @@ def create_app(config_class=Config):
     
     # Set up login manager
     login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.login_message = 'Vui lòng đăng nhập để truy cập trang này.'
     login_manager.login_message_category = 'info'
     
+    # Safe cookie clearing for Chrome iframe third-party cookie support
+    def _safe_clear_cookie(response):
+        cookie_name = app.config.get("REMEMBER_COOKIE_NAME", "remember_token")
+        domain = app.config.get("REMEMBER_COOKIE_DOMAIN")
+        path = app.config.get("REMEMBER_COOKIE_PATH", "/")
+        response.delete_cookie(cookie_name, domain=domain, path=path, samesite='None', secure=True)
+        response.delete_cookie(cookie_name, domain=domain, path=path)
+        sess_cookie = app.config.get("SESSION_COOKIE_NAME", "session")
+        response.delete_cookie(sess_cookie, domain=domain, path=path, samesite='None', secure=True)
+        response.delete_cookie(sess_cookie, domain=domain, path=path)
+
+    login_manager._clear_cookie = _safe_clear_cookie
+
     @login_manager.user_loader
     def load_user(user_id):
         from app.models.user import User
@@ -51,12 +64,10 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(main_bp)
     app.register_blueprint(detection_bp, url_prefix='/detection')
-    app.register_blueprint(color_detection_bp)
-    app.register_blueprint(face_detection_bp)
+    app.register_blueprint(color_detection_bp, url_prefix='/color')
+    app.register_blueprint(face_detection_bp, url_prefix='/face')
     
-    # Create database tables on Databricks Catalog
-    # Note: For Databricks, tables should be pre-created via setup_databricks.py
-    # db.create_all() may not work perfectly with Databricks dialect
+    # Create database tables and seed default users
     with app.app_context():
         try:
             db.create_all()
