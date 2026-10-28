@@ -27,15 +27,9 @@ pinned: false
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
 </p>
 
-> ### 🌟 Recruiter & Evaluator Quick Access (1-Click Demo)
-> - **Live Production App**: [minhunhooo-smartcrowd-visionai.hf.space](https://minhunhooo-smartcrowd-visionai.hf.space)
-> - **1-Click Reviewer Login**: [▶️ Instant Demo Access](https://minhunhooo-smartcrowd-visionai.hf.space/auth/login?auto=demo) *(bypasses form entry)*
-> 
-> | Role | Username | Password | Purpose & Capabilities |
-> |---|---|---|---|
-> | 🧑‍💼 **Reviewer / Recruiter (Demo)** | `demo` | `demo123` | Safe evaluation account for testing Live Camera, Video CCTV analytics, and AI charts |
-> | 🛡️ **System Administrator** | `admin` | `admin123` | Full administrative control, system settings, dynamic thresholds, and audit logs |
-
+> ### 🚀 Live Production Demo
+> - **Live Web App**: [minhunhooo-smartcrowd-visionai.hf.space](https://minhunhooo-smartcrowd-visionai.hf.space)
+> - **Default Credentials**: dmin / dmin123 *(Pre-filled on login page — simply click Sign In)*
 </div>
 
 ---
