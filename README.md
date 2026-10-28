@@ -29,7 +29,7 @@ pinned: false
 
 > ### 🚀 Live Production Demo
 > - **Live Web App**: [minhunhooo-smartcrowd-visionai.hf.space](https://minhunhooo-smartcrowd-visionai.hf.space)
-> - **Default Credentials**: dmin / dmin123 *(Pre-filled on login page — simply click Sign In)*
+> - **Experience Credentials**: demo / demo123 *(Pre-filled on login page — simply click Sign In)*
 </div>
 
 ---
@@ -212,7 +212,7 @@ python run.py
 
 Open your browser at **`http://localhost:5000`**
 
-**Default Credentials:**
+**Experience Credentials:**
 - **Username:** `admin`
 - **Password:** `admin123`
 
