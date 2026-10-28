@@ -33,8 +33,14 @@ class Config:
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 100MB max file size for CCTV clips
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'mp4', 'avi', 'mov', 'mkv'}
     
-    # Session settings
+    # Session settings (Cross-site & Iframe support for Hugging Face Spaces)
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SECURE = True
+    REMEMBER_COOKIE_SAMESITE = 'None'
+    REMEMBER_COOKIE_HTTPONLY = True
     
     # YOLO model settings (YOLOv11 CrowdHuman)
     YOLO_MODEL_PATH = os.environ.get('YOLO_MODEL_PATH') or 'best.pt'
