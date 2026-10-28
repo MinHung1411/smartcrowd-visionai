@@ -14,9 +14,9 @@ def get_db_url():
     paths = [
         '.env',
         'src/.env',
-        '../visionai_app/.env',
+        'src/.env.production',
         '../.env',
-        'visionai_app/.env'
+        'src/.env.example'
     ]
     for p in paths:
         if os.path.exists(p):

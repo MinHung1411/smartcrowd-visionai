@@ -1,121 +1,234 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - VisionAI Object Detection</title>
+    <title>SmartCrowd VisionAI — Đăng Nhập Hệ Thống Giám Sát Đám Đông Thông Minh</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at 50% 20%, #0d1527 0%, #060913 60%, #020408 100%);
             min-height: 100vh;
         }
-        .login-card {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            border: 1px solid #333;
-            backdrop-filter: blur(10px);
+        .mono-font { font-family: 'JetBrains Mono', monospace; }
+        .glass-card {
+            background: rgba(13, 20, 36, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(45, 60, 95, 0.5);
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
-            transition: all 0.3s ease;
+        .btn-gradient {
+            background: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #06b6d4 100%);
+            transition: all 0.25s ease;
         }
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
-            transform: translateY(-2px);
+        .btn-gradient:hover {
+            box-shadow: 0 0 25px rgba(20, 184, 166, 0.45);
+            transform: translateY(-1.5px);
         }
-        .input-field {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #333;
-            transition: all 0.3s ease;
+        .input-glass {
+            background: rgba(10, 15, 28, 0.85);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+            transition: all 0.2s ease;
         }
-        .input-field:focus {
-            background: rgba(255, 255, 255, 0.15);
+        .input-glass:focus {
             border-color: #14b8a6;
-            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-    <div class="login-card rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        <!-- Logo -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-teal-500 mb-2">VisionAI</h1>
-            <p class="text-gray-400">Object Detection System</p>
-        </div>
-        
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="mb-6 p-4 rounded-lg {% if category == 'error' %}bg-red-600{% elif category == 'success' %}bg-green-600{% else %}bg-blue-600{% endif %} text-white">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        <!-- Iframe / Fullscreen Notice -->
-        <div class="mb-6 p-3 bg-teal-500/10 border border-teal-500/30 rounded-xl flex items-center justify-between text-xs text-teal-300">
-            <span><i class="fas fa-desktop mr-1.5"></i>Khuyên dùng chế độ toàn màn hình:</span>
-            <a href="https://minhunhooo-smartcrowd-visionai.hf.space" target="_blank" class="px-2.5 py-1 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 rounded-lg font-semibold text-white transition flex items-center gap-1">
-                <span>Mở Tab Mới</span>
-                <i class="fas fa-external-link-alt text-[10px]"></i>
-            </a>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 text-gray-200 antialiased selection:bg-teal-500 selection:text-white">
+
+    <!-- Container -->
+    <div class="w-full max-w-lg space-y-5 my-6">
+
+        <!-- Portfolio Author Badge -->
+        <div class="flex items-center justify-between px-2 text-xs">
+            <div class="flex items-center space-x-2 text-gray-400">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>AI Engineering Portfolio Project</span>
+            </div>
+            <div class="text-right">
+                <span class="text-teal-400 font-semibold">Tác giả: Hồ Minh Hưng</span>
+            </div>
         </div>
 
-        <!-- Login Form -->
-        <form method="POST">
-            <div class="space-y-6">
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-300 mb-2">
-                        <i class="fas fa-user mr-2"></i>Email or Username
-                    </label>
-                    <input type="text" id="email" name="email" value="admin" required
-                           class="input-field w-full px-4 py-3 rounded-lg text-white placeholder-gray-400 outline-none"
-                           placeholder="Enter your email or username">
-                </div>
-                
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-300 mb-2">
-                        <i class="fas fa-lock mr-2"></i>Password
-                    </label>
-                    <input type="password" id="password" name="password" value="admin123" required
-                           class="input-field w-full px-4 py-3 rounded-lg text-white placeholder-gray-400 outline-none"
-                           placeholder="Enter your password">
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <label class="flex items-center">
-                        <input type="checkbox" name="remember" checked class="mr-2 rounded">
-                        <span class="text-sm text-gray-300">Remember me</span>
-                    </label>
-                </div>
-                
-                <button type="submit" class="btn-primary w-full py-3 rounded-lg text-white font-semibold shadow-lg">
-                    <i class="fas fa-sign-in-alt mr-2"></i>Login
-                </button>
+        <!-- Main Card -->
+        <div class="glass-card rounded-3xl p-7 md:p-8 shadow-2xl relative overflow-hidden">
+            <!-- Decorative Glow Background -->
+            <div class="absolute -top-24 -right-24 w-60 h-60 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                <div class="p-4 bg-gray-800/90 border border-teal-500/30 rounded-xl text-center space-y-2">
-                    <p class="text-xs text-gray-400">Tài khoản Demo:</p>
-                    <p class="text-sm font-mono text-teal-300 font-bold">admin &bull; admin123</p>
-                    <a href="{{ url_for('auth.login', auto='admin') }}"
-                       class="block w-full py-2 px-3 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white rounded-lg text-xs font-bold shadow-lg shadow-teal-900/30 transition text-center">
-                        ⚡ Đăng nhập 1-Click (Vào thẳng Dashboard)
-                    </a>
+            <!-- Logo & Brand Header -->
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center p-3 bg-gradient-to-br from-teal-500/20 to-cyan-500/10 border border-teal-500/30 rounded-2xl mb-3 shadow-inner shadow-teal-500/20">
+                    <i class="fas fa-eye text-3xl text-teal-400"></i>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-teal-300 tracking-tight">
+                    SmartCrowd VisionAI
+                </h1>
+                <p class="text-xs text-gray-400 mt-1">Hệ thống Giám sát Đám đông Real-time & Phân tích Dòng người</p>
+                <div class="flex flex-wrap justify-center gap-1.5 mt-2.5">
+                    <span class="px-2 py-0.5 rounded-md bg-gray-800/80 border border-gray-700 text-[10px] mono-font text-teal-300">YOLOv11m</span>
+                    <span class="px-2 py-0.5 rounded-md bg-gray-800/80 border border-gray-700 text-[10px] mono-font text-cyan-300">ByteTrack</span>
+                    <span class="px-2 py-0.5 rounded-md bg-gray-800/80 border border-gray-700 text-[10px] mono-font text-indigo-300">Databricks</span>
                 </div>
             </div>
-        </form>
-        
-        <!-- Register Link -->
-        <div class="mt-6 text-center">
-            <p class="text-gray-400">
-                Don't have an account? 
-                <a href="{{ url_for('auth.register') }}" class="text-teal-500 hover:text-teal-400 font-medium">
-                    Register here
+
+            <!-- Flash Error/Success Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-5 p-3.5 rounded-xl text-xs font-medium border flex items-center space-x-2 {% if category == 'error' %}bg-rose-950/80 text-rose-300 border-rose-800{% else %}bg-emerald-950/80 text-emerald-300 border-emerald-800{% endif %}">
+                            <i class="fas {% if category == 'error' %}fa-exclamation-circle text-rose-400{% else %}fa-check-circle text-emerald-400{% endif %}"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- HIGHLIGHT CỰC KỲ NỔI BẬT: DÀNH CHO NHÀ TUYỂN DỤNG & TESTER -->
+            <div class="mb-6 p-5 bg-gradient-to-r from-emerald-950/70 via-teal-950/50 to-cyan-950/70 border-2 border-teal-400/50 rounded-2xl shadow-xl shadow-teal-950/50 space-y-3 relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[11px] font-black uppercase tracking-wider border border-teal-500/40 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        DÀNH CHO NHÀ TUYỂN DỤNG & TESTER
+                    </span>
+                    <span class="text-[11px] text-gray-400">Trải nghiệm ngay</span>
+                </div>
+                <p class="text-xs text-gray-300 leading-relaxed">
+                    Đăng nhập nhanh không cần nhập phím bằng tài khoản <strong class="text-teal-300">Demo Guest (Người đánh giá)</strong> để trải nghiệm Dashboard, Live Camera và Video CCTV:
+                </p>
+                <a href="{{ url_for('auth.login', auto='demo') }}"
+                   class="btn-gradient w-full py-3.5 px-4 text-white font-extrabold text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-teal-500/30 text-center flex items-center justify-center gap-2">
+                    <i class="fas fa-bolt text-amber-300"></i>
+                    <span>VÀO TRẢI NGHIỆM NHANH (1-CLICK DEMO LOGIN)</span>
+                    <i class="fas fa-arrow-right text-xs"></i>
                 </a>
-            </p>
+            </div>
+
+            <!-- Credentials Switcher (Click to fill) -->
+            <div class="space-y-2 mb-6">
+                <div class="flex justify-between items-center text-xs text-gray-400 px-1">
+                    <span>Hoặc chọn nhanh loại tài khoản bên dưới:</span>
+                    <span class="text-[10px] text-teal-400">Nhấp để điền tự động</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <!-- Demo Account Card -->
+                    <button type="button" id="selectDemoBtn"
+                            class="p-3 rounded-xl border border-teal-500/40 bg-teal-950/30 hover:bg-teal-950/60 transition text-left space-y-1 focus:outline-none focus:ring-2 focus:ring-teal-400">
+                        <div class="flex items-center justify-between text-xs font-bold text-teal-300">
+                            <span><i class="fas fa-user-check mr-1.5"></i>Tài khoản Demo</span>
+                            <span class="text-[9px] px-1.5 py-0.2 bg-teal-500/20 rounded">Guest</span>
+                        </div>
+                        <p class="text-[11px] mono-font text-gray-300">demo &bull; demo123</p>
+                    </button>
+
+                    <!-- Admin Account Card -->
+                    <button type="button" id="selectAdminBtn"
+                            class="p-3 rounded-xl border border-gray-800 bg-gray-900/40 hover:bg-gray-800/60 transition text-left space-y-1 focus:outline-none focus:ring-2 focus:ring-teal-400">
+                        <div class="flex items-center justify-between text-xs font-bold text-gray-300">
+                            <span><i class="fas fa-user-shield mr-1.5 text-cyan-400"></i>Quản trị viên</span>
+                            <span class="text-[9px] px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 rounded">Admin</span>
+                        </div>
+                        <p class="text-[11px] mono-font text-gray-400">admin &bull; admin123</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Manual Login Form -->
+            <form method="POST" class="space-y-4">
+                <div>
+                    <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
+                        <i class="fas fa-user-astronaut mr-1.5 text-teal-400"></i>Tên đăng nhập hoặc Email
+                    </label>
+                    <input type="text" id="email" name="email" value="demo" required
+                           class="input-glass w-full px-4 py-2.5 rounded-xl text-white text-sm placeholder-gray-500 outline-none mono-font"
+                           placeholder="Nhập tên đăng nhập hoặc email">
+                </div>
+                
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-gray-300">
+                            <i class="fas fa-key mr-1.5 text-teal-400"></i>Mật khẩu
+                        </label>
+                        <button type="button" id="togglePasswordBtn" class="text-xs text-gray-400 hover:text-teal-300 transition">
+                            <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                    <input type="password" id="password" name="password" value="demo123" required
+                           class="input-glass w-full px-4 py-2.5 rounded-xl text-white text-sm placeholder-gray-500 outline-none mono-font"
+                           placeholder="Nhập mật khẩu">
+                </div>
+                
+                <div class="flex items-center justify-between pt-1">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" name="remember" checked class="w-4 h-4 rounded bg-gray-900 border-gray-700 text-teal-500 focus:ring-0">
+                        <span class="text-xs text-gray-300 ml-2">Ghi nhớ đăng nhập</span>
+                    </label>
+                    <span class="text-xs text-gray-500">Mã hóa bcrypt</span>
+                </div>
+                
+                <button type="submit" class="w-full py-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-teal-500/50 rounded-xl text-white font-bold text-sm transition shadow-lg flex items-center justify-center gap-2">
+                    <i class="fas fa-sign-in-alt text-teal-400"></i>
+                    <span>Đăng Nhập Tiêu Chuẩn</span>
+                </button>
+            </form>
+
+            <!-- Fullscreen Recommendation -->
+            <div class="mt-6 pt-4 border-t border-gray-800/80 flex items-center justify-between text-xs text-gray-400">
+                <span class="flex items-center">
+                    <i class="fas fa-expand mr-1.5 text-cyan-400"></i>
+                    Đang xem trong iframe?
+                </span>
+                <a href="https://minhunhooo-smartcrowd-visionai.hf.space" target="_blank"
+                   class="text-teal-400 hover:text-teal-300 font-semibold transition flex items-center gap-1">
+                    <span>Mở Fullscreen Tab Mới</span>
+                    <i class="fas fa-external-link-alt text-[10px]"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- System Architecture Footnote -->
+        <div class="text-center text-[11px] text-gray-500 space-y-1">
+            <p>SmartCrowd VisionAI Platform &bull; Fine-tuned on CrowdHuman (15,000+ images)</p>
+            <p>Hỗ trợ đa luồng ByteTrack &amp; Kiến trúc Databricks Lakehouse Medallion</p>
         </div>
     </div>
+
+    <!-- Interactive Auto-fill Script -->
+    <script>
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const selectDemoBtn = document.getElementById('selectDemoBtn');
+        const selectAdminBtn = document.getElementById('selectAdminBtn');
+        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+        const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+
+        selectDemoBtn.addEventListener('click', () => {
+            emailInput.value = 'demo';
+            passwordInput.value = 'demo123';
+            selectDemoBtn.className = 'p-3 rounded-xl border-2 border-teal-400 bg-teal-950/50 transition text-left space-y-1';
+            selectAdminBtn.className = 'p-3 rounded-xl border border-gray-800 bg-gray-900/40 hover:bg-gray-800/60 transition text-left space-y-1';
+        });
+
+        selectAdminBtn.addEventListener('click', () => {
+            emailInput.value = 'admin';
+            passwordInput.value = 'admin123';
+            selectAdminBtn.className = 'p-3 rounded-xl border-2 border-cyan-400 bg-cyan-950/50 transition text-left space-y-1';
+            selectDemoBtn.className = 'p-3 rounded-xl border border-gray-800 bg-gray-900/40 hover:bg-gray-800/60 transition text-left space-y-1';
+        });
+
+        togglePasswordBtn.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                togglePasswordIcon.className = 'fas fa-eye-slash text-teal-400';
+            } else {
+                passwordInput.type = 'password';
+                togglePasswordIcon.className = 'fas fa-eye';
+            }
+        });
+    </script>
 </body>
 </html>

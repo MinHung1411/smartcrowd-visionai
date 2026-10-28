@@ -700,61 +700,100 @@ class CrowdTrackerService:
                 cv2.putText(annotated, "COUNTING LINE (A -> B: IN | B -> A: OUT)", (15, line_y - 8),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 200, 0), 1, cv2.LINE_AA)
                 
+                valid_detections = []
                 if results.boxes is not None and len(results.boxes) > 0:
-                    boxes = results.boxes.xyxy.cpu().numpy()
-                    confidences = results.boxes.conf.cpu().numpy()
-                    track_ids = results.boxes.id.cpu().numpy().astype(int) if results.boxes.id is not None else []
+                    raw_boxes = results.boxes.xyxy.cpu().numpy()
+                    raw_confs = results.boxes.conf.cpu().numpy()
+                    raw_ids = results.boxes.id.cpu().numpy().astype(int) if results.boxes.id is not None else []
                     
-                    in_frame_count = len(boxes)
-                    in_frame_counts_list.append(in_frame_count)
-                    max_in_frame = max(max_in_frame, in_frame_count)
-                    
-                    for i, box in enumerate(boxes):
+                    for i, box in enumerate(raw_boxes):
                         x1, y1, x2, y2 = map(int, box)
                         bw = max(1, x2 - x1)
                         bh = max(1, y2 - y1)
                         ratio = bh / bw
-                        if ratio < 0.65 or ratio > 5.5 or (bw * bh < 150):
-                            continue  # Lọc bóng đổ dẹt trên sàn hoặc nhiễu hạt
-                        c = float(confidences[i])
-                        tid = int(track_ids[i]) if len(track_ids) > i else None
-                        
-                        cx = int((x1 + x2) / 2)
-                        cy = int(y2)
-                        
-                        if len(video_heatmap_points) < 15000:
-                            video_heatmap_points.append((cx, cy))
-                            
-                        is_intruder = False
-                        if poly_pts is not None:
-                            if cv2.pointPolygonTest(poly_pts, (float(cx), float(cy)), False) >= 0:
-                                is_intruder = True
-                                
-                        if tid is not None:
-                            track_frame_counts[tid] += 1
-                            unique_visitor_ids.add(tid)
-                            prev_pts = video_track_history[tid]
-                            if len(prev_pts) > 0:
-                                prev_cx, prev_cy = prev_pts[-1]
-                                if prev_cy < line_y <= cy:
-                                    video_counted_in.add(tid)
-                                elif prev_cy > line_y >= cy:
-                                    video_counted_out.add(tid)
-                                    
-                            video_track_history[tid].append((cx, cy))
-                            
-                            # Quỹ đạo
-                            pts = list(video_track_history[tid])
-                            trail_col = (0, 0, 255) if is_intruder else (0, 255, 255)
-                            for p in range(1, len(pts)):
-                                cv2.line(annotated, pts[p - 1], pts[p], trail_col, 2)
-                                
-                        box_col = (0, 0, 255) if is_intruder else (0, 255, 128)
-                        cv2.rectangle(annotated, (x1, y1), (x2, y2), box_col, 2)
-                        label = f"ID:{tid} ({c:.0%})" if tid is not None else f"Person {c:.0%}"
-                        cv2.putText(annotated, label, (x1, max(15, y1 - 6)),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, box_col, 1)
+                        # Người ngồi làm việc hoặc đứng: tỉ lệ hợp lệ từ 0.45 đến 5.5, diện tích tối thiểu 120px
+                        if ratio < 0.45 or ratio > 5.5 or (bw * bh < 120):
+                            continue
+                        c = float(raw_confs[i])
+                        tid = int(raw_ids[i]) if len(raw_ids) > i else None
+                        valid_detections.append({
+                            'box': (x1, y1, x2, y2),
+                            'conf': c,
+                            'tid': tid
+                        })
+                    
+                    # Deduplicate overlapping boxes on the same person (NMS IoU suppression)
+                    if len(valid_detections) > 1:
+                        valid_detections.sort(key=lambda d: d['conf'], reverse=True)
+                        kept_detections = []
+                        for d in valid_detections:
+                            b1 = d['box']
+                            overlap = False
+                            for k in kept_detections:
+                                b2 = k['box']
+                                ix1 = max(b1[0], b2[0])
+                                iy1 = max(b1[1], b2[1])
+                                ix2 = min(b1[2], b2[2])
+                                iy2 = min(b1[3], b2[3])
+                                iw = max(0, ix2 - ix1)
+                                ih = max(0, iy2 - iy1)
+                                inter_area = iw * ih
+                                if inter_area > 0:
+                                    a1 = (b1[2] - b1[0]) * (b1[3] - b1[1])
+                                    a2 = (b2[2] - b2[0]) * (b2[3] - b2[1])
+                                    iou = inter_area / float(a1 + a2 - inter_area)
+                                    io_min = inter_area / float(min(a1, a2))
+                                    if iou > 0.45 or io_min > 0.65:
+                                        overlap = True
+                                        break
+                            if not overlap:
+                                kept_detections.append(d)
+                        valid_detections = kept_detections
                 
+                in_frame_count = len(valid_detections)
+                in_frame_counts_list.append(in_frame_count)
+                max_in_frame = max(max_in_frame, in_frame_count)
+                
+                for d in valid_detections:
+                    x1, y1, x2, y2 = d['box']
+                    c = d['conf']
+                    tid = d['tid']
+                    
+                    cx = int((x1 + x2) / 2)
+                    cy = int(y2)
+                    
+                    if len(video_heatmap_points) < 15000:
+                        video_heatmap_points.append((cx, cy))
+                        
+                    is_intruder = False
+                    if poly_pts is not None:
+                        if cv2.pointPolygonTest(poly_pts, (float(cx), float(cy)), False) >= 0:
+                            is_intruder = True
+                            
+                    if tid is not None:
+                        track_frame_counts[tid] += 1
+                        unique_visitor_ids.add(tid)
+                        prev_pts = video_track_history[tid]
+                        if len(prev_pts) > 0:
+                            prev_cx, prev_cy = prev_pts[-1]
+                            if prev_cy < line_y <= cy:
+                                video_counted_in.add(tid)
+                            elif prev_cy > line_y >= cy:
+                                video_counted_out.add(tid)
+                                
+                        video_track_history[tid].append((cx, cy))
+                        
+                        # Quỹ đạo
+                        pts = list(video_track_history[tid])
+                        trail_col = (0, 0, 255) if is_intruder else (0, 255, 255)
+                        for p in range(1, len(pts)):
+                            cv2.line(annotated, pts[p - 1], pts[p], trail_col, 2)
+                            
+                    box_col = (0, 0, 255) if is_intruder else (0, 255, 128)
+                    cv2.rectangle(annotated, (x1, y1), (x2, y2), box_col, 2)
+                    label = f"ID:{tid} ({c:.0%})" if tid is not None else f"Person {c:.0%}"
+                    cv2.putText(annotated, label, (x1, max(15, y1 - 6)),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.45, box_col, 1)
                 # HUD Header
                 total_in = len(video_counted_in)
                 total_out = len(video_counted_out)
@@ -807,19 +846,21 @@ class CrowdTrackerService:
         # Xác định Đỉnh điểm (Peak In-Frame) thực tế (loại bỏ outlier giật 1 frame do nhiễu vật thể/bóng bàn)
         if in_frame_counts_list:
             sorted_counts = sorted(in_frame_counts_list, reverse=True)
-            min_persist_frames = max(4, int(len(sorted_counts) * 0.015))
+            min_persist_frames = max(8, int(len(sorted_counts) * 0.03))
             true_peak = 0
             for cand in sorted(list(set(sorted_counts)), reverse=True):
                 if sum(1 for c in sorted_counts if c >= cand) >= min_persist_frames:
                     true_peak = cand
                     break
             if true_peak == 0 and sorted_counts:
-                true_peak = sorted_counts[0]
+                from collections import Counter
+                most_common = Counter(sorted_counts).most_common(1)
+                true_peak = most_common[0][0] if most_common else sorted_counts[0]
         else:
             true_peak = max_in_frame
 
-        # Lọc sạch hiện tượng ID switch hoặc track rác chỉ xuất hiện 1-2 frames
-        confirmed_visitor_ids = {tid for tid, count in track_frame_counts.items() if count >= 6}
+        # Lọc sạch hiện tượng ID switch hoặc track rác chỉ xuất hiện vài frames
+        confirmed_visitor_ids = {tid for tid, count in track_frame_counts.items() if count >= 8}
         if len(video_counted_in) == 0 and len(video_counted_out) == 0:
             total_unique = true_peak
         else:

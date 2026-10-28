@@ -30,9 +30,12 @@ def create_app(config_class=Config):
     def load_user_from_request(request):
         # Support fallback when third-party cookies are blocked inside an iframe
         token = request.args.get('token') or request.args.get('auth_token')
-        if token in ['admin', 'admin123']:
+        if token:
             from app.models.user import User
-            return User.query.filter_by(username='admin').first()
+            if token in ['demo', 'guest', 'viewer', 'demo123']:
+                return User.query.filter_by(username='demo').first()
+            if token in ['admin', 'admin123']:
+                return User.query.filter_by(username='admin').first()
         return None
     
     # Create upload folder if it doesn't exist
@@ -58,6 +61,7 @@ def create_app(config_class=Config):
         try:
             db.create_all()
             from app.models.user import User
+            # Seed default admin
             if not User.query.filter_by(username='admin').first():
                 admin_user = User(username='admin', email='admin@smartcrowd.ai', role='admin')
                 admin_user.set_password('admin123')
@@ -66,6 +70,16 @@ def create_app(config_class=Config):
                 print("[DB] Default admin user seeded successfully (admin / admin123)")
             else:
                 print("[DB] Tables and admin user verified.")
+                
+            # Seed demo user for recruiters / evaluators
+            if not User.query.filter_by(username='demo').first():
+                demo_user = User(username='demo', email='demo@smartcrowd.ai', role='viewer')
+                demo_user.set_password('demo123')
+                db.session.add(demo_user)
+                db.session.commit()
+                print("[DB] Default demo user seeded successfully (demo / demo123)")
+            else:
+                print("[DB] Demo user verified.")
         except Exception as e:
             print(f"[DB] Database init notice: {e}")
     

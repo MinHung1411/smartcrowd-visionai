@@ -25,3 +25,12 @@ ENV/
 # Other
 .DS_Store
 Thumbs.db
+
+# Uploads & Temporary Media
+src/uploads/*
+!src/uploads/.gitkeep
+
+# Databases & Instances
+*.db
+*.sqlite
+instance/

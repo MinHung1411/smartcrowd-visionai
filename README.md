@@ -14,7 +14,7 @@ pinned: false
 # 🚶‍♂️ SmartCrowd: Real-Time Crowd Analytics & People Counting Platform
 ### AI-Powered Multi-Object Tracking (YOLOv11 + ByteTrack) with Cloud Data Lakehouse Architecture (Databricks Unity Catalog)
 
-[![Live Demo](https://img.shields.io/badge/%F0%9F%A4%97%20LIVE%20DEMO-Try%20Now!-FF6B35?style=for-the-badge)](https://minhunhooo-crowd-people-counter.hf.space/)&nbsp;&nbsp;[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MinHung1411/smartcrowd-visionai)&nbsp;&nbsp;[![Author](https://img.shields.io/badge/Author-Ho%20Minh%20Hung-2ea44f?style=for-the-badge)](https://github.com/MinHung1411)
+[![Live Demo](https://img.shields.io/badge/%F0%9F%A4%97%20LIVE%20DEMO-Try%20Now!-FF6B35?style=for-the-badge)](https://minhunhooo-smartcrowd-visionai.hf.space)&nbsp;&nbsp;[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MinHung1411/smartcrowd-visionai)&nbsp;&nbsp;[![Author](https://img.shields.io/badge/Author-Ho%20Minh%20Hung-2ea44f?style=for-the-badge)](https://github.com/MinHung1411)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white" alt="Python">
@@ -26,6 +26,15 @@ pinned: false
   <img src="https://img.shields.io/badge/Docker-Containerized-blue?logo=docker&logoColor=white" alt="Docker">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
 </p>
+
+> ### 🌟 Recruiter & Evaluator Quick Access (1-Click Demo)
+> - **Live Production App**: [minhunhooo-smartcrowd-visionai.hf.space](https://minhunhooo-smartcrowd-visionai.hf.space)
+> - **1-Click Reviewer Login**: [▶️ Instant Demo Access](https://minhunhooo-smartcrowd-visionai.hf.space/auth/login?auto=demo) *(bypasses form entry)*
+> 
+> | Role | Username | Password | Purpose & Capabilities |
+> |---|---|---|---|
+> | 🧑‍💼 **Reviewer / Recruiter (Demo)** | `demo` | `demo123` | Safe evaluation account for testing Live Camera, Video CCTV analytics, and AI charts |
+> | 🛡️ **System Administrator** | `admin` | `admin123` | Full administrative control, system settings, dynamic thresholds, and audit logs |
 
 </div>
 
@@ -56,7 +65,7 @@ The system seamlessly bridges **Edge Computer Vision** with a **Cloud-Native Dat
 3. **CCTV Video Analytics Pipeline**: Upload and analyze surveillance footage (`.mp4`, `.avi`, `.mov`) with timeline traffic profiling, unique visitor counting, and downloadable annotated video.
 4. **Cloud Data Lakehouse (Medallion Pipeline)**: Continuously streams traffic events and density metrics into **Databricks Unity Catalog**, running automated **Bronze → Silver → Gold** ETL pipelines for real-time BI reporting, peak hour detection, and safety compliance audits.
 
-> 🌐 **Live Model Demo**: [minhunhooo-crowd-people-counter.hf.space](https://minhunhooo-crowd-people-counter.hf.space/)
+> 🌐 **Live Model Demo**: [minhunhooo-smartcrowd-visionai.hf.space](https://minhunhooo-smartcrowd-visionai.hf.space)
 
 ---
 

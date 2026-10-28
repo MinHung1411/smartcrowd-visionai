@@ -11,8 +11,18 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
     
-    # 1-Click auto-login support for iframes where cookies might be tricky
-    if request.args.get('auto') in ['admin', '1', 'true']:
+    # 1-Click auto-login support for iframes / quick demo
+    auto_type = request.args.get('auto', '').lower()
+    if auto_type in ['demo', 'guest', 'viewer', 'test']:
+        user = User.query.filter_by(username='demo').first()
+        if not user:
+            user = User(username='demo', email='demo@smartcrowd.ai', role='viewer')
+            user.set_password('demo123')
+            db.session.add(user)
+            db.session.commit()
+        login_user(user, remember=True)
+        return redirect(url_for('main.dashboard'))
+    elif auto_type in ['admin', '1', 'true']:
         user = User.query.filter_by(username='admin').first()
         if user:
             login_user(user, remember=True)

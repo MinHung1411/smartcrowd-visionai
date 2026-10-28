@@ -170,7 +170,7 @@
             <!-- Video Viewport -->
             <div class="relative bg-black rounded-xl overflow-hidden aspect-video border border-gray-800 flex items-center justify-center">
                 <!-- Video Element (Hidden capture source) -->
-                <video id="webcam" class="hidden" autoplay playsinline muted></video>
+                <video id="webcam" class="hidden" playsinline muted></video>
                 
                 <!-- Display Canvas -->
                 <canvas id="displayCanvas" class="w-full h-full object-contain cursor-crosshair"></canvas>
@@ -496,15 +496,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             webcam.srcObject = stream;
 
-            // Đợi stream load metadata để tránh lỗi 'play request interrupted by new load request'
-            await new Promise((resolve) => {
-                if (webcam.readyState >= 2) {
-                    resolve();
-                } else {
-                    webcam.onloadedmetadata = () => resolve();
-                    setTimeout(resolve, 800);
-                }
-            });
+            webcam.muted = true;
+            webcam.playsInline = true;
 
             try {
                 const playPromise = webcam.play();
@@ -512,9 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     await playPromise;
                 }
             } catch (playErr) {
-                if (playErr.name !== 'AbortError') {
-                    console.warn('webcam play notice:', playErr);
-                }
+                console.warn('Webcam play notice (auto-resumed):', playErr);
             }
 
             isRunning = true;
@@ -527,7 +518,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             startBtn.disabled = false;
             console.error('Không thể mở Camera:', err);
-            alert('Không thể mở Camera: ' + (err.message || err));
+            if (!stream || !stream.active) {
+                alert('Không thể mở Camera: Vui lòng kiểm tra quyền truy cập Camera của trình duyệt.');
+            }
         }
     });
 
