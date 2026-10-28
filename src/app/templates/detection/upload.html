@@ -58,13 +58,14 @@
                             <i class="fas fa-sliders-h mr-1.5 text-teal-400"></i>
                             Độ nhạy AI (Confidence):
                         </span>
-                        <span id="uploadConfVal" class="text-teal-400 font-bold font-mono px-2 py-0.5 bg-teal-950/60 border border-teal-800 rounded">20%</span>
+                        <span id="uploadConfVal" class="text-teal-400 font-bold font-mono px-2 py-0.5 bg-teal-950/60 border border-teal-800 rounded">35%</span>
                     </div>
-                    <input id="uploadConfSlider" type="range" min="10" max="80" value="20" step="5"
+                    <input id="uploadConfSlider" type="range" min="15" max="80" value="35" step="5"
                            class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-teal-400">
                     <div class="flex justify-between text-[10px] text-gray-500 font-medium">
-                        <span class="text-teal-400">&larr; 15% - 20%: Nhạy cao (Bắt trọn người ở xa / che khuất)</span>
-                        <span>40%+: Lọc nhiễu &rarr;</span>
+                        <span>20%: Nhạy cao (Người ở xa)</span>
+                        <span class="text-teal-400 font-semibold">35%: Chuẩn Model (Lọc nhiễu)</span>
+                        <span>50%+: Khắt khe</span>
                     </div>
                 </div>
 
@@ -231,7 +232,7 @@
             return;
         }
         
-        const confRatio = uploadConfSlider ? (parseFloat(uploadConfSlider.value) / 100.0) : 0.20;
+        const confRatio = uploadConfSlider ? (parseFloat(uploadConfSlider.value) / 100.0) : 0.35;
         const formData = new FormData();
         formData.append('file', selectedFile);
         formData.append('conf', confRatio);

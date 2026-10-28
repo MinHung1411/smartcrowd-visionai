@@ -322,7 +322,7 @@ def detect_image():
             return jsonify({'error': 'Invalid image file'}), 400
             
         start_time = time.time()
-        conf = float(request.form.get('conf', 0.25))
+        conf = float(request.form.get('conf', 0.35))
         
         # Chế độ Remote AI Microservice (Render Cloud)
         if crowd_tracker.is_remote_enabled():
@@ -347,8 +347,8 @@ def detect_image():
                 annotated_path = os.path.join(current_app.config['UPLOAD_FOLDER'], annotated_filename)
                 cv2.imwrite(annotated_path, annotated_img)
                 
-                confidence_scores = [crowd_tracker.conf_threshold] * person_count
-                objects_detected = [{'name': 'Person', 'confidence': crowd_tracker.conf_threshold} for _ in range(person_count)]
+                confidence_scores = [conf] * person_count
+                objects_detected = [{'name': 'Person', 'confidence': conf} for _ in range(person_count)]
                 
                 detection = save_detection(
                     detection_type='crowd_image',
@@ -373,9 +373,9 @@ def detect_image():
                     'detection_id': detection.id if detection else None
                 })
 
-        # Chế độ Local AI
+        # Chế độ Local AI với NMS lọc trùng lặp iou=0.45 chuẩn xác
         model = crowd_tracker.get_model()
-        results = model(img, conf=conf, imgsz=640, device='cpu', verbose=False)[0]
+        results = model(img, conf=conf, iou=0.45, imgsz=640, device='cpu', verbose=False)[0]
         processing_time = round(time.time() - start_time, 3)
         
         annotated_img = results.plot()

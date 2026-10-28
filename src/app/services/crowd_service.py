@@ -633,6 +633,7 @@ class CrowdTrackerService:
             
         model = self.get_model()
         video_track_history = defaultdict(lambda: deque(maxlen=12))
+        track_frame_counts = defaultdict(int)
         video_counted_in = set()
         video_counted_out = set()
         unique_visitor_ids = set()
@@ -716,6 +717,7 @@ class CrowdTrackerService:
                                 is_intruder = True
                                 
                         if tid is not None:
+                            track_frame_counts[tid] += 1
                             unique_visitor_ids.add(tid)
                             prev_pts = video_track_history[tid]
                             if len(prev_pts) > 0:
@@ -745,7 +747,7 @@ class CrowdTrackerService:
                 occ = max(0, total_in - total_out)
                 
                 cv2.rectangle(annotated, (0, 0), (w, 38), (20, 20, 25), -1)
-                hud_str = f"FRAME: {frame_idx:04d} | COUNT: {in_frame_count:02d} | IN: {total_in:03d} | OUT: {total_out:03d} | OCC: {occ:03d}"
+                hud_str = f"FRAME: {frame_idx:04d} | SO NGUOI: {in_frame_count:02d} | DINH DIEM: {max_in_frame:02d} | VAO: {total_in:02d} | RA: {total_out:02d}"
                 cv2.putText(annotated, hud_str, (15, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.52, (255, 255, 255), 1, cv2.LINE_AA)
                 
                 out_writer.write(annotated)
@@ -787,7 +789,13 @@ class CrowdTrackerService:
         
         proc_duration = round(time.time() - start_proc_time, 2)
         fps_proc = round(processed_frames_count / max(0.01, proc_duration), 1)
-        total_unique = len(unique_visitor_ids)
+        
+        # Lọc sạch hiện tượng ID switch hoặc track rác chỉ xuất hiện 1-2 frames
+        confirmed_visitor_ids = {tid for tid, count in track_frame_counts.items() if count >= 4}
+        if len(video_counted_in) == 0 and len(video_counted_out) == 0:
+            total_unique = max_in_frame
+        else:
+            total_unique = max(max_in_frame, len(confirmed_visitor_ids))
         
         # Sinh bản đồ nhiệt Heatmap từ video
         heatmap_img = None
@@ -805,7 +813,7 @@ class CrowdTrackerService:
                 heatmap_norm = np.zeros((h, w), dtype=np.uint8)
             color_map = cv2.applyColorMap(heatmap_norm, cv2.COLORMAP_JET)
             heatmap_img = cv2.addWeighted(last_frame_for_heatmap, 0.6, color_map, 0.4, 0)
-            cv2.putText(heatmap_img, f"VIDEO CROWD HEATMAP - {total_unique} UNIQUE VISITORS", (15, 30),
+            cv2.putText(heatmap_img, f"VIDEO CROWD HEATMAP - {total_unique} NGUOI TRONG VIDEO", (15, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2, cv2.LINE_AA)
                         
         return {
