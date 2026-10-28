@@ -632,7 +632,7 @@ class CrowdTrackerService:
             poly_pts = np.array([[int(p[0] * w), int(p[1] * h)] for p in restricted_polygon], np.int32).reshape((-1, 1, 2))
             
         model = self.get_model()
-        video_track_history = defaultdict(lambda: deque(maxlen=30))
+        video_track_history = defaultdict(lambda: deque(maxlen=12))
         video_counted_in = set()
         video_counted_out = set()
         unique_visitor_ids = set()
@@ -664,14 +664,14 @@ class CrowdTrackerService:
                 processed_frames_count += 1
                 current_sec = round(frame_idx / fps, 1)
                 
-                # Tracking
+                # Tracking với độ phân giải chuẩn 640 để nhận diện người ở xa
                 results = model.track(
                     frame,
                     persist=True,
                     tracker="bytetrack.yaml",
                     conf=conf,
                     iou=self.iou_threshold,
-                    imgsz=384,
+                    imgsz=640,
                     device='cpu',
                     verbose=False
                 )[0]
@@ -763,6 +763,27 @@ class CrowdTrackerService:
             
         cap.release()
         out_writer.release()
+        
+        # Chuyển đổi video sang chuẩn Web H.264 (yuv420p) để trình duyệt HTML5 phát mượt mà 100%
+        import subprocess, shutil
+        if shutil.which('ffmpeg'):
+            web_output_path = output_path.replace('.mp4', '_web.mp4')
+            cmd = [
+                'ffmpeg', '-y', '-i', output_path,
+                '-vcodec', 'libx264',
+                '-pix_fmt', 'yuv420p',
+                '-movflags', '+faststart',
+                '-preset', 'fast',
+                '-crf', '24',
+                web_output_path
+            ]
+            try:
+                subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
+                if os.path.exists(web_output_path) and os.path.getsize(web_output_path) > 1000:
+                    os.replace(web_output_path, output_path)
+                    print(f"[Video Process] Converted to Web H.264 successfully: {output_path}")
+            except Exception as e:
+                print(f"[Video Process] ffmpeg conversion notice: {e}")
         
         proc_duration = round(time.time() - start_proc_time, 2)
         fps_proc = round(processed_frames_count / max(0.01, proc_duration), 1)

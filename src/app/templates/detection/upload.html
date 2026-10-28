@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Image Analysis - SmartCrowd VisionAI{% endblock %}
+{% block title %}Nhận diện & Đếm Đám Đông Qua Ảnh - SmartCrowd VisionAI{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -13,15 +13,15 @@
                 </span>
                 <div>
                     <h1 class="text-2xl lg:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-emerald-300">
-                        Image Crowd Density & Counting Analysis
+                        Nhận Diện & Đếm Đám Đông Qua Ảnh
                     </h1>
-                    <p class="text-xs text-gray-400 mt-0.5">YOLOv11m CrowdHuman Deep Feature Extraction</p>
+                    <p class="text-xs text-gray-400 mt-0.5">YOLOv11m CrowdHuman Deep Feature Extraction • Nhận diện mật độ cao & người ở xa</p>
                 </div>
             </div>
         </div>
         <div class="flex items-center space-x-3">
             <a href="{{ url_for('detection.video') }}" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-medium border border-gray-700 transition flex items-center">
-                <i class="fas fa-film mr-2 text-indigo-400"></i> Video Analytics
+                <i class="fas fa-film mr-2 text-indigo-400"></i> Phân tích Video CCTV
             </a>
             <a href="{{ url_for('main.dashboard') }}" class="btn-primary px-5 py-2 rounded-xl text-white text-sm font-semibold shadow-lg shadow-teal-500/20 flex items-center">
                 <i class="fas fa-arrow-left mr-2"></i> Dashboard
@@ -34,42 +34,46 @@
         <!-- Upload Area -->
         <div class="card p-6 rounded-2xl border border-gray-800 space-y-4">
             <h2 class="text-base font-bold text-gray-200 flex items-center">
-                <i class="fas fa-cloud-upload-alt text-emerald-400 mr-2"></i> Upload Photo (CCTV Snapshot / Crowd Scene)
+                <i class="fas fa-cloud-upload-alt text-emerald-400 mr-2"></i> Tải lên Ảnh Đám đông / Ảnh CCTV
             </h2>
             <div id="dropZone" class="border-2 border-dashed border-gray-700 rounded-2xl p-8 text-center hover:border-emerald-500 transition cursor-pointer bg-gray-900/40 hover:bg-emerald-950/10">
                 <input type="file" id="fileInput" accept="image/*" class="hidden">
                 <div class="w-16 h-16 mx-auto mb-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 text-3xl">
                     <i class="fas fa-image"></i>
                 </div>
-                <p class="text-sm font-semibold text-gray-200 mb-1">Drag & drop an image here or click to browse</p>
-                <p class="text-xs text-gray-400">Supported formats: PNG, JPG, JPEG, WebP (Up to 16MB)</p>
+                <p class="text-sm font-semibold text-gray-200 mb-1">Kéo thả ảnh vào đây hoặc nhấp để chọn ảnh từ máy tính</p>
+                <p class="text-xs text-gray-400">Định dạng hỗ trợ: PNG, JPG, JPEG, WebP (Tối đa 25MB)</p>
             </div>
             
             <!-- Preview Area -->
             <div id="previewArea" class="space-y-4" style="display: none;">
                 <div class="rounded-xl overflow-hidden bg-black border border-gray-800 aspect-video flex items-center justify-center">
-                    <img id="previewImage" class="w-full h-full object-contain" alt="Preview">
+                    <img id="previewImage" class="w-full h-full object-contain" alt="Xem trước ảnh">
                 </div>
+
                 <!-- Confidence Slider -->
-                <div class="bg-gray-900/90 p-3 rounded-xl border border-gray-800 space-y-1.5">
+                <div class="bg-gray-900/90 p-3.5 rounded-xl border border-gray-800 space-y-2">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-gray-300 font-medium"><i class="fas fa-sliders-h mr-1.5 text-teal-400"></i>Độ nhạy AI (Confidence):</span>
-                        <span id="uploadConfVal" class="text-teal-400 font-bold font-mono">25%</span>
+                        <span class="text-gray-300 font-medium flex items-center">
+                            <i class="fas fa-sliders-h mr-1.5 text-teal-400"></i>
+                            Độ nhạy AI (Confidence):
+                        </span>
+                        <span id="uploadConfVal" class="text-teal-400 font-bold font-mono px-2 py-0.5 bg-teal-950/60 border border-teal-800 rounded">20%</span>
                     </div>
-                    <input id="uploadConfSlider" type="range" min="10" max="85" value="25" step="5"
+                    <input id="uploadConfSlider" type="range" min="10" max="80" value="20" step="5"
                            class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-teal-400">
-                    <div class="flex justify-between text-[10px] text-gray-500">
-                        <span>Nhạy cao (Đếm người ở xa/đông)</span>
-                        <span>Lọc nhiễu</span>
+                    <div class="flex justify-between text-[10px] text-gray-500 font-medium">
+                        <span class="text-teal-400">&larr; 15% - 20%: Nhạy cao (Bắt trọn người ở xa / che khuất)</span>
+                        <span>40%+: Lọc nhiễu &rarr;</span>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-3">
                     <button id="detectBtn" class="btn-primary px-6 py-2.5 rounded-xl text-white font-semibold text-sm shadow-lg shadow-teal-500/20 flex items-center">
-                        <i class="fas fa-search mr-2"></i> Run Crowd Detection
+                        <i class="fas fa-search mr-2"></i> Chạy Phân Tích Đám Đông
                     </button>
                     <button id="clearBtn" class="bg-gray-800 hover:bg-gray-700 px-4 py-2.5 rounded-xl text-gray-300 text-sm font-medium border border-gray-700 transition flex items-center">
-                        <i class="fas fa-times mr-2"></i> Clear
+                        <i class="fas fa-redo-alt mr-2"></i> Chọn ảnh khác
                     </button>
                 </div>
             </div>
@@ -80,7 +84,7 @@
             <div>
                 <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
                     <h2 class="text-base font-bold text-gray-200 flex items-center">
-                        <i class="fas fa-poll text-teal-400 mr-2"></i> Detection Insights & HUD
+                        <i class="fas fa-poll text-teal-400 mr-2"></i> Kết Quả Nhận Diện & Thống Kê
                     </h2>
                     <span id="resultDensityBadge" class="hidden text-xs px-2.5 py-1 rounded-full font-bold">
                         LOW
@@ -90,7 +94,7 @@
                 <div id="detectionResults" class="space-y-4">
                     <div class="text-center text-gray-500 py-12">
                         <i class="fas fa-user-friends text-5xl mb-3 opacity-40"></i>
-                        <p class="text-sm">Select an image to detect pedestrian density and count.</p>
+                        <p class="text-sm">Vui lòng tải ảnh lên để hệ thống phân tích mật độ và đếm số lượng người.</p>
                     </div>
                 </div>
             </div>
@@ -99,11 +103,11 @@
             <div id="processingInfo" class="mt-4 p-4 bg-gray-900 border border-gray-800 rounded-xl space-y-2" style="display: none;">
                 <div class="grid grid-cols-2 gap-3 text-xs">
                     <div>
-                        <span class="text-gray-500">Inference Time:</span>
+                        <span class="text-gray-500">Thời gian suy luận:</span>
                         <span id="processingTime" class="ml-1 text-gray-200 font-mono font-bold">-</span>
                     </div>
                     <div>
-                        <span class="text-gray-500">People Detected:</span>
+                        <span class="text-gray-500">Người phát hiện:</span>
                         <span id="objectsCount" class="ml-1 text-teal-400 font-mono font-bold">-</span>
                     </div>
                 </div>
@@ -112,27 +116,31 @@
     </div>
     
     <!-- Annotated Result Modal / Display -->
-    <div id="annotatedDisplayCard" class="card p-6 rounded-2xl border border-gray-800 space-y-3" style="display: none;">
+    <div id="annotatedDisplayCard" class="card p-6 rounded-2xl border border-gray-800 space-y-4" style="display: none;">
         <div class="flex items-center justify-between">
-            <h3 class="text-sm font-bold text-gray-200 flex items-center">
-                <i class="fas fa-check-circle text-teal-400 mr-2"></i> Annotated Crowd Detection Image
-            </h3>
-            <a id="downloadAnnotatedBtn" href="#" download class="text-xs text-teal-400 hover:text-teal-300 font-medium flex items-center">
-                <i class="fas fa-download mr-1"></i> Download Annotated Image
+            <div>
+                <h3 class="text-base font-bold text-gray-200 flex items-center">
+                    <i class="fas fa-check-circle text-teal-400 mr-2"></i> Ảnh Kết Quả Nhận Diện Toàn Cảnh (Full View)
+                </h3>
+                <p class="text-xs text-gray-400 mt-0.5">Hiển thị trọn vẹn hộp bao (Bounding Box), độ tin cậy và mật độ không bị cắt góc</p>
+            </div>
+            <a id="downloadAnnotatedBtn" href="#" download class="px-3.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs text-teal-400 hover:text-teal-300 font-medium rounded-xl border border-gray-700 transition flex items-center">
+                <i class="fas fa-download mr-1.5"></i> Tải ảnh đầy đủ
             </a>
         </div>
-        <div class="rounded-xl overflow-hidden bg-black border border-gray-800 flex items-center justify-center max-h-[600px]">
-            <img id="annotatedResultImg" src="" alt="Annotated Result" class="w-full h-auto object-contain">
+        <!-- Container giữ trọn vẹn 100% tỷ lệ ảnh gốc, không crop, không stretch -->
+        <div class="rounded-2xl bg-gray-950 border border-gray-800/80 flex items-center justify-center p-3 overflow-hidden shadow-2xl min-h-[350px]">
+            <img id="annotatedResultImg" src="" alt="Ảnh nhận diện đám đông" class="max-w-full max-h-[85vh] w-auto h-auto object-contain rounded-xl border border-gray-800/60 shadow-2xl">
         </div>
     </div>
 </div>
 
 <!-- Loading Modal -->
 <div id="loadingModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50" style="display: none;">
-    <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl text-center shadow-2xl space-y-4">
+    <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl text-center shadow-2xl space-y-4 max-w-sm">
         <div class="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent mx-auto"></div>
-        <h3 class="text-base font-bold text-white">Running YOLOv11m Crowd Inference...</h3>
-        <p class="text-xs text-gray-400">Extracting pedestrian bounding boxes and computing density level.</p>
+        <h3 class="text-base font-bold text-white">Đang phân tích YOLOv11m CrowdHuman...</h3>
+        <p class="text-xs text-gray-400">Trích xuất đặc trưng đám đông, phát hiện người ở xa và tính toán mật độ khu vực.</p>
     </div>
 </div>
 {% endblock %}
@@ -172,24 +180,22 @@
         e.preventDefault();
         dropZone.classList.remove('border-emerald-500', 'bg-emerald-950/20');
         const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('image/')) {
-            handleFile(file);
-        } else {
-            alert('Vui lòng chọn file ảnh hợp lệ.');
-        }
+        if (file) handleFile(file);
     });
     
     function handleFile(file) {
-        if (file.size > 16 * 1024 * 1024) {
-            alert('Dung lượng ảnh phải nhỏ hơn 16MB.');
+        if (!file.type.match('image.*')) {
+            alert('Vui lòng chọn file hình ảnh (PNG, JPG, JPEG, WebP).');
             return;
         }
         selectedFile = file;
         const reader = new FileReader();
         reader.onload = (e) => {
             previewImage.src = e.target.result;
-            previewArea.style.display = 'block';
             dropZone.style.display = 'none';
+            previewArea.style.display = 'block';
+            annotatedDisplayCard.style.display = 'none';
+            resultDensityBadge.classList.add('hidden');
         };
         reader.readAsDataURL(file);
     }
@@ -197,6 +203,7 @@
     clearBtn.addEventListener('click', () => {
         selectedFile = null;
         fileInput.value = '';
+        previewImage.src = '';
         previewArea.style.display = 'none';
         dropZone.style.display = 'block';
         annotatedDisplayCard.style.display = 'none';
@@ -204,7 +211,7 @@
         document.getElementById('detectionResults').innerHTML = `
             <div class="text-center text-gray-500 py-12">
                 <i class="fas fa-user-friends text-5xl mb-3 opacity-40"></i>
-                <p class="text-sm">Select an image to detect pedestrian density and count.</p>
+                <p class="text-sm">Vui lòng tải ảnh lên để hệ thống phân tích mật độ và đếm số lượng người.</p>
             </div>
         `;
         document.getElementById('processingInfo').style.display = 'none';
@@ -224,7 +231,7 @@
             return;
         }
         
-        const confRatio = uploadConfSlider ? (parseFloat(uploadConfSlider.value) / 100.0) : 0.25;
+        const confRatio = uploadConfSlider ? (parseFloat(uploadConfSlider.value) / 100.0) : 0.20;
         const formData = new FormData();
         formData.append('file', selectedFile);
         formData.append('conf', confRatio);
@@ -242,7 +249,14 @@
             if (result.success) {
                 // Density badge
                 resultDensityBadge.classList.remove('hidden');
-                resultDensityBadge.innerText = `DENSITY: ${result.density_level}`;
+                const densityMap = {
+                    'LOW': 'THẤP',
+                    'MODERATE': 'TRUNG BÌNH',
+                    'HIGH': 'ĐÔNG ĐÚC',
+                    'CRITICAL': 'CỰC KỲ ĐÔNG'
+                };
+                const densityText = densityMap[result.density_level] || result.density_level;
+                resultDensityBadge.innerText = `MẬT ĐỘ: ${densityText}`;
                 if (result.density_level === 'CRITICAL' || result.density_level === 'HIGH') {
                     resultDensityBadge.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-rose-950 text-rose-300 border border-rose-700';
                 } else {
@@ -253,28 +267,27 @@
                 document.getElementById('detectionResults').innerHTML = `
                     <div class="grid grid-cols-2 gap-4">
                         <div class="p-4 bg-gray-900 border border-gray-800 rounded-xl">
-                            <span class="text-xs text-gray-400">Total People Count</span>
-                            <p class="text-3xl font-black text-white mt-1">${result.person_count}</p>
+                            <span class="text-xs text-gray-400">Tổng Số Người Nhận Diện</span>
+                            <p class="text-3xl font-black text-teal-400 mt-1">${result.person_count} <span class="text-sm font-normal text-gray-400">người</span></p>
                         </div>
                         <div class="p-4 bg-gray-900 border border-gray-800 rounded-xl">
-                            <span class="text-xs text-gray-400">Crowd Level</span>
-                            <p class="text-xl font-bold text-teal-400 mt-2">${result.density_level}</p>
+                            <span class="text-xs text-gray-400">Cấp Độ Mật Độ</span>
+                            <p class="text-xl font-bold text-white mt-2">${densityText}</p>
                         </div>
                     </div>
                     <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                        ${result.objects.slice(0, 15).map(o => `
+                        ${result.objects.map((o, idx) => `
                             <div class="flex justify-between items-center text-xs p-2 bg-gray-900/60 rounded-lg border border-gray-800">
-                                <span class="text-gray-300"><i class="fas fa-user mr-1.5 text-teal-400"></i>${o.name}</span>
+                                <span class="text-gray-300"><i class="fas fa-user mr-1.5 text-teal-400"></i>Đối tượng #${idx + 1}</span>
                                 <span class="font-mono text-teal-400 font-semibold">${(o.confidence * 100).toFixed(1)}%</span>
                             </div>
                         `).join('')}
-                        ${result.objects.length > 15 ? `<p class="text-[10px] text-gray-500 text-center">+ ${result.objects.length - 15} more individuals</p>` : ''}
                     </div>
                 `;
 
                 // Telemetry
                 document.getElementById('processingTime').innerText = `${result.processing_time}s`;
-                document.getElementById('objectsCount').innerText = `${result.person_count} individuals`;
+                document.getElementById('objectsCount').innerText = `${result.person_count} người`;
                 document.getElementById('processingInfo').style.display = 'block';
 
                 // Annotated Image

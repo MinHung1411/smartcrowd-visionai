@@ -375,7 +375,7 @@ def detect_image():
 
         # Chế độ Local AI
         model = crowd_tracker.get_model()
-        results = model(img, conf=crowd_tracker.conf_threshold, imgsz=480, device='cpu', verbose=False)[0]
+        results = model(img, conf=conf, imgsz=640, device='cpu', verbose=False)[0]
         processing_time = round(time.time() - start_time, 3)
         
         annotated_img = results.plot()
