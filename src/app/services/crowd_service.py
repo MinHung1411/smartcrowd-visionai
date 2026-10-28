@@ -409,8 +409,10 @@ class CrowdTrackerService:
                 bw = max(1, x2 - x1)
                 bh = max(1, y2 - y1)
                 ratio = bh / bw
-                if ratio < 0.65 or ratio > 5.5 or (bw * bh < 150):
-                    continue  # Lọc bóng đổ dẹt trên sàn hoặc nhiễu hạt
+                # Với camera laptop/webcam: người ngồi gần, bán thân, tựa cằm hoặc nhìn ngang
+                # Chỉ lọc những dải cực mỏng bất thường
+                if ratio < 0.25 or ratio > 7.0 or (bw * bh < 80):
+                    continue
                 c = float(confidences[i])
                 tid = int(track_ids[i]) if len(track_ids) > i else None
                 
@@ -639,6 +641,7 @@ class CrowdTrackerService:
         model = self.get_model()
         video_track_history = defaultdict(lambda: deque(maxlen=12))
         track_frame_counts = defaultdict(int)
+        in_frame_counts_list = []
         video_counted_in = set()
         video_counted_out = set()
         unique_visitor_ids = set()
@@ -703,6 +706,7 @@ class CrowdTrackerService:
                     track_ids = results.boxes.id.cpu().numpy().astype(int) if results.boxes.id is not None else []
                     
                     in_frame_count = len(boxes)
+                    in_frame_counts_list.append(in_frame_count)
                     max_in_frame = max(max_in_frame, in_frame_count)
                     
                     for i, box in enumerate(boxes):
@@ -800,12 +804,30 @@ class CrowdTrackerService:
         proc_duration = round(time.time() - start_proc_time, 2)
         fps_proc = round(processed_frames_count / max(0.01, proc_duration), 1)
         
-        # Lọc sạch hiện tượng ID switch hoặc track rác chỉ xuất hiện 1-2 frames
-        confirmed_visitor_ids = {tid for tid, count in track_frame_counts.items() if count >= 4}
-        if len(video_counted_in) == 0 and len(video_counted_out) == 0:
-            total_unique = max_in_frame
+        # Xác định Đỉnh điểm (Peak In-Frame) thực tế (loại bỏ outlier giật 1 frame do nhiễu vật thể/bóng bàn)
+        if in_frame_counts_list:
+            sorted_counts = sorted(in_frame_counts_list, reverse=True)
+            min_persist_frames = max(4, int(len(sorted_counts) * 0.015))
+            true_peak = 0
+            for cand in sorted(list(set(sorted_counts)), reverse=True):
+                if sum(1 for c in sorted_counts if c >= cand) >= min_persist_frames:
+                    true_peak = cand
+                    break
+            if true_peak == 0 and sorted_counts:
+                true_peak = sorted_counts[0]
         else:
-            total_unique = max(max_in_frame, len(confirmed_visitor_ids))
+            true_peak = max_in_frame
+
+        # Lọc sạch hiện tượng ID switch hoặc track rác chỉ xuất hiện 1-2 frames
+        confirmed_visitor_ids = {tid for tid, count in track_frame_counts.items() if count >= 6}
+        if len(video_counted_in) == 0 and len(video_counted_out) == 0:
+            total_unique = true_peak
+        else:
+            total_unique = max(true_peak, len(confirmed_visitor_ids))
+            
+        # Lọc đỉnh điểm trên biểu đồ timeline để không có gai nhọn giả tạo 1 frame
+        for pt in timeline:
+            pt['count'] = min(pt['count'], true_peak)
         
         # Sinh bản đồ nhiệt Heatmap từ video
         heatmap_img = None
@@ -830,7 +852,7 @@ class CrowdTrackerService:
             'total_in': len(video_counted_in),
             'total_out': len(video_counted_out),
             'net_occupancy': max(0, len(video_counted_in) - len(video_counted_out)),
-            'peak_in_frame': max_in_frame,
+            'peak_in_frame': true_peak,
             'unique_visitors': total_unique,
             'processed_frames': processed_frames_count,
             'total_video_frames': total_video_frames,
