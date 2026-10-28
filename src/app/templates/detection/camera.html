@@ -485,22 +485,49 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start Camera
     startBtn.addEventListener('click', async () => {
         try {
+            startBtn.disabled = true;
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+                stream = null;
+            }
             stream = await navigator.mediaDevices.getUserMedia({
                 video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
                 audio: false
             });
             webcam.srcObject = stream;
-            await webcam.play();
+
+            // Đợi stream load metadata để tránh lỗi 'play request interrupted by new load request'
+            await new Promise((resolve) => {
+                if (webcam.readyState >= 2) {
+                    resolve();
+                } else {
+                    webcam.onloadedmetadata = () => resolve();
+                    setTimeout(resolve, 800);
+                }
+            });
+
+            try {
+                const playPromise = webcam.play();
+                if (playPromise !== undefined) {
+                    await playPromise;
+                }
+            } catch (playErr) {
+                if (playErr.name !== 'AbortError') {
+                    console.warn('webcam play notice:', playErr);
+                }
+            }
+
             isRunning = true;
             placeholder.classList.add('hidden');
-            startBtn.disabled = true;
             stopBtn.disabled = false;
 
             displayCanvas.width = 640;
             displayCanvas.height = 480;
             requestAnimationFrame(processLoop);
         } catch (err) {
-            alert('Không thể mở Camera: ' + err.message);
+            startBtn.disabled = false;
+            console.error('Không thể mở Camera:', err);
+            alert('Không thể mở Camera: ' + (err.message || err));
         }
     });
 
@@ -509,7 +536,9 @@ document.addEventListener('DOMContentLoaded', () => {
         isRunning = false;
         if (stream) {
             stream.getTracks().forEach(t => t.stop());
+            stream = null;
         }
+        webcam.srcObject = null;
         placeholder.classList.remove('hidden');
         startBtn.disabled = false;
         stopBtn.disabled = true;
