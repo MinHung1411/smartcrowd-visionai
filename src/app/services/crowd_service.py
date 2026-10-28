@@ -406,6 +406,11 @@ class CrowdTrackerService:
             
             for i, box in enumerate(boxes):
                 x1, y1, x2, y2 = map(int, box)
+                bw = max(1, x2 - x1)
+                bh = max(1, y2 - y1)
+                ratio = bh / bw
+                if ratio < 0.65 or ratio > 5.5 or (bw * bh < 150):
+                    continue  # Lọc bóng đổ dẹt trên sàn hoặc nhiễu hạt
                 c = float(confidences[i])
                 tid = int(track_ids[i]) if len(track_ids) > i else None
                 
@@ -702,6 +707,11 @@ class CrowdTrackerService:
                     
                     for i, box in enumerate(boxes):
                         x1, y1, x2, y2 = map(int, box)
+                        bw = max(1, x2 - x1)
+                        bh = max(1, y2 - y1)
+                        ratio = bh / bw
+                        if ratio < 0.65 or ratio > 5.5 or (bw * bh < 150):
+                            continue  # Lọc bóng đổ dẹt trên sàn hoặc nhiễu hạt
                         c = float(confidences[i])
                         tid = int(track_ids[i]) if len(track_ids) > i else None
                         

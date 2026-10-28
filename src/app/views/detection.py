@@ -18,6 +18,28 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
+def is_valid_person_box(box, img_w, img_h):
+    """
+    Bộ lọc hậu xử lý hình học (Geometric Heuristic Filtering) loại bỏ:
+    - Bóng đổ trải dẹt ngang trên mặt đường (Aspect Ratio H/W < 0.65)
+    - Cột nhà, khe tường, chi tiết thẳng đứng dài ngoẵng (Aspect Ratio H/W > 5.5)
+    - Nhiễu hạt siêu nhỏ hoặc diện tích quá bé (Area < 150 px²)
+    - Hộp bao bao trọn gần như toàn bộ bức ảnh (Area > 92% ảnh)
+    """
+    x1, y1, x2, y2 = box
+    bw = max(1, x2 - x1)
+    bh = max(1, y2 - y1)
+    ratio = bh / bw
+    if ratio < 0.65 or ratio > 5.5:
+        return False
+    area = bw * bh
+    if area < 150:
+        return False
+    img_area = img_w * img_h
+    if img_area > 0 and (area / img_area) > 0.92:
+        return False
+    return True
+
 @detection_bp.route('/camera')
 @login_required
 def camera():
@@ -378,8 +400,23 @@ def detect_image():
         results = model(img, conf=conf, iou=0.45, imgsz=640, device='cpu', verbose=False)[0]
         processing_time = round(time.time() - start_time, 3)
         
-        annotated_img = results.plot()
-        person_count = len(results.boxes)
+        img_h, img_w = img.shape[:2]
+        valid_boxes = []
+        for box in results.boxes:
+            b_coords = box.xyxy[0].tolist()
+            if is_valid_person_box(b_coords, img_w, img_h):
+                valid_boxes.append(box)
+                
+        annotated_img = img.copy()
+        for i, box in enumerate(valid_boxes):
+            x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+            c = float(box.conf[0])
+            cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (255, 128, 0), 2)
+            label = f"person {c:.2f}"
+            cv2.putText(annotated_img, label, (x1, max(15, y1 - 6)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 128, 0), 1, cv2.LINE_AA)
+                        
+        person_count = len(valid_boxes)
         
         # Mật độ
         if person_count < 5:
@@ -402,8 +439,8 @@ def detect_image():
         
         # Lưu vào Database / Databricks
         objects_detected = [{'name': 'Person', 'box': box.xyxy[0].tolist(), 'confidence': float(box.conf[0])}
-                            for box in results.boxes]
-        confidence_scores = [float(box.conf[0]) for box in results.boxes]
+                            for box in valid_boxes]
+        confidence_scores = [float(box.conf[0]) for box in valid_boxes]
         
         detection = save_detection(
             detection_type='crowd_image',
