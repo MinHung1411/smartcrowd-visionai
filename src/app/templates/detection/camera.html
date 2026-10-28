@@ -664,12 +664,12 @@ document.addEventListener('DOMContentLoaded', () => {
             isProcessing = true;
             
             const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = displayCanvas.width;
-            tempCanvas.height = displayCanvas.height;
+            tempCanvas.width = 480;
+            tempCanvas.height = 360;
             const tempCtx = tempCanvas.getContext('2d');
             tempCtx.drawImage(webcam, 0, 0, tempCanvas.width, tempCanvas.height);
             
-            const frameBase64 = tempCanvas.toDataURL('image/jpeg', 0.7);
+            const frameBase64 = tempCanvas.toDataURL('image/jpeg', 0.6);
             const lineRatio = parseFloat(lineSlider.value) / 100.0;
             const conf = parseFloat(confSlider.value) / 100.0;
             const alertThreshold = parseInt(alertSlider.value);

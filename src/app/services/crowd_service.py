@@ -189,16 +189,17 @@ class CrowdTrackerService:
             import gc
             import torch
             from ultralytics import YOLO
-            torch.set_num_threads(1)
+            num_threads = min(8, os.cpu_count() or 4)
+            torch.set_num_threads(num_threads)
             torch.set_grad_enabled(False)
-            print(f"[AI Local] Loading YOLOv11 CrowdHuman model from: {self.model_path}")
+            print(f"[AI Local] Loading YOLOv11 CrowdHuman model with {num_threads} CPU threads from: {self.model_path}")
             self.model = YOLO(self.model_path)
             try:
                 self.model.fuse()
             except Exception:
                 pass
             gc.collect()
-            print(f"[AI Local] Model ready & memory optimized! Classes: {self.model.names}")
+            print(f"[AI Local] Model ready & CPU memory optimized! Classes: {self.model.names}")
         return self.model
 
     def update_config(self, conf=None, line_ratio=None, alert_threshold=None):
@@ -362,6 +363,8 @@ class CrowdTrackerService:
             tracker="bytetrack.yaml",
             conf=conf,
             iou=self.iou_threshold,
+            imgsz=384,
+            device='cpu',
             verbose=False
         )[0]
         
@@ -668,6 +671,8 @@ class CrowdTrackerService:
                     tracker="bytetrack.yaml",
                     conf=conf,
                     iou=self.iou_threshold,
+                    imgsz=384,
+                    device='cpu',
                     verbose=False
                 )[0]
                 

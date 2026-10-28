@@ -102,7 +102,7 @@ class ClassificationService:
                 self.yolo_model = YOLO('yolov8n.pt')
             
             # Run classification
-            results = self.yolo_model(image)
+            results = self.yolo_model(image, device='cpu')
             
             objects = []
             for result in results:
