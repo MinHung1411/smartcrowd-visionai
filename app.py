@@ -1,5 +1,19 @@
+# ----------------------------------------------------
+# 1. ZeroGPU Integration (Must be first import for Hugging Face)
+# ----------------------------------------------------
+try:
+    import spaces
+except ImportError:
+    class spaces:
+        @staticmethod
+        def GPU(func=None, duration=None):
+            if func is not None and callable(func):
+                return func
+            def decorator(f):
+                return f
+            return decorator
+
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
 import sys
 import time
 
@@ -49,20 +63,6 @@ from collections import defaultdict, deque
 from ultralytics import YOLO
 import gradio as gr
 
-# ----------------------------------------------------
-# 1. ZeroGPU Integration (Hugging Face Free A100 GPU)
-# ----------------------------------------------------
-try:
-    import spaces
-    has_spaces = True
-except Exception:
-    has_spaces = False
-
-def gpu_fn(duration=60):
-    if has_spaces:
-        return spaces.GPU(duration=duration)
-    return lambda f: f
-
 # Load YOLOv11m CrowdHuman model
 model_path = "best.pt"
 if not os.path.exists(model_path) and os.path.exists("src/best.pt"):
@@ -80,7 +80,7 @@ VIDEO_CHOICES = list(IMGSZ_MAP.keys())
 # ----------------------------------------------------
 # 2. AI Inference Functions (A100 GPU Accelerated)
 # ----------------------------------------------------
-@gpu_fn(duration=30)
+@spaces.GPU(duration=30)
 def detect_image(img, conf):
     if img is None:
         return None, "Vui lòng tải ảnh lên."
@@ -102,7 +102,7 @@ def detect_image(img, conf):
     
     return annotated, f"Số người phát hiện: {count} | Mật độ: {density}"
 
-@gpu_fn(duration=120)
+@spaces.GPU(duration=120)
 def detect_video(video_path, frame_skip, conf, iou, imgsz_label, min_hits, max_seconds):
     if video_path is None:
         return None, "Vui lòng tải video lên."
@@ -195,6 +195,7 @@ def detect_video(video_path, frame_skip, conf, iou, imgsz_label, min_hits, max_s
         summary += f" (Dừng sớm tại giới hạn {max_seconds}s)."
     return out_path, summary
 
+@spaces.GPU(duration=30)
 def detect_webcam(frame, conf, iou, imgsz_label):
     if frame is None:
         return None, ""
