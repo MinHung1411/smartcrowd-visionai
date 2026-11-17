@@ -251,8 +251,8 @@ with gr.Blocks(title="SmartCrowd VisionAI", css=custom_css, theme=gr.themes.Soft
                 with gr.Column(scale=1):
                     img_in = gr.Image(type="numpy", label="Ảnh tải lên (CCTV / Phone)")
                     img_conf = gr.Slider(
-                        0.10, 0.85, value=0.25, step=0.05,
-                        label="Ngưỡng tin cậy (Confidence) — Mặc định 0.25 để nhận diện đủ người ở xa"
+                        0.10, 0.85, value=0.20, step=0.05,
+                        label="Ngưỡng tin cậy (Confidence) — Mặc định 0.20 (Khuyên dùng 15% - 25% tối ưu CrowdHuman)"
                     )
                     img_btn = gr.Button("🔍 Chạy Phân Tích Đám Đông", variant="primary")
                 with gr.Column(scale=1):
@@ -268,7 +268,7 @@ with gr.Blocks(title="SmartCrowd VisionAI", css=custom_css, theme=gr.themes.Soft
                     vid_in = gr.Video(label="Tải lên Video CCTV (.mp4, .avi, .mov)")
                     with gr.Row():
                         frame_skip = gr.Slider(0, 10, value=3, step=1, label="Bỏ qua frame (Tăng tốc)")
-                        vid_conf = gr.Slider(0.1, 0.85, value=0.30, step=0.05, label="Confidence")
+                        vid_conf = gr.Slider(0.1, 0.85, value=0.20, step=0.05, label="Confidence (Mặc định 0.20)")
                     with gr.Row():
                         vid_iou = gr.Slider(0.2, 0.8, value=0.5, step=0.05, label="IoU Threshold")
                         vid_min_hits = gr.Slider(1, 8, value=3, step=1, label="Số frame xác nhận Track")
@@ -292,7 +292,7 @@ with gr.Blocks(title="SmartCrowd VisionAI", css=custom_css, theme=gr.themes.Soft
                 with gr.Column(scale=1):
                     cam_in = gr.Image(sources=["webcam"], streaming=True, label="Webcam Trực Tiếp")
                     with gr.Row():
-                        cam_conf = gr.Slider(0.1, 0.8, value=0.30, step=0.05, label="Confidence")
+                        cam_conf = gr.Slider(0.1, 0.8, value=0.20, step=0.05, label="Confidence (Mặc định 0.20)")
                         cam_iou = gr.Slider(0.2, 0.8, value=0.5, step=0.05, label="IoU")
                     cam_imgsz = gr.Dropdown(choices=VIDEO_CHOICES, value="Nhanh (384px)", label="Độ phân giải Camera")
                 with gr.Column(scale=1):

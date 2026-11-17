@@ -59,14 +59,14 @@
                             <i class="fas fa-sliders mr-1.5 text-blue-600"></i>
                             Độ nhạy phát hiện (Confidence):
                         </span>
-                        <span id="uploadConfVal" class="text-blue-600 font-bold font-mono px-2 py-0.5 bg-white border border-slate-200 rounded">35%</span>
+                        <span id="uploadConfVal" class="text-blue-600 font-bold font-mono px-2 py-0.5 bg-white border border-slate-200 rounded">20%</span>
                     </div>
-                    <input id="uploadConfSlider" type="range" min="15" max="80" value="35" step="5"
+                    <input id="uploadConfSlider" type="range" min="10" max="80" value="20" step="5"
                            class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
                     <div class="flex justify-between text-[10px] text-slate-500 font-medium">
-                        <span>20%: Nhạy cao</span>
-                        <span class="text-slate-800 font-semibold">35%: Tiêu chuẩn</span>
-                        <span>50%+: Khắt khe</span>
+                        <span>15%: Nhạy cao</span>
+                        <span class="text-blue-600 font-semibold">20%: Tối ưu CrowdHuman (Mặc định)</span>
+                        <span>35%+: Khắt khe</span>
                     </div>
                 </div>
 
@@ -234,7 +234,7 @@
             return;
         }
         
-        const confRatio = uploadConfSlider ? (parseFloat(uploadConfSlider.value) / 100.0) : 0.35;
+        const confRatio = uploadConfSlider ? (parseFloat(uploadConfSlider.value) / 100.0) : 0.20;
         const formData = new FormData();
         formData.append('file', selectedFile);
         formData.append('conf', confRatio);

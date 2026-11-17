@@ -28,7 +28,7 @@ class CrowdTrackerService:
         self.hf_space_url = os.environ.get('HF_SPACE_URL', 'https://minhunhooo-crowd-people-counter.hf.space')
         
         # Cấu hình đếm & tracking
-        self.conf_threshold = 0.25
+        self.conf_threshold = 0.20
         self.iou_threshold = 0.5
         self.line_ratio = 0.5  # Vị trí vạch đếm (50% chiều cao khung hình)
         self.alert_threshold = 20  # Ngưỡng cảnh báo quá tải
@@ -74,7 +74,7 @@ class CrowdTrackerService:
                 self.hf_client = False
         return self.hf_client
 
-    def detect_image_remote(self, image_input, conf=0.45):
+    def detect_image_remote(self, image_input, conf=0.20):
         """Gửi ảnh sang Hugging Face để nhận diện - Render không tốn 1MB RAM cho model"""
         client = self.get_hf_client()
         if not client:
@@ -113,7 +113,7 @@ class CrowdTrackerService:
                 except Exception:
                     pass
 
-    def process_video_remote(self, input_path, output_path, conf=0.35, frame_step=2,
+    def process_video_remote(self, input_path, output_path, conf=0.20, frame_step=2,
                              max_seconds=180, line_ratio=0.5):
         """Xử lý video chuyên sâu qua Hugging Face Space AI microservice"""
         client = self.get_hf_client()
@@ -595,7 +595,7 @@ class CrowdTrackerService:
         
         return output
 
-    def process_video_file(self, input_path, output_path, conf=0.35, frame_step=2,
+    def process_video_file(self, input_path, output_path, conf=0.20, frame_step=2,
                            max_seconds=180, line_ratio=0.5, restricted_polygon=None):
         """
         Xử lý toàn diện file video (mp4, avi, mov) với YOLOv11m + ByteTrack:

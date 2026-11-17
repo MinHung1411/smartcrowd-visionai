@@ -366,7 +366,7 @@ def detect_image():
     cv2.imwrite(filepath, img)
         
     start_time = time.time()
-    conf = float(request.form.get('conf', 0.35))
+    conf = float(request.form.get('conf', 0.20))
         
     # Chế độ Remote AI Microservice (Render Cloud)
     if crowd_tracker.is_remote_enabled():
