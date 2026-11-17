@@ -31,7 +31,7 @@ class Config:
     # Upload settings
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'uploads')
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 100MB max file size for CCTV clips
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'mp4', 'avi', 'mov', 'mkv'}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'jfif', 'avif', 'tiff', 'tif', 'heic', 'heif', 'mp4', 'avi', 'mov', 'mkv', 'webm', 'wmv'}
     
     # Session settings (Cross-site & Iframe support for Hugging Face Spaces)
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)

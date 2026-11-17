@@ -186,8 +186,9 @@
     });
     
     function handleFile(file) {
-        if (!file.type.match('image.*')) {
-            alert('Vui lòng chọn file hình ảnh (PNG, JPG, JPEG, WebP).');
+        const validExtensions = /\.(jpe?g|png|webp|bmp|jfif|avif|tiff?|heic|heif|gif)$/i;
+        if (!file.type.match('image.*') && !validExtensions.test(file.name)) {
+            alert('Vui lòng chọn file hình ảnh (JPG, PNG, WebP, JFIF, AVIF, HEIC...).');
             return;
         }
         selectedFile = file;

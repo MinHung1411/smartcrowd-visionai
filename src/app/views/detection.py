@@ -14,9 +14,16 @@ import uuid
 
 detection_bp = Blueprint('detection', __name__)
 
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'jfif', 'avif', 'tiff', 'tif', 'heic', 'heif'}
+ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'webm', 'wmv', 'm4v'}
+ALL_ALLOWED = ALLOWED_IMAGE_EXTENSIONS | ALLOWED_VIDEO_EXTENSIONS
+
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
+    if not filename:
+        return False
+    ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+    allowed = current_app.config.get('ALLOWED_EXTENSIONS', ALL_ALLOWED)
+    return ext in allowed or ext in ALL_ALLOWED
 
 def is_valid_person_box(box, img_w, img_h):
     """
@@ -331,141 +338,154 @@ def detect_image():
         return jsonify({'error': 'No file provided'}), 400
     
     file = request.files['file']
-    if file.filename == '':
+    if not file or file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
     
-    if file and allowed_file(file.filename):
-        filename = str(uuid.uuid4()) + '_' + secure_filename(file.filename)
-        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+    file_bytes = file.read()
+    if not file_bytes:
+        return jsonify({'error': 'Empty file provided'}), 400
         
-        img = cv2.imread(filepath)
-        if img is None:
-            return jsonify({'error': 'Invalid image file'}), 400
+    # Thử giải mã ảnh bằng OpenCV
+    img = cv2.imdecode(np.frombuffer(file_bytes, np.uint8), cv2.IMREAD_COLOR)
+    
+    # Fallback dùng PIL nếu OpenCV không đọc được (ví dụ ảnh .jfif, .avif, .heic, .webp...)
+    if img is None:
+        try:
+            from PIL import Image
+            import io
+            pil_img = Image.open(io.BytesIO(file_bytes)).convert('RGB')
+            img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+        except Exception:
+            img = None
             
-        start_time = time.time()
-        conf = float(request.form.get('conf', 0.35))
+    if img is None:
+        return jsonify({'error': 'File format not supported or corrupt image'}), 400
         
-        # Chế độ Remote AI Microservice (Render Cloud)
-        if crowd_tracker.is_remote_enabled():
-            remote_res = crowd_tracker.detect_image_remote(filepath, conf=conf)
-            if remote_res is not None:
-                annotated_img, person_count = remote_res
-                processing_time = round(time.time() - start_time, 3)
+    filename = f"{uuid.uuid4().hex}.jpg"
+    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    cv2.imwrite(filepath, img)
+        
+    start_time = time.time()
+    conf = float(request.form.get('conf', 0.35))
+        
+    # Chế độ Remote AI Microservice (Render Cloud)
+    if crowd_tracker.is_remote_enabled():
+        remote_res = crowd_tracker.detect_image_remote(filepath, conf=conf)
+        if remote_res is not None:
+            annotated_img, person_count = remote_res
+            processing_time = round(time.time() - start_time, 3)
+            
+            if person_count < 5:
+                density = "LOW"
+            elif person_count <= 15:
+                density = "MODERATE"
+            elif person_count <= 25:
+                density = "HIGH"
+            else:
+                density = "CRITICAL"
                 
-                if person_count < 5:
-                    density = "LOW"
-                elif person_count <= 15:
-                    density = "MODERATE"
-                elif person_count <= 25:
-                    density = "HIGH"
-                else:
-                    density = "CRITICAL"
-                    
-                cv2.putText(annotated_img, f"PEOPLE COUNT: {person_count} | DENSITY: {density}",
-                            (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2, cv2.LINE_AA)
-                
-                annotated_filename = f"annotated_{filename}"
-                annotated_path = os.path.join(current_app.config['UPLOAD_FOLDER'], annotated_filename)
-                cv2.imwrite(annotated_path, annotated_img)
-                
-                confidence_scores = [conf] * person_count
-                objects_detected = [{'name': 'Person', 'confidence': conf} for _ in range(person_count)]
-                
-                detection = save_detection(
-                    detection_type='crowd_image',
-                    objects_detected=objects_detected,
-                    confidence_scores=confidence_scores,
-                    image=annotated_img,
-                    image_prefix='upload',
-                    processing_time=processing_time,
-                    current_count=person_count,
-                    density_level=density,
-                    alert_triggered=(person_count >= crowd_tracker.alert_threshold)
-                )
-                
-                return jsonify({
-                    'success': True,
-                    'person_count': person_count,
-                    'objects': [{'name': f'Người #{i+1}', 'confidence': c} for i, c in enumerate(confidence_scores)],
-                    'confidence_scores': confidence_scores,
-                    'density_level': density,
-                    'processing_time': processing_time,
-                    'annotated_image': f'/detection/uploads/{annotated_filename}',
-                    'detection_id': detection.id if detection else None
-                })
+            cv2.putText(annotated_img, f"PEOPLE COUNT: {person_count} | DENSITY: {density}",
+                        (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2, cv2.LINE_AA)
+            
+            annotated_filename = f"annotated_{filename}"
+            annotated_path = os.path.join(current_app.config['UPLOAD_FOLDER'], annotated_filename)
+            cv2.imwrite(annotated_path, annotated_img)
+            
+            confidence_scores = [conf] * person_count
+            objects_detected = [{'name': 'Person', 'confidence': conf} for _ in range(person_count)]
+            
+            detection = save_detection(
+                detection_type='crowd_image',
+                objects_detected=objects_detected,
+                confidence_scores=confidence_scores,
+                image=annotated_img,
+                image_prefix='upload',
+                processing_time=processing_time,
+                current_count=person_count,
+                density_level=density,
+                alert_triggered=(person_count >= crowd_tracker.alert_threshold)
+            )
+            
+            return jsonify({
+                'success': True,
+                'person_count': person_count,
+                'objects': [{'name': f'Người #{i+1}', 'confidence': c} for i, c in enumerate(confidence_scores)],
+                'confidence_scores': confidence_scores,
+                'density_level': density,
+                'processing_time': processing_time,
+                'annotated_image': f'/detection/uploads/{annotated_filename}',
+                'detection_id': detection.id if detection else None
+            })
 
-        # Chế độ Local AI với NMS lọc trùng lặp iou=0.45 chuẩn xác
-        model = crowd_tracker.get_model()
-        results = model(img, conf=conf, iou=0.45, imgsz=640, device='cpu', verbose=False)[0]
-        processing_time = round(time.time() - start_time, 3)
-        
-        img_h, img_w = img.shape[:2]
-        valid_boxes = []
-        for box in results.boxes:
-            b_coords = box.xyxy[0].tolist()
-            if is_valid_person_box(b_coords, img_w, img_h):
-                valid_boxes.append(box)
-                
-        annotated_img = img.copy()
-        for i, box in enumerate(valid_boxes):
-            x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-            c = float(box.conf[0])
-            cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (255, 128, 0), 2)
-            label = f"person {c:.2f}"
-            cv2.putText(annotated_img, label, (x1, max(15, y1 - 6)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 128, 0), 1, cv2.LINE_AA)
-                        
-        person_count = len(valid_boxes)
-        
-        # Mật độ
-        if person_count < 5:
-            density = "LOW"
-        elif person_count <= 15:
-            density = "MODERATE"
-        elif person_count <= 25:
-            density = "HIGH"
-        else:
-            density = "CRITICAL"
+    # Chế độ Local AI với NMS lọc trùng lặp iou=0.45 chuẩn xác
+    model = crowd_tracker.get_model()
+    results = model(img, conf=conf, iou=0.45, imgsz=640, device='cpu', verbose=False)[0]
+    processing_time = round(time.time() - start_time, 3)
+    
+    img_h, img_w = img.shape[:2]
+    valid_boxes = []
+    for box in results.boxes:
+        b_coords = box.xyxy[0].tolist()
+        if is_valid_person_box(b_coords, img_w, img_h):
+            valid_boxes.append(box)
             
-        # Vẽ banner thống kê lên ảnh
-        cv2.putText(annotated_img, f"PEOPLE COUNT: {person_count} | DENSITY: {density}",
-                    (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2, cv2.LINE_AA)
+    annotated_img = img.copy()
+    for i, box in enumerate(valid_boxes):
+        x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+        c = float(box.conf[0])
+        cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (255, 128, 0), 2)
+        label = f"person {c:.2f}"
+        cv2.putText(annotated_img, label, (x1, max(15, y1 - 6)),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 128, 0), 1, cv2.LINE_AA)
+                    
+    person_count = len(valid_boxes)
+    
+    # Mật độ
+    if person_count < 5:
+        density = "LOW"
+    elif person_count <= 15:
+        density = "MODERATE"
+    elif person_count <= 25:
+        density = "HIGH"
+    else:
+        density = "CRITICAL"
         
-        # Lưu ảnh đã vẽ
-        annotated_filename = f"annotated_{filename}"
-        annotated_path = os.path.join(current_app.config['UPLOAD_FOLDER'], annotated_filename)
-        cv2.imwrite(annotated_path, annotated_img)
-        
-        # Lưu vào Database / Databricks
-        objects_detected = [{'name': 'Person', 'box': box.xyxy[0].tolist(), 'confidence': float(box.conf[0])}
-                            for box in valid_boxes]
-        confidence_scores = [float(box.conf[0]) for box in valid_boxes]
-        
-        detection = save_detection(
-            detection_type='crowd_image',
-            objects_detected=objects_detected,
-            confidence_scores=confidence_scores,
-            image=annotated_img,
-            image_prefix='upload',
-            processing_time=processing_time,
-            current_count=person_count,
-            density_level=density,
-            alert_triggered=(person_count >= crowd_tracker.alert_threshold)
-        )
-        
-        return jsonify({
-            'success': True,
-            'person_count': person_count,
-            'objects': [{'name': f'Người #{i+1}', 'confidence': c} for i, c in enumerate(confidence_scores)],
-            'confidence_scores': confidence_scores,
-            'density_level': density,
-            'processing_time': processing_time,
-            'annotated_image': f'/detection/uploads/{annotated_filename}',
-            'detection_id': detection.id if detection else None
-        })
-        
-    return jsonify({'error': 'File format not supported'}), 400
+    # Vẽ banner thống kê lên ảnh
+    cv2.putText(annotated_img, f"PEOPLE COUNT: {person_count} | DENSITY: {density}",
+                (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2, cv2.LINE_AA)
+    
+    # Lưu ảnh đã vẽ
+    annotated_filename = f"annotated_{filename}"
+    annotated_path = os.path.join(current_app.config['UPLOAD_FOLDER'], annotated_filename)
+    cv2.imwrite(annotated_path, annotated_img)
+    
+    # Lưu vào Database / Databricks
+    objects_detected = [{'name': 'Person', 'box': box.xyxy[0].tolist(), 'confidence': float(box.conf[0])}
+                        for box in valid_boxes]
+    confidence_scores = [float(box.conf[0]) for box in valid_boxes]
+    
+    detection = save_detection(
+        detection_type='crowd_image',
+        objects_detected=objects_detected,
+        confidence_scores=confidence_scores,
+        image=annotated_img,
+        image_prefix='upload',
+        processing_time=processing_time,
+        current_count=person_count,
+        density_level=density,
+        alert_triggered=(person_count >= crowd_tracker.alert_threshold)
+    )
+    
+    return jsonify({
+        'success': True,
+        'person_count': person_count,
+        'objects': [{'name': f'Người #{i+1}', 'confidence': c} for i, c in enumerate(confidence_scores)],
+        'confidence_scores': confidence_scores,
+        'density_level': density,
+        'processing_time': processing_time,
+        'annotated_image': f'/detection/uploads/{annotated_filename}',
+        'detection_id': detection.id if detection else None
+    })
 
 @detection_bp.route('/test_alert', methods=['POST'])
 @login_required
