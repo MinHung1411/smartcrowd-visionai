@@ -13,10 +13,10 @@
                     <i class="fas fa-clock-rotate-left text-sm"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+                    <h1 class="text-xl md:text-2xl font-bold text-white tracking-tight">
                         Nhật Ký Giám Sát &amp; Lưu Lượng
                     </h1>
-                    <p class="text-xs text-slate-500 mt-0.5">Lịch sử các phiên giám sát camera, phân tích video và nhận diện đám đông</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Lịch sử các phiên giám sát camera, phân tích video và nhận diện đám đông</p>
                 </div>
             </div>
         </div>
@@ -25,7 +25,7 @@
                 <i class="fas fa-download text-slate-400"></i>
                 <span>Xuất CSV</span>
             </button>
-            <button onclick="deleteAllHistory()" class="btn-secondary px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5 text-rose-600 hover:text-rose-700">
+            <button onclick="deleteAllHistory()" class="btn-secondary px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5 text-rose-400 hover:text-rose-300">
                 <i class="fas fa-trash-can text-rose-400"></i>
                 <span>Xóa Tất Cả</span>
             </button>
@@ -38,65 +38,65 @@
     
     <!-- History List -->
     <div class="surface-card p-6">
-        <h2 class="text-sm font-bold text-slate-900 mb-4 flex items-center space-x-2">
-            <i class="fas fa-list-check text-blue-600"></i>
+        <h2 class="text-sm font-bold text-white mb-4 flex items-center space-x-2">
+            <i class="fas fa-list-check text-blue-400"></i>
             <span>Danh Sách Các Phiên Giám Sát</span>
         </h2>
         
         {% if detections.items %}
             <div class="space-y-3">
                 {% for detection in detections.items %}
-                    <div class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl p-4 transition">
+                    <div class="bg-slate-900/60 hover:bg-slate-900 border border-slate-700/80 rounded-xl p-4 transition">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center space-x-3.5">
-                                <div class="w-12 h-12 bg-slate-200 border border-slate-300 rounded-lg overflow-hidden shrink-0">
+                                <div class="w-12 h-12 bg-black border border-slate-700 rounded-lg overflow-hidden shrink-0">
                                     {% if detection.image_path %}
                                         <img src="{{ url_for('detection.uploaded_file', filename=detection.image_path) }}" 
                                              alt="Detection" class="w-full h-full object-cover">
                                     {% else %}
-                                        <div class="w-full h-full flex items-center justify-center text-slate-400">
+                                        <div class="w-full h-full flex items-center justify-center text-slate-500">
                                             <i class="fas fa-image text-sm"></i>
                                         </div>
                                     {% endif %}
                                 </div>
                                 <div>
-                                    <div class="font-semibold text-xs text-slate-900 flex items-center space-x-2">
+                                    <div class="font-semibold text-xs text-white flex items-center space-x-2">
                                         <span>
                                             {% if detection.detection_type == 'crowd_live' or detection.detection_type == 'camera' %}
-                                                <i class="fas fa-video text-blue-600 mr-1.5"></i>Camera Trực Tiếp
+                                                <i class="fas fa-video text-blue-400 mr-1.5"></i>Camera Trực Tiếp
                                             {% else %}
-                                                <i class="fas fa-image text-slate-500 mr-1.5"></i>Hình Ảnh
+                                                <i class="fas fa-image text-slate-400 mr-1.5"></i>Hình Ảnh
                                             {% endif %}
                                         </span>
                                         {% if detection.alert_triggered or detection.density_level == 'CRITICAL' %}
-                                            <span class="bg-rose-50 text-rose-700 border border-rose-200 text-[10px] px-2 py-0.5 rounded font-bold">QUÁ TẢI</span>
+                                            <span class="bg-rose-950/80 text-rose-300 border border-rose-800 text-[10px] px-2 py-0.5 rounded font-bold">QUÁ TẢI</span>
                                         {% else %}
-                                            <span class="bg-slate-100 text-slate-700 border border-slate-200 text-[10px] px-2 py-0.5 rounded font-medium">{{ detection.density_level or 'NORMAL' }}</span>
+                                            <span class="bg-slate-800 text-slate-300 border border-slate-700 text-[10px] px-2 py-0.5 rounded font-medium">{{ detection.density_level or 'NORMAL' }}</span>
                                         {% endif %}
                                     </div>
-                                    <div class="text-[11px] text-slate-500 mt-1 flex flex-wrap items-center gap-2">
-                                        <span><i class="fas fa-clock mr-1 text-slate-400"></i>{{ detection.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                                    <div class="text-[11px] text-slate-400 mt-1 flex flex-wrap items-center gap-2">
+                                        <span><i class="fas fa-clock mr-1 text-slate-500"></i>{{ detection.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span>
                                         <span>&bull;</span>
-                                        <span>Vào: <strong class="text-slate-800">+{{ detection.in_count or 0 }}</strong></span>
+                                        <span>Vào: <strong class="text-white">+{{ detection.in_count or 0 }}</strong></span>
                                         <span>&bull;</span>
-                                        <span>Ra: <strong class="text-slate-800">-{{ detection.out_count or 0 }}</strong></span>
+                                        <span>Ra: <strong class="text-white">-{{ detection.out_count or 0 }}</strong></span>
                                     </div>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between sm:justify-end space-x-3">
                                 <div class="text-right">
-                                    <div class="text-sm font-bold text-slate-900">
+                                    <div class="text-sm font-bold text-white">
                                         {{ detection.current_count or detection.get_objects_detected()|length }} người
                                     </div>
-                                    <div class="text-[10px] text-slate-400">
+                                    <div class="text-[10px] text-slate-500">
                                         {{ "%.3f"|format(detection.processing_time or 0) }}s
                                     </div>
                                 </div>
                                 <div class="flex space-x-1.5">
                                     <button onclick="showDetails('{{ detection.id }}')" class="btn-secondary px-2.5 py-1.5 rounded-lg text-xs font-semibold" title="Chi tiết">
-                                        <i class="fas fa-eye text-slate-500"></i>
+                                        <i class="fas fa-eye text-slate-400"></i>
                                     </button>
-                                    <button onclick="deleteDetection('{{ detection.id }}')" class="btn-secondary px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:text-rose-700" title="Xóa">
+                                    <button onclick="deleteDetection('{{ detection.id }}')" class="btn-secondary px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-400 hover:text-rose-300" title="Xóa">
                                         <i class="fas fa-trash-can"></i>
                                     </button>
                                 </div>
@@ -128,7 +128,7 @@
                                     <span class="btn-primary px-3 py-1.5 rounded-lg text-xs">{{ page_num }}</span>
                                 {% endif %}
                             {% else %}
-                                <span class="px-2 py-1.5 text-xs text-slate-400">...</span>
+                                <span class="px-2 py-1.5 text-xs text-slate-500">...</span>
                             {% endif %}
                         {% endfor %}
                         
@@ -142,9 +142,9 @@
                 </div>
             {% endif %}
         {% else %}
-            <div class="text-center text-slate-400 py-12">
+            <div class="text-center text-slate-500 py-12">
                 <i class="fas fa-clock-rotate-left text-4xl mb-3 opacity-30"></i>
-                <p class="text-sm font-medium text-slate-600">Chưa có lịch sử giám sát nào.</p>
+                <p class="text-sm font-medium text-slate-300">Chưa có lịch sử giám sát nào.</p>
                 <p class="text-xs text-slate-400 mt-1">Hãy mở camera hoặc tải video lên để hệ thống tự động lưu trữ các phiên giám sát.</p>
                 <div class="mt-5 space-x-3">
                     <a href="{{ url_for('detection.camera') }}" class="btn-primary px-4 py-2 rounded-lg text-xs inline-flex items-center">
@@ -160,18 +160,18 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" style="display: none;">
-    <div class="bg-white border border-slate-200 p-6 rounded-2xl max-w-md w-full shadow-2xl space-y-4">
-        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-            <h3 class="text-sm font-bold text-slate-900">Xác Nhận Xóa</h3>
-            <button onclick="closeDeleteModal()" class="text-slate-400 hover:text-slate-600">
+<div id="deleteModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" style="display: none;">
+    <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl max-w-md w-full shadow-2xl space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+            <h3 class="text-sm font-bold text-white">Xác Nhận Xóa</h3>
+            <button onclick="closeDeleteModal()" class="text-slate-400 hover:text-white">
                 <i class="fas fa-times text-base"></i>
             </button>
         </div>
-        <div class="text-xs text-slate-600">
+        <div class="text-xs text-slate-300">
             <p id="deleteMessage">Bạn có chắc chắn muốn xóa bản ghi giám sát này không?</p>
         </div>
-        <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+        <div class="flex justify-end space-x-2 pt-2 border-t border-slate-700">
             <button onclick="closeDeleteModal()" class="btn-secondary px-4 py-1.5 rounded-lg text-xs font-semibold">
                 Hủy
             </button>
@@ -183,15 +183,15 @@
 </div>
 
 <!-- Details Modal -->
-<div id="detailsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" style="display: none;">
-    <div class="bg-white border border-slate-200 p-6 rounded-2xl max-w-4xl max-h-[90vh] overflow-y-auto w-full shadow-2xl space-y-4">
-        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-            <h3 class="text-sm font-bold text-slate-900">Chi Tiết Phiên Giám Sát</h3>
-            <button onclick="closeDetailsModal()" class="text-slate-400 hover:text-slate-600">
+<div id="detailsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" style="display: none;">
+    <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl max-w-4xl max-h-[90vh] overflow-y-auto w-full shadow-2xl space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+            <h3 class="text-sm font-bold text-white">Chi Tiết Phiên Giám Sát</h3>
+            <button onclick="closeDetailsModal()" class="text-slate-400 hover:text-white">
                 <i class="fas fa-times text-base"></i>
             </button>
         </div>
-        <div id="modalContent" class="text-slate-700 text-xs">
+        <div id="modalContent" class="text-slate-300 text-xs">
             <!-- Content loaded via JavaScript -->
         </div>
     </div>
@@ -209,16 +209,16 @@
                 if (data.success) {
                     let html = `
                         <div class="space-y-4">
-                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
                                 <div class="flex items-center space-x-4">
-                                    <div class="w-24 h-24 bg-slate-950 border border-slate-200 rounded-lg overflow-hidden shrink-0">
+                                    <div class="w-24 h-24 bg-black border border-slate-700 rounded-lg overflow-hidden shrink-0">
                                         <img src="${data.annotated_image_url || data.image_url}" alt="Detection" class="w-full h-full object-contain">
                                     </div>
                                     <div class="space-y-1">
-                                        <div class="font-bold text-sm text-slate-900">${data.detection_type}</div>
-                                        <div class="text-xs text-slate-500">${data.timestamp}</div>
-                                        <div class="text-xs text-slate-500">Thời gian xử lý: <strong>${data.processing_time}s</strong></div>
-                                        <div class="text-xs text-slate-500">Đối tượng phát hiện: <strong>${data.objects.length}</strong></div>
+                                        <div class="font-bold text-sm text-white">${data.detection_type}</div>
+                                        <div class="text-xs text-slate-400">${data.timestamp}</div>
+                                        <div class="text-xs text-slate-400">Thời gian xử lý: <strong>${data.processing_time}s</strong></div>
+                                        <div class="text-xs text-slate-400">Đối tượng phát hiện: <strong>${data.objects.length}</strong></div>
                                     </div>
                                 </div>
                                 <button onclick="exportSingleDetection('${detectionId}')" class="btn-secondary px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center">
@@ -236,11 +236,11 @@
                                 </button>
                             </div>
                             
-                            <div class="flex justify-center bg-slate-950 p-2 rounded-xl border border-slate-200">
+                            <div class="flex justify-center bg-black p-2 rounded-xl border border-slate-700">
                                 <img id="modalImage" src="${data.annotated_image_url || data.image_url}" alt="Detection" class="max-w-full max-h-96 rounded-lg object-contain">
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-900 text-xs mb-2">Danh sách đối tượng (${data.objects.length}):</h4>
+                                <h4 class="font-bold text-white text-xs mb-2">Danh sách đối tượng (${data.objects.length}):</h4>
                                 <div class="space-y-1.5 max-h-60 overflow-y-auto">
                     `;
                     
@@ -256,11 +256,11 @@
                         }
                         
                         html += `
-                            <div class="bg-slate-50 border border-slate-200 p-2.5 rounded-lg flex items-center justify-between text-xs">
-                                <div class="font-medium text-slate-800">
+                            <div class="bg-slate-900 border border-slate-700/80 p-2.5 rounded-lg flex items-center justify-between text-xs">
+                                <div class="font-medium text-slate-200">
                                     <span>#${index + 1}. ${objectName}</span>
                                 </div>
-                                <div class="font-mono text-blue-600 font-bold">
+                                <div class="font-mono text-blue-400 font-bold">
                                     ${confidence}%
                                 </div>
                             </div>
@@ -270,8 +270,8 @@
                     html += `
                                 </div>
                             </div>
-                            <div class="pt-3 border-t border-slate-100 flex justify-between items-center">
-                                <span class="text-[11px] text-slate-400">Mã phiên: ${detectionId}</span>
+                            <div class="pt-3 border-t border-slate-700 flex justify-between items-center">
+                                <span class="text-[11px] text-slate-500">Mã phiên: ${detectionId}</span>
                                 <div class="flex space-x-2">
                                     <button onclick="downloadCurrentImage('${data.image_url}', '${data.annotated_image_url}')" class="btn-secondary px-3.5 py-1.5 rounded-lg text-xs font-semibold">
                                         <i class="fas fa-download mr-1.5 text-slate-400"></i>Tải Ảnh

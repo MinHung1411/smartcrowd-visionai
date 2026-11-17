@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SmartCrowd &bull; Hệ Thống Giám Sát Lưu Lượng CCTV{% endblock %}</title>
+    <title>{% block title %}SmartCrowd &bull; Hệ Thống Giám Sát Lưu Lượng CCTV{% endblock %} Cô</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,16 +11,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-body: #f8fafc;
-            --bg-card: #ffffff;
-            --border-card: #e2e8f0;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-body: #0f172a;
+            --bg-surface: #1e293b;
+            --border-surface: #334155;
         }
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-body);
-            color: #1e293b;
+            color: #f1f5f9;
             overflow-x: hidden;
         }
         .mono-font {
@@ -31,54 +31,55 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: #0f172a;
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+            background: #334155;
             border-radius: 9999px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            background: #475569;
         }
         .surface-card, .card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
+            background: #1e293b;
+            border: 1px solid #334155;
             border-radius: 0.75rem;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
         }
         .btn-primary {
             background-color: #2563eb;
             color: #ffffff;
             font-weight: 600;
             transition: all 0.15s ease-in-out;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
         }
         .btn-primary:hover {
             background-color: #1d4ed8;
         }
         .btn-secondary {
-            background-color: #ffffff;
-            color: #334155;
-            border: 1px solid #cbd5e1;
+            background-color: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
             font-weight: 500;
             transition: all 0.15s ease-in-out;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
         }
         .btn-secondary:hover {
-            background-color: #f8fafc;
-            border-color: #94a3b8;
+            background-color: #334155;
+            border-color: #475569;
+            color: #ffffff;
         }
         .nav-link {
             transition: all 0.15s ease-in-out;
         }
         .nav-link:hover {
-            background-color: #f1f5f9;
-            color: #0f172a;
+            background-color: #1e293b;
+            color: #ffffff;
         }
         .nav-link.active {
-            background-color: #eff6ff;
-            border-right: 3px solid #2563eb;
-            color: #1d4ed8;
+            background-color: rgba(37, 99, 235, 0.15);
+            border-right: 3px solid #3b82f6;
+            color: #60a5fa;
             font-weight: 600;
         }
         .mobile-menu {
@@ -100,19 +101,19 @@
 </head>
 <body class="selection:bg-blue-600 selection:text-white">
     <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="sidebar w-64 bg-white border-r border-slate-200 text-slate-700 flex flex-col z-30 shrink-0">
+        <!-- Sidebar Navigation (Refined Dark Slate) -->
+        <aside id="sidebar" class="sidebar w-64 bg-[#0b1120] border-r border-slate-800 text-slate-300 flex flex-col z-30 shrink-0">
             <!-- Brand / Logo Area -->
-            <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
                 <a href="{{ url_for('main.dashboard') }}" class="flex items-center space-x-3 group">
                     <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm">
                         <i class="fas fa-video text-sm"></i>
                     </div>
                     <div>
-                        <span class="text-base font-extrabold text-slate-900 tracking-tight">SmartCrowd</span>
+                        <span class="text-base font-extrabold text-white tracking-tight">SmartCrowd</span>
                         <div class="flex items-center space-x-1.5 mt-0.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span class="text-[10px] text-slate-500 font-semibold tracking-wide uppercase">Hệ Thống Trực Tuyến</span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <span class="text-[10px] text-slate-400 font-semibold tracking-wide uppercase">Hệ Thống Trực Tuyến</span>
                         </div>
                     </div>
                 </a>
@@ -120,112 +121,112 @@
             
             <!-- Navigation Links -->
             <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
-                <div class="px-3 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Giám Sát & Phân Tích
+                <div class="px-3 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Giám Sát &amp; Phân Tích
                 </div>
 
                 <a href="{{ url_for('main.dashboard') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.dashboard' %}active{% else %}text-slate-600{% endif %}">
-                    <i class="fas fa-chart-pie w-5 mr-2.5 text-sm {% if request.endpoint == 'main.dashboard' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
+                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.dashboard' %}active{% else %}text-slate-300{% endif %}">
+                    <i class="fas fa-chart-pie w-5 mr-2.5 text-sm {% if request.endpoint == 'main.dashboard' %}text-blue-400{% else %}text-slate-500{% endif %}"></i>
                     <span>Tổng Quan (Dashboard)</span>
                 </a>
 
                 <a href="{{ url_for('detection.camera') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'detection.camera' %}active{% else %}text-slate-600{% endif %}">
-                    <i class="fas fa-camera w-5 mr-2.5 text-sm {% if request.endpoint == 'detection.camera' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
+                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'detection.camera' %}active{% else %}text-slate-300{% endif %}">
+                    <i class="fas fa-camera w-5 mr-2.5 text-sm {% if request.endpoint == 'detection.camera' %}text-blue-400{% else %}text-slate-500{% endif %}"></i>
                     <span>Camera Giám Sát Trực Tiếp</span>
                 </a>
 
                 <a href="{{ url_for('detection.video') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'detection.video' %}active{% else %}text-slate-600{% endif %}">
-                    <i class="fas fa-film w-5 mr-2.5 text-sm {% if request.endpoint == 'detection.video' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
+                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'detection.video' %}active{% else %}text-slate-300{% endif %}">
+                    <i class="fas fa-film w-5 mr-2.5 text-sm {% if request.endpoint == 'detection.video' %}text-blue-400{% else %}text-slate-500{% endif %}"></i>
                     <span>Phân Tích Video CCTV</span>
                 </a>
 
                 <a href="{{ url_for('detection.upload') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'detection.upload' %}active{% else %}text-slate-600{% endif %}">
-                    <i class="fas fa-image w-5 mr-2.5 text-sm {% if request.endpoint == 'detection.upload' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
+                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'detection.upload' %}active{% else %}text-slate-300{% endif %}">
+                    <i class="fas fa-image w-5 mr-2.5 text-sm {% if request.endpoint == 'detection.upload' %}text-blue-400{% else %}text-slate-500{% endif %}"></i>
                     <span>Nhận Diện Ảnh Đám Đông</span>
                 </a>
 
-                <div class="pt-4 px-3 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Dữ Liệu & Quản Trị
+                <div class="pt-4 px-3 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Dữ Liệu &amp; Quản Trị
                 </div>
 
                 <a href="{{ url_for('main.history') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.history' %}active{% else %}text-slate-600{% endif %}">
-                    <i class="fas fa-clock-rotate-left w-5 mr-2.5 text-sm {% if request.endpoint == 'main.history' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
+                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.history' %}active{% else %}text-slate-300{% endif %}">
+                    <i class="fas fa-clock-rotate-left w-5 mr-2.5 text-sm {% if request.endpoint == 'main.history' %}text-blue-400{% else %}text-slate-500{% endif %}"></i>
                     <span>Nhật Ký Lưu Lượng</span>
                 </a>
 
                 {% if current_user.is_admin() %}
                 <a href="{{ url_for('main.activity') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.activity' %}active{% else %}text-slate-600{% endif %}">
-                    <i class="fas fa-shield-halved w-5 mr-2.5 text-sm {% if request.endpoint == 'main.activity' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
+                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.activity' %}active{% else %}text-slate-300{% endif %}">
+                    <i class="fas fa-shield-halved w-5 mr-2.5 text-sm {% if request.endpoint == 'main.activity' %}text-blue-400{% else %}text-slate-500{% endif %}"></i>
                     <span>Nhật Ký Hệ Thống (Audit)</span>
                 </a>
                 {% endif %}
 
                 <a href="{{ url_for('main.settings') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.settings' %}active{% else %}text-slate-600{% endif %}">
-                    <i class="fas fa-sliders w-5 mr-2.5 text-sm {% if request.endpoint == 'main.settings' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
+                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.settings' %}active{% else %}text-slate-300{% endif %}">
+                    <i class="fas fa-sliders w-5 mr-2.5 text-sm {% if request.endpoint == 'main.settings' %}text-blue-400{% else %}text-slate-500{% endif %}"></i>
                     <span>Cấu Hình Hệ Thống</span>
                 </a>
 
                 <div class="pt-3">
                     <a href="{{ url_for('auth.logout') }}"
-                       class="flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition">
-                        <i class="fas fa-arrow-right-from-bracket w-5 mr-2.5 text-sm text-slate-400"></i>
+                       class="flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-rose-400 transition">
+                        <i class="fas fa-arrow-right-from-bracket w-5 mr-2.5 text-sm text-slate-500"></i>
                         <span>Đăng Xuất</span>
                     </a>
                 </div>
             </nav>
             
             <!-- User Profile Summary in Footer -->
-            <div class="p-3.5 border-t border-slate-200 bg-slate-50">
+            <div class="p-3.5 border-t border-slate-800 bg-[#070b14]/70">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2.5 min-w-0">
-                        <div class="w-8 h-8 rounded-lg bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 text-xs font-bold shrink-0">
+                        <div class="w-8 h-8 rounded-lg bg-blue-900/60 border border-blue-700/60 flex items-center justify-center text-blue-300 text-xs font-bold shrink-0">
                             {{ current_user.username[:1].upper() if current_user and current_user.username else 'U' }}
                         </div>
                         <div class="min-w-0">
-                            <p class="text-xs font-semibold text-slate-900 truncate">{{ current_user.username }}</p>
-                            <p class="text-[10px] text-slate-500 truncate">{{ current_user.email }}</p>
+                            <p class="text-xs font-semibold text-white truncate">{{ current_user.username }}</p>
+                            <p class="text-[10px] text-slate-400 truncate">{{ current_user.email }}</p>
                         </div>
                     </div>
-                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-white text-slate-700 border border-slate-200">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
                         {{ current_user.role|capitalize if current_user and current_user.role else 'Guest' }}
                     </span>
                 </div>
             </div>
         </aside>
         
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50">
+        <!-- Main Content Area (Soft Dark Slate Canvas) -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#0f172a]">
             <!-- Top App Bar -->
-            <header class="bg-white border-b border-slate-200 px-6 py-3.5 z-10 shrink-0">
+            <header class="bg-[#0b1120] border-b border-slate-800 px-6 py-3.5 z-10 shrink-0">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
-                        <button id="mobileMenuBtn" class="mobile-menu text-slate-500 hover:text-slate-800 p-1 rounded-lg">
+                        <button id="mobileMenuBtn" class="mobile-menu text-slate-400 hover:text-white p-1 rounded-lg">
                             <i class="fas fa-bars text-lg"></i>
                         </button>
                         <div class="flex items-center space-x-2 text-xs">
                             <span class="text-slate-400">Hệ Thống Giám Sát</span>
-                            <span class="text-slate-300">/</span>
-                            <span class="text-slate-800 font-semibold">{% block header_title %}Bảng Điều Khiển{% endblock %}</span>
+                            <span class="text-slate-600">/</span>
+                            <span class="text-slate-200 font-semibold">{% block header_title %}Bảng Điều Khiển{% endblock %}</span>
                         </div>
                     </div>
 
                     <div class="flex items-center space-x-3">
                         <!-- Model Specs Tag -->
-                        <div class="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[11px] mono-font text-slate-600">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                        <div class="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-[11px] mono-font text-slate-300">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                             <span>YOLOv11m &bull; ByteTrack</span>
                         </div>
 
                         <!-- Fullscreen New Tab Link -->
                         <a href="https://minhunhooo-smartcrowd-visionai.hf.space" target="_blank"
-                           class="hidden md:inline-flex items-center space-x-1.5 text-xs text-slate-500 hover:text-blue-600 transition px-2.5 py-1 rounded-lg hover:bg-slate-100">
+                           class="hidden md:inline-flex items-center space-x-1.5 text-xs text-slate-400 hover:text-blue-400 transition px-2.5 py-1 rounded-lg hover:bg-slate-800">
                             <i class="fas fa-arrow-up-right-from-square text-[11px]"></i>
                             <span>Fullscreen</span>
                         </a>
@@ -238,9 +239,9 @@
                 {% if messages %}
                     <div class="px-6 pt-4">
                         {% for category, message in messages %}
-                            <div class="p-3.5 rounded-lg text-xs font-medium border flex items-center justify-between {% if category == 'error' %}bg-rose-50 text-rose-800 border-rose-200{% elif category == 'success' %}bg-emerald-50 text-emerald-800 border-emerald-200{% else %}bg-blue-50 text-blue-800 border-blue-200{% endif %}">
+                            <div class="p-3.5 rounded-lg text-xs font-medium border flex items-center justify-between {% if category == 'error' %}bg-rose-950/60 text-rose-300 border-rose-800/80{% elif category == 'success' %}bg-emerald-950/60 text-emerald-300 border-emerald-800/80{% else %}bg-blue-950/60 text-blue-300 border-blue-800/80{% endif %}">
                                 <div class="flex items-center space-x-2">
-                                    <i class="fas {% if category == 'error' %}fa-triangle-exclamation text-rose-600{% elif category == 'success' %}fa-circle-check text-emerald-600{% else %}fa-circle-info text-blue-600{% endif %}"></i>
+                                    <i class="fas {% if category == 'error' %}fa-triangle-exclamation text-rose-400{% elif category == 'success' %}fa-circle-check text-emerald-400{% else %}fa-circle-info text-blue-400{% endif %}"></i>
                                     <span>{{ message }}</span>
                                 </div>
                             </div>

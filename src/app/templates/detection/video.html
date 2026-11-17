@@ -13,19 +13,19 @@
                     <i class="fas fa-film text-sm"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+                    <h1 class="text-xl md:text-2xl font-bold text-white tracking-tight">
                         Phân Tích Video CCTV &amp; Đếm Lưu Lượng
                     </h1>
-                    <p class="text-xs text-slate-500 mt-0.5">YOLOv11m CrowdHuman + ByteTrack Tracking &bull; Đếm 2 Chiều &amp; Bản Đồ Nhiệt</p>
+                    <p class="text-xs text-slate-400 mt-0.5">YOLOv11m CrowdHuman + ByteTrack Tracking &bull; Đếm 2 Chiều &amp; Bản Đồ Nhiệt</p>
                 </div>
             </div>
         </div>
         <div class="flex items-center space-x-2.5">
             <a href="{{ url_for('detection.camera') }}" class="btn-secondary px-4 py-2 rounded-lg text-xs font-semibold flex items-center">
-                <i class="fas fa-video mr-1.5 text-slate-500"></i> Giám Sát Camera Trực Tiếp
+                <i class="fas fa-video mr-1.5 text-slate-400"></i> Giám Sát Camera Trực Tiếp
             </a>
             <a href="{{ url_for('main.dashboard') }}" class="btn-secondary px-4 py-2 rounded-lg text-xs font-semibold flex items-center">
-                <i class="fas fa-arrow-left mr-1.5 text-slate-500"></i> Dashboard
+                <i class="fas fa-arrow-left mr-1.5 text-slate-400"></i> Dashboard
             </a>
         </div>
     </div>
@@ -34,18 +34,18 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Video Upload Box -->
         <div class="lg:col-span-2 surface-card p-6 space-y-4">
-            <h2 class="text-sm font-bold text-slate-900 flex items-center">
-                <i class="fas fa-cloud-arrow-up text-blue-600 mr-2"></i> Tải Lên Video Giám Sát CCTV
+            <h2 class="text-sm font-bold text-white flex items-center">
+                <i class="fas fa-cloud-arrow-up text-blue-400 mr-2"></i> Tải Lên Video Giám Sát CCTV
             </h2>
             
-            <div id="videoDropZone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-8 text-center cursor-pointer transition bg-slate-50 hover:bg-blue-50/40">
+            <div id="videoDropZone" class="border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-xl p-8 text-center cursor-pointer transition bg-slate-900/60 hover:bg-blue-950/20">
                 <input type="file" id="videoFileInput" accept="video/mp4,video/avi,video/quicktime,video/x-matroska" class="hidden">
-                <div class="w-14 h-14 mx-auto mb-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-center text-blue-600 text-2xl">
+                <div class="w-14 h-14 mx-auto mb-3 bg-blue-950/50 border border-blue-800/60 rounded-xl flex items-center justify-center text-blue-400 text-2xl">
                     <i class="fas fa-file-video"></i>
                 </div>
-                <p class="text-xs font-semibold text-slate-800 mb-1">Kéo thả file video vào đây hoặc nhấp để chọn video</p>
+                <p class="text-xs font-semibold text-slate-200 mb-1">Kéo thả file video vào đây hoặc nhấp để chọn video</p>
                 <p class="text-[11px] text-slate-400">Hỗ trợ các định dạng: MP4, AVI, MOV, MKV (Tối đa 150MB)</p>
-                <div id="selectedFileInfo" class="mt-3 inline-block px-3 py-1 bg-blue-50 border border-blue-200 rounded-lg text-xs font-medium text-blue-700" style="display: none;"></div>
+                <div id="selectedFileInfo" class="mt-3 inline-block px-3 py-1 bg-blue-950/80 border border-blue-700/60 rounded-lg text-xs font-medium text-blue-300" style="display: none;"></div>
             </div>
 
             <!-- Upload Action Buttons -->
@@ -61,47 +61,47 @@
 
         <!-- Hyperparameters & Inference Engine Options -->
         <div class="surface-card p-6 space-y-4">
-            <h2 class="text-sm font-bold text-slate-900 flex items-center">
-                <i class="fas fa-sliders text-blue-600 mr-2"></i> Thông Số Nhận Diện
+            <h2 class="text-sm font-bold text-white flex items-center">
+                <i class="fas fa-sliders text-blue-400 mr-2"></i> Thông Số Nhận Diện
             </h2>
 
             <!-- Confidence Slider -->
             <div class="space-y-1.5">
                 <div class="flex justify-between text-xs">
-                    <span class="text-slate-500">Độ nhạy phát hiện (Confidence):</span>
-                    <span id="videoConfVal" class="text-blue-600 font-mono font-bold">30%</span>
+                    <span class="text-slate-400">Độ nhạy phát hiện (Confidence):</span>
+                    <span id="videoConfVal" class="text-blue-400 font-mono font-bold">30%</span>
                 </div>
-                <input type="range" id="videoConfSlider" min="15" max="80" value="30" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <input type="range" id="videoConfSlider" min="15" max="80" value="30" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
                 <p class="text-[10px] text-slate-400">30% - 35%: Chuẩn xác nhất, loại bỏ nhiễu vật thể</p>
             </div>
 
             <!-- Frame Skip (Speed vs Accuracy) -->
             <div class="space-y-1.5">
                 <div class="flex justify-between text-xs">
-                    <span class="text-slate-500">Tốc độ xử lý:</span>
-                    <span id="frameSkipVal" class="text-blue-600 font-mono font-bold">Bước 2 (Cân bằng & Nhanh 2x)</span>
+                    <span class="text-slate-400">Tốc độ xử lý:</span>
+                    <span id="frameSkipVal" class="text-blue-400 font-mono font-bold">Bước 2 (Cân bằng & Nhanh 2x)</span>
                 </div>
-                <input type="range" id="frameSkipSlider" min="1" max="5" value="2" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <input type="range" id="frameSkipSlider" min="1" max="5" value="2" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
                 <p class="text-[10px] text-slate-400">Bước 1 = Từng frame | Bước 2 = Cân bằng | Bước 3 = Cực nhanh</p>
             </div>
 
             <!-- Virtual Line Position -->
             <div class="space-y-1.5">
                 <div class="flex justify-between text-xs">
-                    <span class="text-slate-500">Vị trí Vạch Đếm 2 Chiều:</span>
-                    <span id="videoLineVal" class="text-blue-600 font-mono font-bold">50%</span>
+                    <span class="text-slate-400">Vị trí Vạch Đếm 2 Chiều:</span>
+                    <span id="videoLineVal" class="text-blue-400 font-mono font-bold">50%</span>
                 </div>
-                <input type="range" id="videoLineSlider" min="15" max="85" value="50" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <input type="range" id="videoLineSlider" min="15" max="85" value="50" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
                 <p class="text-[10px] text-slate-400">Vạch ảo cắt ngang khung hình để đếm số lượt đi VÀO và RA</p>
             </div>
 
             <!-- Max Processing Duration -->
             <div class="space-y-1.5">
                 <div class="flex justify-between text-xs">
-                    <span class="text-slate-500">Thời lượng xử lý tối đa:</span>
-                    <span class="text-blue-600 font-mono font-bold">180 giây</span>
+                    <span class="text-slate-400">Thời lượng xử lý tối đa:</span>
+                    <span class="text-blue-400 font-mono font-bold">180 giây</span>
                 </div>
-                <select id="maxTimeoutSelect" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-blue-500">
+                <select id="maxTimeoutSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
                     <option value="60">60 giây (Video ngắn)</option>
                     <option value="180" selected>180 giây (Tiêu chuẩn)</option>
                     <option value="360">360 giây (Video dài)</option>
@@ -111,75 +111,75 @@
     </div>
 
     <!-- Processing Status Banner (Hidden until processing) -->
-    <div id="processingBanner" class="p-5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm" style="display: none;">
+    <div id="processingBanner" class="p-5 bg-slate-800/95 border border-blue-500/40 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl" style="display: none;">
         <div class="flex items-center space-x-4">
-            <div class="animate-spin rounded-full h-8 w-8 border-3 border-blue-600 border-t-transparent"></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-3 border-blue-400 border-t-transparent"></div>
             <div>
-                <h3 class="text-sm font-bold text-slate-900">Đang Phân Tích Video CCTV...</h3>
-                <p class="text-xs text-slate-600">Hệ thống đang nhận diện người, theo dõi quỹ đạo ByteTrack, đếm lượt qua vạch và vẽ Heatmap.</p>
+                <h3 class="text-sm font-bold text-white">Đang Phân Tích Video CCTV...</h3>
+                <p class="text-xs text-slate-300">Hệ thống đang nhận diện người, theo dõi quỹ đạo ByteTrack, đếm lượt qua vạch và vẽ Heatmap.</p>
             </div>
         </div>
         <div class="text-right">
-            <span class="text-xs text-slate-500 font-mono bg-white px-3 py-1.5 rounded-lg border border-slate-200">Vui lòng giữ cửa sổ trình duyệt</span>
+            <span class="text-xs text-slate-400 font-mono bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-700">Vui lòng giữ cửa sổ trình duyệt</span>
         </div>
     </div>
 
     <!-- Results Section (Hidden until done) -->
     <div id="resultsSection" class="space-y-6" style="display: none;">
-        <!-- 5 KPI Cards (Clean Unified Style) -->
+        <!-- 5 KPI Cards (Refined Dark Slate) -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <!-- Total IN -->
             <div class="surface-card p-4 flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                <div class="w-10 h-10 rounded-lg bg-slate-700/60 flex items-center justify-center text-slate-300 shrink-0">
                     <i class="fas fa-arrow-down text-sm"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">Lượt đi VÀO (IN)</p>
-                    <p id="kpiTotalIn" class="text-2xl font-bold text-slate-900">0</p>
+                    <p class="text-xs text-slate-400 font-medium">Lượt đi VÀO (IN)</p>
+                    <p id="kpiTotalIn" class="text-2xl font-bold text-white">0</p>
                 </div>
             </div>
 
             <!-- Total OUT -->
             <div class="surface-card p-4 flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                <div class="w-10 h-10 rounded-lg bg-slate-700/60 flex items-center justify-center text-slate-300 shrink-0">
                     <i class="fas fa-arrow-up text-sm"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">Lượt đi RA (OUT)</p>
-                    <p id="kpiTotalOut" class="text-2xl font-bold text-slate-900">0</p>
+                    <p class="text-xs text-slate-400 font-medium">Lượt đi RA (OUT)</p>
+                    <p id="kpiTotalOut" class="text-2xl font-bold text-white">0</p>
                 </div>
             </div>
 
             <!-- Net Occupancy -->
             <div class="surface-card p-4 flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                <div class="w-10 h-10 rounded-lg bg-blue-950/60 border border-blue-800/60 flex items-center justify-center text-blue-400 shrink-0">
                     <i class="fas fa-users text-sm"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">Số người có mặt</p>
-                    <p id="kpiNetOcc" class="text-2xl font-bold text-blue-600">0</p>
+                    <p class="text-xs text-slate-400 font-medium">Số người có mặt</p>
+                    <p id="kpiNetOcc" class="text-2xl font-bold text-blue-400">0</p>
                 </div>
             </div>
 
             <!-- Peak Crowd -->
             <div class="surface-card p-4 flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                <div class="w-10 h-10 rounded-lg bg-slate-700/60 flex items-center justify-center text-slate-300 shrink-0">
                     <i class="fas fa-chart-line text-sm"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">Đỉnh điểm (1 Frame)</p>
-                    <p id="kpiPeakInFrame" class="text-2xl font-bold text-slate-900">0</p>
+                    <p class="text-xs text-slate-400 font-medium">Đỉnh điểm (1 Frame)</p>
+                    <p id="kpiPeakInFrame" class="text-2xl font-bold text-white">0</p>
                 </div>
             </div>
 
             <!-- Unique Visitors / Total in video -->
             <div class="surface-card p-4 flex items-center space-x-3 col-span-2 md:col-span-1">
-                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                <div class="w-10 h-10 rounded-lg bg-slate-700/60 flex items-center justify-center text-slate-300 shrink-0">
                     <i class="fas fa-user-check text-sm"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">Tổng số người</p>
-                    <p id="kpiUnique" class="text-2xl font-bold text-slate-900">0</p>
+                    <p class="text-xs text-slate-400 font-medium">Tổng số người</p>
+                    <p id="kpiUnique" class="text-2xl font-bold text-white">0</p>
                 </div>
             </div>
         </div>
@@ -189,14 +189,14 @@
             <!-- Annotated Video Playback -->
             <div class="surface-card p-5 space-y-3">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-slate-900 flex items-center">
-                        <i class="fas fa-play text-blue-600 mr-2 text-xs"></i> Video Đã Nhận Diện &amp; Tracking
+                    <h3 class="text-sm font-bold text-white flex items-center">
+                        <i class="fas fa-play text-blue-400 mr-2 text-xs"></i> Video Đã Nhận Diện &amp; Tracking
                     </h3>
                     <a id="downloadVideoBtn" href="#" download class="btn-secondary text-xs px-3 py-1 rounded-lg flex items-center">
                         <i class="fas fa-download mr-1.5 text-slate-400"></i> Tải MP4
                     </a>
                 </div>
-                <div class="rounded-lg overflow-hidden bg-slate-900 border border-slate-200 aspect-video flex items-center justify-center shadow-sm">
+                <div class="rounded-lg overflow-hidden bg-black border border-slate-700/80 aspect-video flex items-center justify-center shadow-md">
                     <video id="resultVideoPlayer" controls class="w-full h-full object-contain">
                         Trình duyệt không hỗ trợ phát video HTML5.
                     </video>
@@ -206,14 +206,14 @@
             <!-- Heatmap View -->
             <div class="surface-card p-5 space-y-3">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-slate-900 flex items-center">
-                        <i class="fas fa-fire text-amber-500 mr-2 text-xs"></i> Bản Đồ Nhiệt Tích Lũy (Crowd Heatmap)
+                    <h3 class="text-sm font-bold text-white flex items-center">
+                        <i class="fas fa-fire text-amber-400 mr-2 text-xs"></i> Bản Đồ Nhiệt Tích Lũy (Crowd Heatmap)
                     </h3>
                     <a id="downloadHeatmapBtn" href="#" download class="btn-secondary text-xs px-3 py-1 rounded-lg flex items-center">
                         <i class="fas fa-download mr-1.5 text-slate-400"></i> Tải Heatmap
                     </a>
                 </div>
-                <div class="rounded-lg overflow-hidden bg-slate-900 border border-slate-200 aspect-video flex items-center justify-center shadow-sm">
+                <div class="rounded-lg overflow-hidden bg-black border border-slate-700/80 aspect-video flex items-center justify-center shadow-md">
                     <img id="resultHeatmapImg" src="" alt="Bản đồ nhiệt đám đông" class="w-full h-full object-contain">
                 </div>
             </div>
@@ -221,8 +221,8 @@
 
         <!-- Timeline Foot Traffic Density Chart -->
         <div class="surface-card p-5 space-y-3">
-            <h3 class="text-sm font-bold text-slate-900 flex items-center">
-                <i class="fas fa-chart-line text-blue-600 mr-2 text-xs"></i> Biểu Đồ Biến Thiên Mật Độ &amp; Lưu Lượng Theo Thời Gian
+            <h3 class="text-sm font-bold text-white flex items-center">
+                <i class="fas fa-chart-line text-blue-400 mr-2 text-xs"></i> Biểu Đồ Biến Thiên Mật Độ &amp; Lưu Lượng Theo Thời Gian
             </h3>
             <div class="h-64">
                 <canvas id="timelineChart"></canvas>
@@ -230,26 +230,26 @@
         </div>
 
         <!-- Processing Benchmark Telemetry -->
-        <div class="p-4 bg-slate-100 border border-slate-200 rounded-xl flex flex-wrap items-center justify-between text-xs text-slate-600 gap-4">
+        <div class="p-4 bg-slate-900 border border-slate-700/80 rounded-xl flex flex-wrap items-center justify-between text-xs text-slate-300 gap-4">
             <div>
-                <span class="text-slate-500">Số frame đã xử lý: </span>
-                <span id="teleFrames" class="text-slate-900 font-mono font-bold">-</span>
+                <span class="text-slate-400">Số frame đã xử lý: </span>
+                <span id="teleFrames" class="text-white font-mono font-bold">-</span>
             </div>
             <div>
-                <span class="text-slate-500">Thời gian phân tích: </span>
-                <span id="teleTime" class="text-slate-900 font-mono font-bold">-</span>s
+                <span class="text-slate-400">Thời gian phân tích: </span>
+                <span id="teleTime" class="text-white font-mono font-bold">-</span>s
             </div>
             <div>
-                <span class="text-slate-500">Tốc độ xử lý: </span>
-                <span id="teleFps" class="text-blue-600 font-mono font-bold">-</span> FPS
+                <span class="text-slate-400">Tốc độ xử lý: </span>
+                <span id="teleFps" class="text-blue-400 font-mono font-bold">-</span> FPS
             </div>
             <div>
-                <span class="text-slate-500">Mô hình: </span>
-                <span class="text-slate-900 font-mono font-bold">YOLOv11m-CrowdHuman</span>
+                <span class="text-slate-400">Mô hình: </span>
+                <span class="text-white font-mono font-bold">YOLOv11m-CrowdHuman</span>
             </div>
             <div>
-                <span class="text-slate-500">Thuật toán theo dõi: </span>
-                <span class="text-slate-900 font-mono font-bold">ByteTrack</span>
+                <span class="text-slate-400">Thuật toán theo dõi: </span>
+                <span class="text-white font-mono font-bold">ByteTrack</span>
             </div>
         </div>
     </div>
@@ -305,16 +305,16 @@
 
     videoDropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        videoDropZone.classList.add('border-blue-500', 'bg-blue-50/60');
+        videoDropZone.classList.add('border-blue-500', 'bg-blue-950/30');
     });
 
     videoDropZone.addEventListener('dragleave', () => {
-        videoDropZone.classList.remove('border-blue-500', 'bg-blue-50/60');
+        videoDropZone.classList.remove('border-blue-500', 'bg-blue-950/30');
     });
 
     videoDropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        videoDropZone.classList.remove('border-blue-500', 'bg-blue-50/60');
+        videoDropZone.classList.remove('border-blue-500', 'bg-blue-950/30');
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             handleFileSelect(e.dataTransfer.files[0]);
         }
@@ -440,8 +440,8 @@
                     {
                         label: 'Số người trong Frame',
                         data: counts,
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.12)',
                         fill: true,
                         tension: 0.35,
                         borderWidth: 2,
@@ -450,7 +450,7 @@
                     {
                         label: 'Lũy kế VÀO (IN)',
                         data: ins,
-                        borderColor: '#64748b',
+                        borderColor: '#94a3b8',
                         borderDash: [4, 4],
                         borderWidth: 1.5,
                         fill: false,
@@ -459,7 +459,7 @@
                     {
                         label: 'Lũy kế RA (OUT)',
                         data: outs,
-                        borderColor: '#94a3b8',
+                        borderColor: '#64748b',
                         borderDash: [2, 2],
                         borderWidth: 1.5,
                         fill: false,
@@ -472,17 +472,17 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: '#475569', font: { size: 10 } }
+                        labels: { color: '#94a3b8', font: { size: 10 } }
                     }
                 },
                 scales: {
                     x: {
-                        ticks: { color: '#64748b', maxTicksLimit: 12, font: { size: 9 } },
-                        grid: { color: '#f1f5f9' }
+                        ticks: { color: '#94a3b8', maxTicksLimit: 12, font: { size: 9 } },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
                     },
                     y: {
-                        ticks: { color: '#64748b', font: { size: 9 } },
-                        grid: { color: '#f1f5f9' },
+                        ticks: { color: '#94a3b8', font: { size: 9 } },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
                         beginAtZero: true
                     }
                 }

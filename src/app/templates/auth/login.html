@@ -12,25 +12,25 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #f8fafc;
-            color: #0f172a;
+            background-color: #0f172a;
+            color: #f1f5f9;
             min-height: 100vh;
         }
         .mono-font { font-family: 'JetBrains Mono', monospace; }
         .login-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            background: #1e293b;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
         }
         .input-field {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
+            background: #0f172a;
+            border: 1px solid #334155;
             transition: all 0.15s ease-in-out;
         }
         .input-field:focus {
-            border-color: #2563eb;
+            border-color: #3b82f6;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
     </style>
 </head>
@@ -42,16 +42,16 @@
         <div class="login-card rounded-2xl p-7 relative">
             <!-- Header & Branding -->
             <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-blue-600 text-white mb-3 shadow-sm">
+                <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-blue-600 text-white mb-3 shadow-md shadow-blue-900/30">
                     <i class="fas fa-video text-base"></i>
                 </div>
-                <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">
+                <h1 class="text-xl font-extrabold text-white tracking-tight">
                     SmartCrowd
                 </h1>
-                <p class="text-xs text-slate-500 mt-0.5">Hệ thống Giám sát Lưu lượng CCTV</p>
+                <p class="text-xs text-slate-400 mt-0.5">Hệ thống Giám sát Lưu lượng CCTV</p>
                 <div class="flex items-center justify-center gap-1.5 mt-2">
-                    <span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] mono-font text-slate-600">YOLOv11m</span>
-                    <span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] mono-font text-slate-600">ByteTrack</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-[10px] mono-font text-slate-300">YOLOv11m</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-[10px] mono-font text-slate-300">ByteTrack</span>
                 </div>
             </div>
 
@@ -59,8 +59,8 @@
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                        <div class="mb-4 p-3 rounded-lg text-xs font-medium border flex items-center space-x-2 {% if category == 'error' %}bg-rose-50 text-rose-800 border-rose-200{% else %}bg-emerald-50 text-emerald-800 border-emerald-200{% endif %}">
-                            <i class="fas {% if category == 'error' %}fa-triangle-exclamation text-rose-600{% else %}fa-circle-check text-emerald-600{% endif %}"></i>
+                        <div class="mb-4 p-3 rounded-lg text-xs font-medium border flex items-center space-x-2 {% if category == 'error' %}bg-rose-950/70 text-rose-300 border-rose-800{% else %}bg-emerald-950/70 text-emerald-300 border-emerald-800{% endif %}">
+                            <i class="fas {% if category == 'error' %}fa-triangle-exclamation text-rose-400{% else %}fa-circle-check text-emerald-400{% endif %}"></i>
                             <span>{{ message }}</span>
                         </div>
                     {% endfor %}
@@ -68,12 +68,12 @@
             {% endwith %}
 
             <!-- Pre-filled Credentials Helper -->
-            <div class="mb-4 p-2.5 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-between text-xs">
-                <span class="text-slate-600 flex items-center text-[11px] font-medium">
-                    <i class="fas fa-key text-blue-600 mr-1.5"></i>
+            <div class="mb-4 p-2.5 rounded-lg bg-blue-950/60 border border-blue-800/60 flex items-center justify-between text-xs">
+                <span class="text-slate-300 flex items-center text-[11px] font-medium">
+                    <i class="fas fa-key text-blue-400 mr-1.5"></i>
                     Tài khoản demo:
                 </span>
-                <span class="mono-font text-blue-700 font-bold bg-white px-2 py-0.5 rounded text-[11px] border border-blue-200">
+                <span class="mono-font text-blue-300 font-bold bg-slate-900 px-2 py-0.5 rounded text-[11px] border border-blue-800/80">
                     demo &bull; demo123
                 </span>
             </div>
@@ -81,57 +81,57 @@
             <!-- Login Form (Pre-filled with demo credentials) -->
             <form method="POST" class="space-y-3.5">
                 <div>
-                    <label for="email" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">
+                    <label for="email" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
                         Tên đăng nhập hoặc Email
                     </label>
                     <input type="text" id="email" name="email" value="demo" required
-                           class="input-field w-full px-3.5 py-2 rounded-lg text-slate-900 text-xs placeholder-slate-400 mono-font"
+                           class="input-field w-full px-3.5 py-2 rounded-lg text-white text-xs placeholder-slate-500 mono-font"
                            placeholder="Nhập tên đăng nhập">
                 </div>
                 
                 <div>
                     <div class="flex justify-between items-center mb-1">
-                        <label for="password" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                        <label for="password" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                             Mật khẩu
                         </label>
-                        <button type="button" id="togglePasswordBtn" class="text-xs text-slate-400 hover:text-slate-600 transition">
+                        <button type="button" id="togglePasswordBtn" class="text-xs text-slate-400 hover:text-slate-200 transition">
                             <i class="fas fa-eye text-xs" id="togglePasswordIcon"></i>
                         </button>
                     </div>
                     <input type="password" id="password" name="password" value="demo123" required
-                           class="input-field w-full px-3.5 py-2 rounded-lg text-slate-900 text-xs placeholder-slate-400 mono-font"
+                           class="input-field w-full px-3.5 py-2 rounded-lg text-white text-xs placeholder-slate-500 mono-font"
                            placeholder="Nhập mật khẩu">
                 </div>
                 
                 <div class="flex items-center justify-between pt-0.5">
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" name="remember" checked class="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                        <span class="text-[11px] text-slate-500 ml-2">Ghi nhớ phiên</span>
+                        <input type="checkbox" name="remember" checked class="w-3.5 h-3.5 rounded border-slate-600 bg-slate-900 text-blue-600 focus:ring-0">
+                        <span class="text-[11px] text-slate-400 ml-2">Ghi nhớ phiên</span>
                     </label>
-                    <span class="text-[10px] text-slate-400 mono-font">BCrypt Secure</span>
+                    <span class="text-[10px] text-slate-500 mono-font">BCrypt Secure</span>
                 </div>
                 
-                <button type="submit" class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition shadow-sm flex items-center justify-center gap-2 mt-2">
+                <button type="submit" class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition shadow-md shadow-blue-900/30 flex items-center justify-center gap-2 mt-2">
                     <i class="fas fa-arrow-right-to-bracket text-xs"></i>
                     <span>ĐĂNG NHẬP VÀO HỆ THỐNG</span>
                 </button>
             </form>
 
             <!-- Fullscreen Recommendation for iframe -->
-            <div class="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+            <div class="mt-5 pt-3.5 border-t border-slate-700/80 flex items-center justify-between text-[11px] text-slate-400">
                 <span class="flex items-center">
-                    <i class="fas fa-expand mr-1.5 text-slate-400"></i>
+                    <i class="fas fa-expand mr-1.5 text-slate-500"></i>
                     Xem trong iframe?
                 </span>
                 <a href="https://minhunhooo-smartcrowd-visionai.hf.space" target="_blank"
-                   class="text-blue-600 hover:text-blue-700 font-semibold transition flex items-center gap-1">
+                   class="text-blue-400 hover:text-blue-300 font-semibold transition flex items-center gap-1">
                     <span>Mở Fullscreen Tab Mới</span>
                     <i class="fas fa-arrow-up-right-from-square text-[9px]"></i>
                 </a>
             </div>
         </div>
 
-        <div class="text-center text-[11px] text-slate-400">
+        <div class="text-center text-[11px] text-slate-500">
             <p>SmartCrowd Platform &bull; YOLOv11m + ByteTrack</p>
         </div>
     </div>
@@ -144,7 +144,7 @@
         togglePasswordBtn.addEventListener('click', () => {
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                togglePasswordIcon.className = 'fas fa-eye-slash text-blue-600 text-xs';
+                togglePasswordIcon.className = 'fas fa-eye-slash text-blue-400 text-xs';
             } else {
                 passwordInput.type = 'password';
                 togglePasswordIcon.className = 'fas fa-eye text-slate-400 text-xs';

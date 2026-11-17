@@ -13,34 +13,34 @@
                     <i class="fas fa-camera text-sm"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+                    <h1 class="text-xl md:text-2xl font-bold text-white tracking-tight">
                         Giám Sát Lưu Lượng Camera Trực Tiếp
                     </h1>
-                    <p class="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
-                        <span>Model: <strong class="text-slate-800">YOLOv11m (CrowdHuman)</strong></span>
+                    <p class="text-xs text-slate-400 mt-0.5 flex flex-wrap items-center gap-2">
+                        <span>Model: <strong class="text-slate-200">YOLOv11m (CrowdHuman)</strong></span>
                         <span>&bull;</span>
-                        <span>Tracker: <strong class="text-slate-800">ByteTrack</strong></span>
+                        <span>Tracker: <strong class="text-slate-200">ByteTrack</strong></span>
                         <span>&bull;</span>
-                        <span id="fenceStatusText" class="text-slate-600">Vùng Cấm: {% if has_roi %}<span class="text-blue-600 font-semibold">Active</span>{% else %}Chưa thiết lập{% endif %}</span>
+                        <span id="fenceStatusText" class="text-slate-400">Vùng Cấm: {% if has_roi %}<span class="text-blue-400 font-semibold">Active</span>{% else %}Chưa thiết lập{% endif %}</span>
                     </p>
                 </div>
             </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
             <button id="audioAlarmToggleBtn" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
-                <i id="alarmAudioIcon" class="fas fa-volume-up text-blue-600"></i>
+                <i id="alarmAudioIcon" class="fas fa-volume-up text-blue-400"></i>
                 <span id="alarmAudioText">Còi: BẬT</span>
             </button>
             <button id="openHeatmapBtn" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
-                <i class="fas fa-fire text-amber-500"></i>
+                <i class="fas fa-fire text-amber-400"></i>
                 <span>Xem Heatmap</span>
             </button>
             <a href="{{ url_for('detection.video') }}" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
-                <i class="fas fa-film text-slate-500"></i>
+                <i class="fas fa-film text-slate-400"></i>
                 <span>Phân Tích Video</span>
             </a>
             <a href="{{ url_for('main.dashboard') }}" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
-                <i class="fas fa-arrow-left text-slate-500"></i>
+                <i class="fas fa-arrow-left text-slate-400"></i>
                 <span>Dashboard</span>
             </a>
         </div>
@@ -48,13 +48,13 @@
 
     <!-- Alert Notification Banners -->
     <!-- Overcrowded Alert -->
-    <div id="overcrowdedAlert" class="hidden bg-rose-50 border-2 border-rose-500 text-rose-900 p-4 rounded-xl shadow-md">
+    <div id="overcrowdedAlert" class="hidden bg-rose-950/80 border-2 border-rose-600 text-rose-200 p-4 rounded-xl shadow-lg">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <i class="fas fa-triangle-exclamation text-2xl text-rose-600"></i>
+                <i class="fas fa-triangle-exclamation text-2xl text-rose-400"></i>
                 <div>
-                    <h3 class="text-sm font-bold text-rose-900">CẢNH BÁO QUÁ TẢI MẬT ĐỘ ĐÁM ĐÔNG!</h3>
-                    <p class="text-xs text-rose-700">Số lượng người trong khung hình đã vượt quá ngưỡng an toàn cho phép!</p>
+                    <h3 class="text-sm font-bold text-white">CẢNH BÁO QUÁ TẢI MẬT ĐỘ ĐÁM ĐÔNG!</h3>
+                    <p class="text-xs text-rose-300">Số lượng người trong khung hình đã vượt quá ngưỡng an toàn cho phép!</p>
                 </div>
             </div>
             <span id="alertCountBadge" class="text-sm font-extrabold bg-rose-600 text-white px-3 py-1 rounded-lg">
@@ -64,13 +64,13 @@
     </div>
 
     <!-- Security Zone Intrusion Alert -->
-    <div id="intrusionAlert" class="hidden bg-amber-50 border-2 border-amber-500 text-amber-900 p-4 rounded-xl shadow-md">
+    <div id="intrusionAlert" class="hidden bg-amber-950/80 border-2 border-amber-600 text-amber-200 p-4 rounded-xl shadow-lg">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <i class="fas fa-shield-halved text-2xl text-amber-600"></i>
+                <i class="fas fa-shield-halved text-2xl text-amber-400"></i>
                 <div>
-                    <h3 class="text-sm font-bold text-amber-900">CẢNH BÁO AN NINH: XÂM NHẬP VÙNG CẤM!</h3>
-                    <p class="text-xs text-amber-700">Phát hiện đối tượng di chuyển vào vùng cấm (Restricted Polygon Fence) trên camera!</p>
+                    <h3 class="text-sm font-bold text-white">CẢNH BÁO AN NINH: XÂM NHẬP VÙNG CẤM!</h3>
+                    <p class="text-xs text-amber-300">Phát hiện đối tượng di chuyển vào vùng cấm (Restricted Polygon Fence) trên camera!</p>
                 </div>
             </div>
             <span class="text-xs uppercase font-extrabold bg-amber-600 text-white px-3 py-1 rounded-lg">
@@ -79,65 +79,65 @@
         </div>
     </div>
 
-    <!-- 4 Real-Time Traffic Metric Cards (Clean Unified Enterprise Style) -->
+    <!-- 4 Real-Time Traffic Metric Cards (Refined Dark Slate) -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Current In Frame -->
         <div class="surface-card p-4">
-            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
                 <span>Hiện diện trong Frame</span>
-                <i class="fas fa-users text-slate-400"></i>
+                <i class="fas fa-users text-slate-500"></i>
             </div>
             <div class="mt-1.5 flex items-baseline space-x-1.5">
-                <span id="metricCurrent" class="text-3xl font-extrabold text-slate-900">0</span>
-                <span class="text-xs text-slate-500">người</span>
+                <span id="metricCurrent" class="text-3xl font-extrabold text-white">0</span>
+                <span class="text-xs text-slate-400">người</span>
             </div>
             <div class="mt-2 text-xs flex items-center justify-between">
-                <span id="metricDensity" class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-semibold">
+                <span id="metricDensity" class="px-2 py-0.5 rounded bg-slate-700/70 text-slate-300 border border-slate-600 text-[10px] font-semibold">
                     Mật độ: THẤP
                 </span>
-                <span class="text-[11px] text-slate-400">Ngưỡng: <strong id="metricThresholdText" class="text-slate-700">{{ alert_threshold }}</strong></span>
+                <span class="text-[11px] text-slate-400">Ngưỡng: <strong id="metricThresholdText" class="text-slate-200">{{ alert_threshold }}</strong></span>
             </div>
         </div>
 
         <!-- Total IN -->
         <div class="surface-card p-4">
-            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
                 <span>Lượt đi VÀO (IN)</span>
-                <i class="fas fa-arrow-down text-slate-400"></i>
+                <i class="fas fa-arrow-down text-slate-500"></i>
             </div>
             <div class="mt-1.5 flex items-baseline space-x-1.5">
-                <span id="metricIn" class="text-3xl font-extrabold text-slate-900">0</span>
-                <span class="text-xs text-slate-500">lượt</span>
+                <span id="metricIn" class="text-3xl font-extrabold text-white">0</span>
+                <span class="text-xs text-slate-400">lượt</span>
             </div>
-            <span class="mt-2 text-[11px] text-slate-400 block">Qua vạch ảo hướng A &rarr; B</span>
+            <span class="mt-2 text-[11px] text-slate-500 block">Qua vạch ảo hướng A &rarr; B</span>
         </div>
 
         <!-- Total OUT -->
         <div class="surface-card p-4">
-            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
                 <span>Lượt đi RA (OUT)</span>
-                <i class="fas fa-arrow-up text-slate-400"></i>
+                <i class="fas fa-arrow-up text-slate-500"></i>
             </div>
             <div class="mt-1.5 flex items-baseline space-x-1.5">
-                <span id="metricOut" class="text-3xl font-extrabold text-slate-900">0</span>
-                <span class="text-xs text-slate-500">lượt</span>
+                <span id="metricOut" class="text-3xl font-extrabold text-white">0</span>
+                <span class="text-xs text-slate-400">lượt</span>
             </div>
-            <span class="mt-2 text-[11px] text-slate-400 block">Qua vạch ảo hướng B &rarr; A</span>
+            <span class="mt-2 text-[11px] text-slate-500 block">Qua vạch ảo hướng B &rarr; A</span>
         </div>
 
         <!-- Occupancy / Peak -->
         <div class="surface-card p-4">
-            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
                 <span>Lưu lượng trong khu vực</span>
-                <i class="fas fa-building text-slate-400"></i>
+                <i class="fas fa-building text-slate-500"></i>
             </div>
             <div class="mt-1.5 flex items-baseline space-x-1.5">
-                <span id="metricOccupancy" class="text-3xl font-extrabold text-blue-600">0</span>
-                <span class="text-xs text-slate-500">(IN - OUT)</span>
+                <span id="metricOccupancy" class="text-3xl font-extrabold text-blue-400">0</span>
+                <span class="text-xs text-slate-400">(IN - OUT)</span>
             </div>
             <div class="mt-2 text-[11px] text-slate-400 flex justify-between">
-                <span>Đỉnh điểm: <strong id="metricPeak" class="text-slate-800">0</strong></span>
-                <span>Latency: <strong id="metricLatency" class="text-slate-800">0ms</strong></span>
+                <span>Đỉnh điểm: <strong id="metricPeak" class="text-white">0</strong></span>
+                <span>Latency: <strong id="metricLatency" class="text-slate-200">0ms</strong></span>
             </div>
         </div>
     </div>
@@ -146,19 +146,19 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Live Video & Processed Canvas (8 Cols) -->
         <div class="lg:col-span-8 surface-card p-4 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center justify-between border-b border-slate-700/80 pb-3">
                 <div class="flex items-center space-x-2">
-                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">CCTV FEED #01 &bull; SMARTCROWD</h2>
+                    <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-200">CCTV FEED #01 &bull; SMARTCROWD</h2>
                 </div>
-                <div class="flex items-center space-x-2 text-xs text-slate-500">
-                    <i class="fas fa-database text-slate-400"></i>
+                <div class="flex items-center space-x-2 text-xs text-slate-400">
+                    <i class="fas fa-database text-slate-500"></i>
                     <span>Databricks Lakehouse Đồng Bộ</span>
                 </div>
             </div>
 
             <!-- Video Viewport -->
-            <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-200 flex items-center justify-center">
+            <div class="relative bg-black rounded-xl overflow-hidden aspect-video border border-slate-700/80 flex items-center justify-center">
                 <!-- Video Element (Hidden capture source) -->
                 <video id="webcam" class="hidden" playsinline muted></video>
                 
@@ -196,7 +196,7 @@
                     </button>
                 </div>
                 <div class="flex items-center space-x-2.5">
-                    <button id="resetCounterBtn" class="btn-secondary px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5 text-rose-600 hover:text-rose-700">
+                    <button id="resetCounterBtn" class="btn-secondary px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5 text-rose-400 hover:text-rose-300">
                         <i class="fas fa-rotate"></i>
                         <span>Đặt lại bộ đếm</span>
                     </button>
@@ -212,56 +212,56 @@
         <div class="lg:col-span-4 space-y-5">
             <!-- Line & Threshold Settings -->
             <div class="surface-card p-5 space-y-4">
-                <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center space-x-2">
-                    <i class="fas fa-sliders text-blue-600"></i>
+                <h3 class="text-sm font-bold text-white border-b border-slate-700/80 pb-3 flex items-center space-x-2">
+                    <i class="fas fa-sliders text-blue-400"></i>
                     <span>Cấu Hình Vạch Kẻ &amp; Ngưỡng</span>
                 </h3>
 
                 <!-- Vị trí Vạch đếm (Line Crossing Ratio) -->
                 <div class="space-y-1.5">
                     <div class="flex justify-between text-xs">
-                        <label class="text-slate-600 font-medium">Vị trí Vạch đếm IN/OUT:</label>
-                        <span id="lineVal" class="text-blue-600 font-mono font-bold">50%</span>
+                        <label class="text-slate-300 font-medium">Vị trí Vạch đếm IN/OUT:</label>
+                        <span id="lineVal" class="text-blue-400 font-mono font-bold">50%</span>
                     </div>
                     <input id="lineSlider" type="range" min="15" max="85" value="50" step="1"
-                           class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                           class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
                     <p class="text-[10px] text-slate-400">Kéo trượt để di chuyển vạch đếm lên/xuống khung hình.</p>
                 </div>
 
                 <!-- Ngưỡng tin cậy (Confidence) -->
                 <div class="space-y-1.5">
                     <div class="flex justify-between text-xs">
-                        <label class="text-slate-600 font-medium">Độ nhạy phát hiện (Confidence):</label>
-                        <span id="confVal" class="text-blue-600 font-mono font-bold">25%</span>
+                        <label class="text-slate-300 font-medium">Độ nhạy phát hiện (Confidence):</label>
+                        <span id="confVal" class="text-blue-400 font-mono font-bold">25%</span>
                     </div>
                     <input id="confSlider" type="range" min="10" max="85" value="25" step="5"
-                           class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                           class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
                     <p class="text-[10px] text-slate-400">25%: Nhạy cao, nhận diện tức thì người trước webcam.</p>
                 </div>
 
                 <!-- Ngưỡng cảnh báo quá tải -->
                 <div class="space-y-1.5">
                     <div class="flex justify-between text-xs">
-                        <label class="text-slate-600 font-medium">Ngưỡng báo động quá tải:</label>
-                        <span id="alertVal" class="text-rose-600 font-mono font-bold">20 người</span>
+                        <label class="text-slate-300 font-medium">Ngưỡng báo động quá tải:</label>
+                        <span id="alertVal" class="text-rose-400 font-mono font-bold">20 người</span>
                     </div>
                     <input id="alertSlider" type="range" min="5" max="100" value="20" step="1"
-                           class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                           class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-rose-500">
                     <p class="text-[10px] text-slate-400">Khi số người &ge; ngưỡng này sẽ kích hoạt còi báo động.</p>
                 </div>
             </div>
 
             <!-- Restricted Zone (Polygon ROI / Virtual Fence) Section -->
             <div class="surface-card p-5 space-y-3.5">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center justify-between border-b border-slate-700/80 pb-3">
                     <div class="flex items-center space-x-2">
-                        <i class="fas fa-draw-polygon text-blue-600 text-xs"></i>
-                        <span class="text-sm font-bold text-slate-900">Vùng Cấm An Ninh (Polygon Fence)</span>
+                        <i class="fas fa-draw-polygon text-blue-400 text-xs"></i>
+                        <span class="text-sm font-bold text-white">Vùng Cấm An Ninh (Polygon Fence)</span>
                     </div>
-                    <span id="roiBadge" class="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 font-semibold">None</span>
+                    <span id="roiBadge" class="text-[10px] px-2 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600 font-semibold">None</span>
                 </div>
 
-                <p class="text-xs text-slate-500">
+                <p class="text-xs text-slate-400">
                     Khoanh vùng khu vực hạn chế. Hệ thống sẽ phát chuông báo khi có người bước vào.
                 </p>
 
@@ -271,7 +271,7 @@
                         <i class="fas fa-pen text-slate-400 text-[10px]"></i>
                         <span id="drawRoiBtnText">Vẽ Vùng Cấm</span>
                     </button>
-                    <button id="clearRoiBtn" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5 text-slate-600">
+                    <button id="clearRoiBtn" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5 text-slate-300">
                         <i class="fas fa-trash-can text-slate-400 text-[10px]"></i>
                         <span>Xóa Vùng Cấm</span>
                     </button>
@@ -294,9 +294,9 @@
                 </div>
 
                 <!-- Test Alert Notification -->
-                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span class="text-[11px] text-slate-500">Kiểm tra thông báo:</span>
-                    <button id="testAlarmBtn" class="text-blue-600 hover:text-blue-700 font-medium text-xs">
+                <div class="pt-2 border-t border-slate-700/80 flex items-center justify-between text-xs">
+                    <span class="text-[11px] text-slate-400">Kiểm tra thông báo:</span>
+                    <button id="testAlarmBtn" class="text-blue-400 hover:text-blue-300 font-medium text-xs">
                         <i class="fas fa-paper-plane mr-1 text-[10px]"></i> Gửi thử cảnh báo
                     </button>
                 </div>
@@ -304,30 +304,30 @@
 
             <!-- Algorithm & Model Info Box -->
             <div class="surface-card p-5 space-y-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
-                    <i class="fas fa-circle-info text-blue-600"></i>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
+                    <i class="fas fa-circle-info text-blue-400"></i>
                     <span>Thông Tin Kỹ Thuật Hệ Thống</span>
                 </h4>
                 <div class="space-y-1.5 text-xs">
-                    <div class="flex justify-between py-1 border-b border-slate-100">
-                        <span class="text-slate-500">Mô hình:</span>
-                        <span class="font-semibold text-slate-800">YOLOv11 Medium</span>
+                    <div class="flex justify-between py-1 border-b border-slate-700/60">
+                        <span class="text-slate-400">Mô hình:</span>
+                        <span class="font-semibold text-white">YOLOv11 Medium</span>
                     </div>
-                    <div class="flex justify-between py-1 border-b border-slate-100">
-                        <span class="text-slate-500">Tập dữ liệu:</span>
-                        <span class="font-semibold text-slate-800">CrowdHuman (15,000+ ảnh)</span>
+                    <div class="flex justify-between py-1 border-b border-slate-700/60">
+                        <span class="text-slate-400">Tập dữ liệu:</span>
+                        <span class="font-semibold text-white">CrowdHuman (15,000+ ảnh)</span>
                     </div>
-                    <div class="flex justify-between py-1 border-b border-slate-100">
-                        <span class="text-slate-500">Độ chính xác:</span>
-                        <span class="font-bold text-slate-900">mAP@50: 95.8%</span>
+                    <div class="flex justify-between py-1 border-b border-slate-700/60">
+                        <span class="text-slate-400">Độ chính xác:</span>
+                        <span class="font-bold text-blue-400">mAP@50: 95.8%</span>
                     </div>
-                    <div class="flex justify-between py-1 border-b border-slate-100">
-                        <span class="text-slate-500">Thuật toán tracking:</span>
-                        <span class="font-semibold text-slate-800">ByteTrack</span>
+                    <div class="flex justify-between py-1 border-b border-slate-700/60">
+                        <span class="text-slate-400">Thuật toán tracking:</span>
+                        <span class="font-semibold text-white">ByteTrack</span>
                     </div>
                     <div class="flex justify-between py-1">
-                        <span class="text-slate-500">Kiến trúc dữ liệu:</span>
-                        <span class="font-semibold text-slate-800">Databricks Medallion</span>
+                        <span class="text-slate-400">Kiến trúc dữ liệu:</span>
+                        <span class="font-semibold text-white">Databricks Medallion</span>
                     </div>
                 </div>
             </div>
@@ -336,21 +336,21 @@
 </div>
 
 <!-- Modal xem Crowd Heatmap -->
-<div id="heatmapModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-    <div class="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+<div id="heatmapModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-700 pb-3">
             <div class="flex items-center space-x-2">
-                <i class="fas fa-fire text-amber-500"></i>
-                <h3 class="text-sm font-bold text-slate-900">Bản đồ nhiệt Đám đông (Crowd Traffic Heatmap)</h3>
+                <i class="fas fa-fire text-amber-400"></i>
+                <h3 class="text-sm font-bold text-white">Bản đồ nhiệt Đám đông (Crowd Traffic Heatmap)</h3>
             </div>
-            <button id="closeHeatmapBtn" class="text-slate-400 hover:text-slate-600 text-lg">
+            <button id="closeHeatmapBtn" class="text-slate-400 hover:text-white text-lg">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-200 flex items-center justify-center">
+        <div class="bg-black rounded-xl overflow-hidden aspect-video border border-slate-700 flex items-center justify-center">
             <img id="heatmapImage" class="w-full h-full object-contain" src="" alt="Crowd Heatmap">
         </div>
-        <div class="flex justify-between items-center text-xs text-slate-500 pt-2">
+        <div class="flex justify-between items-center text-xs text-slate-400 pt-2">
             <span>Tích lũy từ các tọa độ tâm người đã xuất hiện từ khi khởi động server.</span>
             <button id="refreshHeatmapBtn" class="btn-primary text-xs px-3.5 py-1.5 rounded-lg font-medium transition">
                 <i class="fas fa-rotate mr-1"></i> Làm mới
@@ -456,10 +456,10 @@ document.addEventListener('DOMContentLoaded', () => {
     audioAlarmToggleBtn.addEventListener('click', () => {
         audioAlarmEnabled = !audioAlarmEnabled;
         if (audioAlarmEnabled) {
-            alarmAudioIcon.className = 'fas fa-volume-up text-blue-600';
+            alarmAudioIcon.className = 'fas fa-volume-up text-blue-400';
             alarmAudioText.textContent = 'Còi: BẬT';
         } else {
-            alarmAudioIcon.className = 'fas fa-volume-xmark text-slate-400';
+            alarmAudioIcon.className = 'fas fa-volume-xmark text-slate-500';
             alarmAudioText.textContent = 'Còi: TẮT';
         }
     });
@@ -547,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Log to DB
     logDatabricksBtn.addEventListener('click', () => {
         sendLogNext = true;
-        logDatabricksBtn.innerHTML = '<i class="fas fa-check mr-1.5 text-emerald-600"></i>Đã ghi nhận!';
+        logDatabricksBtn.innerHTML = '<i class="fas fa-check mr-1.5 text-emerald-400"></i>Đã ghi nhận!';
         setTimeout(() => {
             logDatabricksBtn.innerHTML = '<i class="fas fa-cloud-arrow-up mr-1.5 text-slate-400"></i>Lưu Snapshot vào DB';
         }, 1500);
@@ -560,11 +560,11 @@ document.addEventListener('DOMContentLoaded', () => {
             activeRoiPoints = [];
             drawingRoiHint.classList.remove('hidden');
             drawRoiBtnText.textContent = 'Lưu Vùng Cấm';
-            toggleDrawRoiBtn.classList.add('border-blue-500', 'text-blue-600');
+            toggleDrawRoiBtn.classList.add('border-blue-500', 'text-blue-400');
         } else {
             drawingRoiHint.classList.add('hidden');
             drawRoiBtnText.textContent = 'Vẽ Vùng Cấm';
-            toggleDrawRoiBtn.classList.remove('border-blue-500', 'text-blue-600');
+            toggleDrawRoiBtn.classList.remove('border-blue-500', 'text-blue-400');
             saveCurrentRoi();
         }
     });
@@ -577,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
         activeRoiPoints.push([parseFloat(normX.toFixed(3)), parseFloat(normY.toFixed(3))]);
 
         // Draw temporary preview dot
-        ctx.fillStyle = '#2563eb';
+        ctx.fillStyle = '#3b82f6';
         ctx.beginPath();
         ctx.arc(normX * displayCanvas.width, normY * displayCanvas.height, 5, 0, 2 * Math.PI);
         ctx.fill();
@@ -600,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success) {
                 roiBadge.textContent = 'Custom ROI';
-                roiBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-bold';
+                roiBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800 font-bold';
             }
         } catch (e) {
             console.error('Save ROI error:', e);
@@ -619,7 +619,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ polygon: null })
             });
             roiBadge.textContent = 'None';
-            roiBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200';
+            roiBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600';
             intrusionAlert.classList.add('hidden');
         } catch (e) {
             console.error('Clear ROI error:', e);
@@ -647,7 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success) {
                 roiBadge.textContent = `${type.toUpperCase()} Preset`;
-                roiBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-bold';
+                roiBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800 font-bold';
             }
         } catch (e) {
             console.error('Preset error:', e);
@@ -718,11 +718,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Density Badge
                     metricDensity.textContent = `Mật độ: ${data.density_level}`;
                     if (data.density_level === 'CRITICAL') {
-                        metricDensity.className = 'px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold';
+                        metricDensity.className = 'px-2 py-0.5 rounded bg-rose-950/70 text-rose-300 border border-rose-800 text-[10px] font-bold';
                     } else if (data.density_level === 'HIGH') {
-                        metricDensity.className = 'px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold';
+                        metricDensity.className = 'px-2 py-0.5 rounded bg-amber-950/70 text-amber-300 border border-amber-800 text-[10px] font-bold';
                     } else {
-                        metricDensity.className = 'px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-semibold';
+                        metricDensity.className = 'px-2 py-0.5 rounded bg-slate-700/70 text-slate-300 border border-slate-600 text-[10px] font-semibold';
                     }
 
                     // Overcrowd Alert
