@@ -1,44 +1,46 @@
 {% extends "base.html" %}
 
-{% block title %}SmartCrowd - Real-time People Counting & Tracking{% endblock %}
+{% block title %}SmartCrowd &bull; Camera Giám Sát Trực Tiếp{% endblock %}
+{% block header_title %}Camera Giám Sát Trực Tiếp{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
     <!-- Header with System Status -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gray-900/80 border border-gray-800 p-5 rounded-2xl shadow-xl backdrop-blur-md">
+    <div class="surface-card p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <div class="flex items-center space-x-3">
-                <span class="flex h-3 w-3 relative">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
-                </span>
-                <h1 class="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-300">
-                    SmartCrowd: Real-Time CCTV Surveillance & People Counting
-                </h1>
+                <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm">
+                    <i class="fas fa-camera text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+                        Giám Sát Lưu Lượng Camera Trực Tiếp
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
+                        <span>Model: <strong class="text-slate-800">YOLOv11m (CrowdHuman)</strong></span>
+                        <span>&bull;</span>
+                        <span>Tracker: <strong class="text-slate-800">ByteTrack</strong></span>
+                        <span>&bull;</span>
+                        <span id="fenceStatusText" class="text-slate-600">Vùng Cấm: {% if has_roi %}<span class="text-blue-600 font-semibold">Active</span>{% else %}Chưa thiết lập{% endif %}</span>
+                    </p>
+                </div>
             </div>
-            <p class="text-sm text-gray-400 mt-1 flex items-center space-x-2">
-                <span>Model: <strong class="text-teal-300">YOLOv11m (CrowdHuman fine-tuned)</strong></span>
-                <span>•</span>
-                <span>Tracker: <strong class="text-cyan-300">ByteTrack</strong></span>
-                <span>•</span>
-                <span id="fenceStatusText" class="text-amber-400">Fence: {% if has_roi %}Active{% else %}None{% endif %}</span>
-            </p>
         </div>
-        <div class="flex items-center space-x-3">
-            <button id="audioAlarmToggleBtn" class="bg-gray-800 hover:bg-gray-700 px-3.5 py-2 rounded-xl text-gray-300 text-sm font-medium border border-gray-700 transition flex items-center space-x-2">
-                <i id="alarmAudioIcon" class="fas fa-volume-up text-teal-400"></i>
+        <div class="flex flex-wrap items-center gap-2">
+            <button id="audioAlarmToggleBtn" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
+                <i id="alarmAudioIcon" class="fas fa-volume-up text-blue-600"></i>
                 <span id="alarmAudioText">Còi: BẬT</span>
             </button>
-            <button id="openHeatmapBtn" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-xl text-white font-medium shadow-lg shadow-purple-900/30 transition flex items-center space-x-2">
-                <i class="fas fa-fire"></i>
+            <button id="openHeatmapBtn" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
+                <i class="fas fa-fire text-amber-500"></i>
                 <span>Xem Heatmap</span>
             </button>
-            <a href="{{ url_for('detection.video') }}" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl text-white font-medium shadow-lg shadow-indigo-900/30 transition flex items-center space-x-2">
-                <i class="fas fa-film"></i>
-                <span>Video Analytics</span>
+            <a href="{{ url_for('detection.video') }}" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
+                <i class="fas fa-film text-slate-500"></i>
+                <span>Phân Tích Video</span>
             </a>
-            <a href="{{ url_for('main.dashboard') }}" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-xl text-gray-300 font-medium transition flex items-center space-x-2">
-                <i class="fas fa-arrow-left"></i>
+            <a href="{{ url_for('main.dashboard') }}" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
+                <i class="fas fa-arrow-left text-slate-500"></i>
                 <span>Dashboard</span>
             </a>
         </div>
@@ -46,108 +48,96 @@
 
     <!-- Alert Notification Banners -->
     <!-- Overcrowded Alert -->
-    <div id="overcrowdedAlert" class="hidden bg-gradient-to-r from-red-900/90 via-red-800 to-rose-900 border-2 border-red-500 text-white p-4 rounded-2xl shadow-2xl animate-pulse">
+    <div id="overcrowdedAlert" class="hidden bg-rose-50 border-2 border-rose-500 text-rose-900 p-4 rounded-xl shadow-md">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <i class="fas fa-exclamation-triangle text-3xl text-yellow-300"></i>
+                <i class="fas fa-triangle-exclamation text-2xl text-rose-600"></i>
                 <div>
-                    <h3 class="text-lg font-bold">CẢNH BÁO QUÁ TẢI MẬT ĐỘ ĐÁM ĐÔNG!</h3>
-                    <p class="text-sm text-red-200">Số lượng người trong khung hình đã vượt quá ngưỡng an toàn cho phép!</p>
+                    <h3 class="text-sm font-bold text-rose-900">CẢNH BÁO QUÁ TẢI MẬT ĐỘ ĐÁM ĐÔNG!</h3>
+                    <p class="text-xs text-rose-700">Số lượng người trong khung hình đã vượt quá ngưỡng an toàn cho phép!</p>
                 </div>
             </div>
-            <span id="alertCountBadge" class="text-2xl font-black bg-red-600 px-4 py-1.5 rounded-xl border border-red-400">
+            <span id="alertCountBadge" class="text-sm font-extrabold bg-rose-600 text-white px-3 py-1 rounded-lg">
                 0 Người
             </span>
         </div>
     </div>
 
     <!-- Security Zone Intrusion Alert -->
-    <div id="intrusionAlert" class="hidden bg-gradient-to-r from-rose-950 via-red-900 to-orange-950 border-2 border-red-500 text-white p-4 rounded-2xl shadow-2xl animate-pulse">
+    <div id="intrusionAlert" class="hidden bg-amber-50 border-2 border-amber-500 text-amber-900 p-4 rounded-xl shadow-md">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <i class="fas fa-radiation text-3xl text-red-400 animate-spin"></i>
+                <i class="fas fa-shield-halved text-2xl text-amber-600"></i>
                 <div>
-                    <h3 class="text-lg font-black tracking-wide text-red-300">CẢNH BÁO AN NINH: XÂM NHẬP VÙNG CẤM!</h3>
-                    <p class="text-sm text-red-200">Phát hiện đối tượng di chuyển vào vùng cấm (Restricted Polygon Fence) trên camera!</p>
+                    <h3 class="text-sm font-bold text-amber-900">CẢNH BÁO AN NINH: XÂM NHẬP VÙNG CẤM!</h3>
+                    <p class="text-xs text-amber-700">Phát hiện đối tượng di chuyển vào vùng cấm (Restricted Polygon Fence) trên camera!</p>
                 </div>
             </div>
-            <span class="text-xs uppercase font-extrabold bg-red-600 px-4 py-2 rounded-xl border border-red-400">
+            <span class="text-xs uppercase font-extrabold bg-amber-600 text-white px-3 py-1 rounded-lg">
                 ZONE BREACH
             </span>
         </div>
     </div>
 
-    <!-- 4 Real-Time Traffic Metric Cards -->
+    <!-- 4 Real-Time Traffic Metric Cards (Clean Unified Enterprise Style) -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Current In Frame -->
-        <div class="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-800 p-5 rounded-2xl shadow-lg relative overflow-hidden">
-            <div class="absolute -right-2 -bottom-2 opacity-10 text-teal-400 text-7xl font-black">
-                <i class="fas fa-users"></i>
-            </div>
-            <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 flex items-center space-x-1.5">
-                <i class="fas fa-eye text-teal-400"></i>
+        <div class="surface-card p-4">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
                 <span>Hiện diện trong Frame</span>
-            </span>
-            <div class="mt-2 flex items-baseline space-x-2">
-                <span id="metricCurrent" class="text-4xl font-extrabold text-white">0</span>
-                <span class="text-sm text-gray-400">người</span>
+                <i class="fas fa-users text-slate-400"></i>
+            </div>
+            <div class="mt-1.5 flex items-baseline space-x-1.5">
+                <span id="metricCurrent" class="text-3xl font-extrabold text-slate-900">0</span>
+                <span class="text-xs text-slate-500">người</span>
             </div>
             <div class="mt-2 text-xs flex items-center justify-between">
-                <span id="metricDensity" class="px-2 py-0.5 rounded-md bg-teal-950 text-teal-300 border border-teal-800 font-semibold">
+                <span id="metricDensity" class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-semibold">
                     Mật độ: THẤP
                 </span>
-                <span class="text-gray-400">Ngưỡng: <strong id="metricThresholdText" class="text-teal-400">{{ alert_threshold }}</strong></span>
+                <span class="text-[11px] text-slate-400">Ngưỡng: <strong id="metricThresholdText" class="text-slate-700">{{ alert_threshold }}</strong></span>
             </div>
         </div>
 
         <!-- Total IN -->
-        <div class="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-800 p-5 rounded-2xl shadow-lg relative overflow-hidden">
-            <div class="absolute -right-2 -bottom-2 opacity-10 text-green-400 text-7xl font-black">
-                <i class="fas fa-sign-in-alt"></i>
-            </div>
-            <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 flex items-center space-x-1.5">
-                <i class="fas fa-arrow-down text-green-400"></i>
+        <div class="surface-card p-4">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
                 <span>Lượt đi VÀO (IN)</span>
-            </span>
-            <div class="mt-2 flex items-baseline space-x-2">
-                <span id="metricIn" class="text-4xl font-extrabold text-green-400">0</span>
-                <span class="text-sm text-gray-400">lượt</span>
+                <i class="fas fa-arrow-down text-slate-400"></i>
             </div>
-            <span class="mt-2 text-xs text-gray-400 block">Qua vạch ảo hướng A &rarr; B</span>
+            <div class="mt-1.5 flex items-baseline space-x-1.5">
+                <span id="metricIn" class="text-3xl font-extrabold text-slate-900">0</span>
+                <span class="text-xs text-slate-500">lượt</span>
+            </div>
+            <span class="mt-2 text-[11px] text-slate-400 block">Qua vạch ảo hướng A &rarr; B</span>
         </div>
 
         <!-- Total OUT -->
-        <div class="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-800 p-5 rounded-2xl shadow-lg relative overflow-hidden">
-            <div class="absolute -right-2 -bottom-2 opacity-10 text-orange-400 text-7xl font-black">
-                <i class="fas fa-sign-out-alt"></i>
-            </div>
-            <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 flex items-center space-x-1.5">
-                <i class="fas fa-arrow-up text-orange-400"></i>
+        <div class="surface-card p-4">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
                 <span>Lượt đi RA (OUT)</span>
-            </span>
-            <div class="mt-2 flex items-baseline space-x-2">
-                <span id="metricOut" class="text-4xl font-extrabold text-orange-400">0</span>
-                <span class="text-sm text-gray-400">lượt</span>
+                <i class="fas fa-arrow-up text-slate-400"></i>
             </div>
-            <span class="mt-2 text-xs text-gray-400 block">Qua vạch ảo hướng B &rarr; A</span>
+            <div class="mt-1.5 flex items-baseline space-x-1.5">
+                <span id="metricOut" class="text-3xl font-extrabold text-slate-900">0</span>
+                <span class="text-xs text-slate-500">lượt</span>
+            </div>
+            <span class="mt-2 text-[11px] text-slate-400 block">Qua vạch ảo hướng B &rarr; A</span>
         </div>
 
         <!-- Occupancy / Peak -->
-        <div class="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-800 p-5 rounded-2xl shadow-lg relative overflow-hidden">
-            <div class="absolute -right-2 -bottom-2 opacity-10 text-cyan-400 text-7xl font-black">
-                <i class="fas fa-building"></i>
-            </div>
-            <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 flex items-center space-x-1.5">
-                <i class="fas fa-balance-scale text-cyan-400"></i>
+        <div class="surface-card p-4">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
                 <span>Lưu lượng trong khu vực</span>
-            </span>
-            <div class="mt-2 flex items-baseline space-x-2">
-                <span id="metricOccupancy" class="text-4xl font-extrabold text-cyan-400">0</span>
-                <span class="text-sm text-gray-400">(IN - OUT)</span>
+                <i class="fas fa-building text-slate-400"></i>
             </div>
-            <div class="mt-2 text-xs text-gray-400 flex justify-between">
-                <span>Đỉnh điểm: <strong id="metricPeak" class="text-white">0</strong></span>
-                <span>Latency: <strong id="metricLatency" class="text-teal-300">0ms</strong></span>
+            <div class="mt-1.5 flex items-baseline space-x-1.5">
+                <span id="metricOccupancy" class="text-3xl font-extrabold text-blue-600">0</span>
+                <span class="text-xs text-slate-500">(IN - OUT)</span>
+            </div>
+            <div class="mt-2 text-[11px] text-slate-400 flex justify-between">
+                <span>Đỉnh điểm: <strong id="metricPeak" class="text-slate-800">0</strong></span>
+                <span>Latency: <strong id="metricLatency" class="text-slate-800">0ms</strong></span>
             </div>
         </div>
     </div>
@@ -155,20 +145,20 @@
     <!-- Main Live Screen & Control Panel -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Live Video & Processed Canvas (8 Cols) -->
-        <div class="lg:col-span-8 bg-gray-900 border border-gray-800 p-4 rounded-2xl shadow-2xl space-y-4">
-            <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+        <div class="lg:col-span-8 surface-card p-4 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="flex items-center space-x-2">
-                    <span class="h-2.5 w-2.5 rounded-full bg-red-500 animate-ping"></span>
-                    <h2 class="text-base font-bold uppercase tracking-wider text-gray-300">CCTV FEED #01 — SMART VISION AI</h2>
+                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">CCTV FEED #01 &bull; SMARTCROWD</h2>
                 </div>
-                <div class="flex items-center space-x-2 text-xs text-gray-400">
-                    <i class="fas fa-shield-alt text-teal-400"></i>
-                    <span>Databricks Lakehouse Synchronized</span>
+                <div class="flex items-center space-x-2 text-xs text-slate-500">
+                    <i class="fas fa-database text-slate-400"></i>
+                    <span>Databricks Lakehouse Đồng Bộ</span>
                 </div>
             </div>
 
             <!-- Video Viewport -->
-            <div class="relative bg-black rounded-xl overflow-hidden aspect-video border border-gray-800 flex items-center justify-center">
+            <div class="relative bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-200 flex items-center justify-center">
                 <!-- Video Element (Hidden capture source) -->
                 <video id="webcam" class="hidden" playsinline muted></video>
                 
@@ -176,42 +166,42 @@
                 <canvas id="displayCanvas" class="w-full h-full object-contain cursor-crosshair"></canvas>
                 
                 <!-- Overlay message while drawing Polygon ROI -->
-                <div id="drawingRoiHint" class="hidden absolute top-4 left-4 bg-red-950/90 border border-red-500 text-red-200 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md">
-                    <i class="fas fa-draw-polygon mr-1.5 text-red-400"></i>
+                <div id="drawingRoiHint" class="hidden absolute top-4 left-4 bg-slate-900/90 border border-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-sm">
+                    <i class="fas fa-draw-polygon mr-1.5 text-blue-400"></i>
                     Nhấp chuột lên màn hình để chọn các điểm đỉnh vùng cấm (Tối thiểu 3 điểm). Bấm "Lưu Vùng Cấm" khi xong.
                 </div>
 
                 <!-- Placeholder when camera stopped -->
-                <div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-950/90 text-gray-400 p-6 text-center space-y-3">
-                    <div class="h-16 w-16 rounded-full bg-teal-500/10 flex items-center justify-center border border-teal-500/30 text-teal-400 text-3xl">
+                <div id="cameraPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/95 text-slate-400 p-6 text-center space-y-3">
+                    <div class="h-14 w-14 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 text-2xl">
                         <i class="fas fa-video"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-200">Camera đang tạm dừng</h3>
-                        <p class="text-sm text-gray-500 max-w-sm mt-1">Bấm "Khởi động Camera" bên dưới để kích hoạt mô hình YOLOv11m theo dõi và đếm người thời gian thực.</p>
+                        <h3 class="text-sm font-bold text-slate-200">Camera đang tạm dừng</h3>
+                        <p class="text-xs text-slate-400 max-w-sm mt-1">Bấm "Khởi động Camera" bên dưới để kích hoạt mô hình YOLOv11m theo dõi và đếm người thời gian thực.</p>
                     </div>
                 </div>
             </div>
 
             <!-- Action Buttons Bar -->
-            <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-                <div class="flex items-center space-x-3">
-                    <button id="startBtn" class="bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-lg shadow-teal-900/30 transition flex items-center space-x-2">
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <div class="flex items-center space-x-2.5">
+                    <button id="startBtn" class="btn-primary px-5 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
                         <i class="fas fa-play"></i>
                         <span>Khởi động Camera</span>
                     </button>
-                    <button id="stopBtn" disabled class="bg-gray-800 hover:bg-gray-700 text-gray-400 font-semibold px-5 py-2.5 rounded-xl border border-gray-700 transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i class="fas fa-stop"></i>
+                    <button id="stopBtn" disabled class="btn-secondary px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-stop text-slate-400"></i>
                         <span>Dừng</span>
                     </button>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <button id="resetCounterBtn" class="bg-rose-950/80 hover:bg-rose-900 text-rose-300 font-medium px-4 py-2.5 rounded-xl border border-rose-800/60 transition flex items-center space-x-2">
-                        <i class="fas fa-redo"></i>
+                <div class="flex items-center space-x-2.5">
+                    <button id="resetCounterBtn" class="btn-secondary px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5 text-rose-600 hover:text-rose-700">
+                        <i class="fas fa-rotate"></i>
                         <span>Đặt lại bộ đếm</span>
                     </button>
-                    <button id="logDatabricksBtn" class="bg-blue-600/80 hover:bg-blue-600 text-white font-medium px-4 py-2.5 rounded-xl transition flex items-center space-x-2">
-                        <i class="fas fa-cloud-upload-alt"></i>
+                    <button id="logDatabricksBtn" class="btn-secondary px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5">
+                        <i class="fas fa-cloud-arrow-up text-slate-400"></i>
                         <span>Lưu Snapshot vào DB</span>
                     </button>
                 </div>
@@ -219,125 +209,125 @@
         </div>
 
         <!-- Settings & Interactive Controls (4 Cols) -->
-        <div class="lg:col-span-4 space-y-6">
+        <div class="lg:col-span-4 space-y-5">
             <!-- Line & Threshold Settings -->
-            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-xl space-y-5">
-                <h3 class="text-base font-bold text-gray-200 border-b border-gray-800 pb-3 flex items-center space-x-2">
-                    <i class="fas fa-sliders-h text-teal-400"></i>
-                    <span>Cấu hình Vạch kẻ & Ngưỡng AI</span>
+            <div class="surface-card p-5 space-y-4">
+                <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center space-x-2">
+                    <i class="fas fa-sliders text-blue-600"></i>
+                    <span>Cấu Hình Vạch Kẻ &amp; Ngưỡng</span>
                 </h3>
 
                 <!-- Vị trí Vạch đếm (Line Crossing Ratio) -->
-                <div class="space-y-2">
-                    <div class="flex justify-between text-sm">
-                        <label class="text-gray-300 font-medium">Vị trí Vạch đếm IN/OUT:</label>
-                        <span id="lineVal" class="text-teal-400 font-bold">50%</span>
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs">
+                        <label class="text-slate-600 font-medium">Vị trí Vạch đếm IN/OUT:</label>
+                        <span id="lineVal" class="text-blue-600 font-mono font-bold">50%</span>
                     </div>
                     <input id="lineSlider" type="range" min="15" max="85" value="50" step="1"
-                           class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-teal-400">
-                    <p class="text-xs text-gray-500">Kéo trượt để di chuyển vạch đếm lên/xuống khung hình.</p>
+                           class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    <p class="text-[10px] text-slate-400">Kéo trượt để di chuyển vạch đếm lên/xuống khung hình.</p>
                 </div>
 
                 <!-- Ngưỡng tin cậy (Confidence) -->
-                <div class="space-y-2">
-                    <div class="flex justify-between text-sm">
-                        <label class="text-gray-300 font-medium">Ngưỡng tin cậy (Confidence):</label>
-                        <span id="confVal" class="text-teal-400 font-bold">25%</span>
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs">
+                        <label class="text-slate-600 font-medium">Độ nhạy phát hiện (Confidence):</label>
+                        <span id="confVal" class="text-blue-600 font-mono font-bold">25%</span>
                     </div>
                     <input id="confSlider" type="range" min="10" max="85" value="25" step="5"
-                           class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-teal-400">
-                    <p class="text-xs text-gray-500">Mặc định 25%: Nhạy cao, nhận diện tức thì người ngồi trước webcam laptop.</p>
+                           class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    <p class="text-[10px] text-slate-400">25%: Nhạy cao, nhận diện tức thì người trước webcam.</p>
                 </div>
 
                 <!-- Ngưỡng cảnh báo quá tải -->
-                <div class="space-y-2">
-                    <div class="flex justify-between text-sm">
-                        <label class="text-gray-300 font-medium">Ngưỡng báo động quá tải:</label>
-                        <span id="alertVal" class="text-red-400 font-bold">20 người</span>
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs">
+                        <label class="text-slate-600 font-medium">Ngưỡng báo động quá tải:</label>
+                        <span id="alertVal" class="text-rose-600 font-mono font-bold">20 người</span>
                     </div>
                     <input id="alertSlider" type="range" min="5" max="100" value="20" step="1"
-                           class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-red-500">
-                    <p class="text-xs text-gray-500">Khi số người trong khung hình &ge; ngưỡng này sẽ kích hoạt còi báo động.</p>
+                           class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    <p class="text-[10px] text-slate-400">Khi số người &ge; ngưỡng này sẽ kích hoạt còi báo động.</p>
                 </div>
             </div>
 
             <!-- Restricted Zone (Polygon ROI / Virtual Fence) Section -->
-            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-xl space-y-4">
-                <h3 class="text-base font-bold text-gray-200 border-b border-gray-800 pb-3 flex items-center justify-between">
+            <div class="surface-card p-5 space-y-3.5">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div class="flex items-center space-x-2">
-                        <i class="fas fa-draw-polygon text-rose-400"></i>
-                        <span>Vùng Cấm An Ninh (Polygon Fence)</span>
+                        <i class="fas fa-draw-polygon text-blue-600 text-xs"></i>
+                        <span class="text-sm font-bold text-slate-900">Vùng Cấm An Ninh (Polygon Fence)</span>
                     </div>
-                    <span id="roiBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700">None</span>
-                </h3>
+                    <span id="roiBadge" class="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 font-semibold">None</span>
+                </div>
 
-                <p class="text-xs text-gray-400">
-                    Khoanh vùng khu vực hạn chế. Hệ thống sẽ phát chuông báo và gửi cảnh báo khi có người bước vào.
+                <p class="text-xs text-slate-500">
+                    Khoanh vùng khu vực hạn chế. Hệ thống sẽ phát chuông báo khi có người bước vào.
                 </p>
 
                 <!-- Action Buttons -->
                 <div class="grid grid-cols-2 gap-2">
-                    <button id="toggleDrawRoiBtn" class="bg-rose-950/60 hover:bg-rose-900 border border-rose-700 text-rose-300 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center space-x-1.5">
-                        <i class="fas fa-pencil-alt"></i>
+                    <button id="toggleDrawRoiBtn" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5">
+                        <i class="fas fa-pen text-slate-400 text-[10px]"></i>
                         <span id="drawRoiBtnText">Vẽ Vùng Cấm</span>
                     </button>
-                    <button id="clearRoiBtn" class="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center space-x-1.5">
-                        <i class="fas fa-trash-alt"></i>
+                    <button id="clearRoiBtn" class="btn-secondary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5 text-slate-600">
+                        <i class="fas fa-trash-can text-slate-400 text-[10px]"></i>
                         <span>Xóa Vùng Cấm</span>
                     </button>
                 </div>
 
                 <!-- Presets -->
                 <div class="space-y-1.5 pt-1">
-                    <span class="text-[11px] text-gray-500 font-medium">Vùng mẫu có sẵn (Presets):</span>
+                    <span class="text-[11px] text-slate-400 font-medium">Vùng mẫu có sẵn (Presets):</span>
                     <div class="grid grid-cols-3 gap-1.5">
-                        <button onclick="applyRoiPreset('left')" class="px-2 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-[10px] text-gray-300 border border-gray-700 text-center">
+                        <button onclick="applyRoiPreset('left')" class="btn-secondary px-2 py-1 rounded text-[10px] text-center font-medium">
                             Hành Lang Trái
                         </button>
-                        <button onclick="applyRoiPreset('center')" class="px-2 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-[10px] text-gray-300 border border-gray-700 text-center">
+                        <button onclick="applyRoiPreset('center')" class="btn-secondary px-2 py-1 rounded text-[10px] text-center font-medium">
                             Cửa Ra Vào
                         </button>
-                        <button onclick="applyRoiPreset('stage')" class="px-2 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-[10px] text-gray-300 border border-gray-700 text-center">
-                            Khu Sân Khấu
+                        <button onclick="applyRoiPreset('stage')" class="btn-secondary px-2 py-1 rounded text-[10px] text-center font-medium">
+                            Khu Trung Tâm
                         </button>
                     </div>
                 </div>
 
                 <!-- Test Alert Notification -->
-                <div class="pt-2 border-t border-gray-800 flex items-center justify-between">
-                    <span class="text-[11px] text-gray-400">Test Incident Dispatcher:</span>
-                    <button id="testAlarmBtn" class="text-xs text-teal-400 hover:text-teal-300 underline font-medium">
-                        <i class="fas fa-paper-plane mr-1"></i> Gửi thử cảnh báo
+                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span class="text-[11px] text-slate-500">Kiểm tra thông báo:</span>
+                    <button id="testAlarmBtn" class="text-blue-600 hover:text-blue-700 font-medium text-xs">
+                        <i class="fas fa-paper-plane mr-1 text-[10px]"></i> Gửi thử cảnh báo
                     </button>
                 </div>
             </div>
 
             <!-- Algorithm & Model Info Box -->
-            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-xl space-y-3">
-                <h4 class="text-sm font-bold uppercase tracking-wider text-gray-400 flex items-center space-x-2">
-                    <i class="fas fa-brain text-purple-400"></i>
-                    <span>Thông tin Mô hình & Benchmark</span>
+            <div class="surface-card p-5 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-2">
+                    <i class="fas fa-circle-info text-blue-600"></i>
+                    <span>Thông Tin Kỹ Thuật Hệ Thống</span>
                 </h4>
-                <div class="space-y-2 text-xs">
-                    <div class="flex justify-between py-1 border-b border-gray-800/60">
-                        <span class="text-gray-400">Kiến trúc:</span>
-                        <span class="font-semibold text-white">YOLOv11 Medium</span>
+                <div class="space-y-1.5 text-xs">
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-500">Mô hình:</span>
+                        <span class="font-semibold text-slate-800">YOLOv11 Medium</span>
                     </div>
-                    <div class="flex justify-between py-1 border-b border-gray-800/60">
-                        <span class="text-gray-400">Tập dữ liệu:</span>
-                        <span class="font-semibold text-teal-300">CrowdHuman (15,000+ images)</span>
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-500">Tập dữ liệu:</span>
+                        <span class="font-semibold text-slate-800">CrowdHuman (15,000+ ảnh)</span>
                     </div>
-                    <div class="flex justify-between py-1 border-b border-gray-800/60">
-                        <span class="text-gray-400">Độ chính xác (mAP@50):</span>
-                        <span class="font-bold text-teal-400">95.8%</span>
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-500">Độ chính xác:</span>
+                        <span class="font-bold text-slate-900">mAP@50: 95.8%</span>
                     </div>
-                    <div class="flex justify-between py-1 border-b border-gray-800/60">
-                        <span class="text-gray-400">Thuật toán Tracking:</span>
-                        <span class="font-semibold text-cyan-300">ByteTrack (Centroid + Trajectory)</span>
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-500">Thuật toán tracking:</span>
+                        <span class="font-semibold text-slate-800">ByteTrack</span>
                     </div>
                     <div class="flex justify-between py-1">
-                        <span class="text-gray-400">Lakehouse Medallion:</span>
-                        <span class="font-semibold text-yellow-400">Bronze &rarr; Silver &rarr; Gold</span>
+                        <span class="text-slate-500">Kiến trúc dữ liệu:</span>
+                        <span class="font-semibold text-slate-800">Databricks Medallion</span>
                     </div>
                 </div>
             </div>
@@ -346,24 +336,24 @@
 </div>
 
 <!-- Modal xem Crowd Heatmap -->
-<div id="heatmapModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4">
-        <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+<div id="heatmapModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
             <div class="flex items-center space-x-2">
-                <i class="fas fa-fire text-2xl text-purple-400"></i>
-                <h3 class="text-lg font-bold text-white">Bản đồ nhiệt Đám đông (Crowd Traffic Heatmap)</h3>
+                <i class="fas fa-fire text-amber-500"></i>
+                <h3 class="text-sm font-bold text-slate-900">Bản đồ nhiệt Đám đông (Crowd Traffic Heatmap)</h3>
             </div>
-            <button id="closeHeatmapBtn" class="text-gray-400 hover:text-white text-xl">
+            <button id="closeHeatmapBtn" class="text-slate-400 hover:text-slate-600 text-lg">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="bg-black rounded-xl overflow-hidden aspect-video border border-gray-800 flex items-center justify-center">
+        <div class="bg-slate-950 rounded-xl overflow-hidden aspect-video border border-slate-200 flex items-center justify-center">
             <img id="heatmapImage" class="w-full h-full object-contain" src="" alt="Crowd Heatmap">
         </div>
-        <div class="flex justify-between items-center text-xs text-gray-400 pt-2">
+        <div class="flex justify-between items-center text-xs text-slate-500 pt-2">
             <span>Tích lũy từ các tọa độ tâm người đã xuất hiện từ khi khởi động server.</span>
-            <button id="refreshHeatmapBtn" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg font-medium transition">
-                <i class="fas fa-sync-alt mr-1"></i> Làm mới
+            <button id="refreshHeatmapBtn" class="btn-primary text-xs px-3.5 py-1.5 rounded-lg font-medium transition">
+                <i class="fas fa-rotate mr-1"></i> Làm mới
             </button>
         </div>
     </div>
@@ -466,10 +456,10 @@ document.addEventListener('DOMContentLoaded', () => {
     audioAlarmToggleBtn.addEventListener('click', () => {
         audioAlarmEnabled = !audioAlarmEnabled;
         if (audioAlarmEnabled) {
-            alarmAudioIcon.className = 'fas fa-volume-up text-teal-400';
+            alarmAudioIcon.className = 'fas fa-volume-up text-blue-600';
             alarmAudioText.textContent = 'Còi: BẬT';
         } else {
-            alarmAudioIcon.className = 'fas fa-volume-mute text-gray-500';
+            alarmAudioIcon.className = 'fas fa-volume-xmark text-slate-400';
             alarmAudioText.textContent = 'Còi: TẮT';
         }
     });
@@ -557,9 +547,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Log to DB
     logDatabricksBtn.addEventListener('click', () => {
         sendLogNext = true;
-        logDatabricksBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Đã ghi nhận!';
+        logDatabricksBtn.innerHTML = '<i class="fas fa-check mr-1.5 text-emerald-600"></i>Đã ghi nhận!';
         setTimeout(() => {
-            logDatabricksBtn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Lưu Snapshot vào DB';
+            logDatabricksBtn.innerHTML = '<i class="fas fa-cloud-arrow-up mr-1.5 text-slate-400"></i>Lưu Snapshot vào DB';
         }, 1500);
     });
 
@@ -570,13 +560,11 @@ document.addEventListener('DOMContentLoaded', () => {
             activeRoiPoints = [];
             drawingRoiHint.classList.remove('hidden');
             drawRoiBtnText.textContent = 'Lưu Vùng Cấm';
-            toggleDrawRoiBtn.classList.replace('bg-rose-950/60', 'bg-emerald-600');
-            toggleDrawRoiBtn.classList.replace('text-rose-300', 'text-white');
+            toggleDrawRoiBtn.classList.add('border-blue-500', 'text-blue-600');
         } else {
             drawingRoiHint.classList.add('hidden');
             drawRoiBtnText.textContent = 'Vẽ Vùng Cấm';
-            toggleDrawRoiBtn.classList.replace('bg-emerald-600', 'bg-rose-950/60');
-            toggleDrawRoiBtn.classList.replace('text-white', 'text-rose-300');
+            toggleDrawRoiBtn.classList.remove('border-blue-500', 'text-blue-600');
             saveCurrentRoi();
         }
     });
@@ -589,9 +577,9 @@ document.addEventListener('DOMContentLoaded', () => {
         activeRoiPoints.push([parseFloat(normX.toFixed(3)), parseFloat(normY.toFixed(3))]);
 
         // Draw temporary preview dot
-        ctx.fillStyle = '#ff0055';
+        ctx.fillStyle = '#2563eb';
         ctx.beginPath();
-        ctx.arc(normX * displayCanvas.width, normY * displayCanvas.height, 6, 0, 2 * Math.PI);
+        ctx.arc(normX * displayCanvas.width, normY * displayCanvas.height, 5, 0, 2 * Math.PI);
         ctx.fill();
     });
 
@@ -612,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success) {
                 roiBadge.textContent = 'Custom ROI';
-                roiBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-700 font-bold';
+                roiBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-bold';
             }
         } catch (e) {
             console.error('Save ROI error:', e);
@@ -631,7 +619,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ polygon: null })
             });
             roiBadge.textContent = 'None';
-            roiBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700';
+            roiBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200';
             intrusionAlert.classList.add('hidden');
         } catch (e) {
             console.error('Clear ROI error:', e);
@@ -659,7 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success) {
                 roiBadge.textContent = `${type.toUpperCase()} Preset`;
-                roiBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-rose-950 text-rose-300 border border-rose-700 font-bold';
+                roiBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-bold';
             }
         } catch (e) {
             console.error('Preset error:', e);
@@ -730,11 +718,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Density Badge
                     metricDensity.textContent = `Mật độ: ${data.density_level}`;
                     if (data.density_level === 'CRITICAL') {
-                        metricDensity.className = 'px-2 py-0.5 rounded-md bg-red-950 text-red-300 border border-red-800 font-semibold';
+                        metricDensity.className = 'px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold';
                     } else if (data.density_level === 'HIGH') {
-                        metricDensity.className = 'px-2 py-0.5 rounded-md bg-orange-950 text-orange-300 border border-orange-800 font-semibold';
+                        metricDensity.className = 'px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold';
                     } else {
-                        metricDensity.className = 'px-2 py-0.5 rounded-md bg-teal-950 text-teal-300 border border-teal-800 font-semibold';
+                        metricDensity.className = 'px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-semibold';
                     }
 
                     // Overcrowd Alert

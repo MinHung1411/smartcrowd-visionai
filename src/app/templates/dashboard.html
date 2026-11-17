@@ -6,103 +6,103 @@
 {% block content %}
 <div class="space-y-6">
     <!-- Top Operational Summary & Action Bar -->
-    <div class="surface-card p-5 md:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border border-slate-800 bg-[#0d1322]">
+    <div class="surface-card p-5 md:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div class="space-y-1">
             <div class="flex items-center space-x-3">
-                <h1 class="text-xl md:text-2xl font-extrabold text-white tracking-tight">
+                <h1 class="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
                     Trung Tâm Giám Sát &amp; Phân Tích Lưu Lượng
                 </h1>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-950 text-teal-300 border border-teal-700/60">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
                     Hệ Thống Trực Tuyến
                 </span>
             </div>
-            <p class="text-xs text-slate-400 max-w-2xl leading-relaxed">
+            <p class="text-xs text-slate-500 max-w-2xl leading-relaxed">
                 Giám sát mật độ người thời gian thực qua CCTV, tính toán lưu lượng vào/ra hai chiều và phân tích sự kiện an ninh.
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-            <button id="generateReportBtn" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center space-x-2 shadow-sm">
-                <i class="fas fa-file-lines text-slate-400"></i>
+            <button id="generateReportBtn" class="btn-secondary px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2">
+                <i class="fas fa-file-lines text-slate-500"></i>
                 <span>Xuất Báo Cáo Ca Trực</span>
             </button>
-            <a href="{{ url_for('detection.video') }}" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center space-x-2 shadow-sm">
-                <i class="fas fa-film text-indigo-400"></i>
+            <a href="{{ url_for('detection.video') }}" class="btn-secondary px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2">
+                <i class="fas fa-film text-slate-500"></i>
                 <span>Phân Tích Video</span>
             </a>
-            <a href="{{ url_for('detection.camera') }}" class="px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-500 text-white transition flex items-center space-x-2 shadow-md shadow-teal-900/30">
+            <a href="{{ url_for('detection.camera') }}" class="btn-primary px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2">
                 <i class="fas fa-video"></i>
-                <span>Mở Camera Live</span>
+                <span>Mở Camera Trực Tiếp</span>
             </a>
         </div>
     </div>
 
-    <!-- 5 Core Metrics KPI Cards -->
+    <!-- 5 Core Metrics KPI Cards (Clean Unified Enterprise Style) -->
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
         <!-- Total Inflow -->
-        <div class="surface-card p-4 border-l-4 border-l-emerald-500 bg-[#0d1322]">
-            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+        <div class="surface-card p-4">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
                 <span>Lượt Vào (IN)</span>
-                <i class="fas fa-arrow-down text-emerald-400"></i>
+                <i class="fas fa-arrow-down text-slate-400"></i>
             </div>
-            <p class="text-2xl md:text-3xl font-extrabold text-white mt-1.5 tracking-tight">{{ total_in }}</p>
-            <span class="text-[11px] text-slate-500 mt-1 block">Tích lũy qua vạch A &rarr; B</span>
+            <p class="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1.5 tracking-tight">{{ total_in }}</p>
+            <span class="text-[11px] text-slate-400 mt-1 block">Tích lũy qua vạch A &rarr; B</span>
         </div>
 
         <!-- Total Outflow -->
-        <div class="surface-card p-4 border-l-4 border-l-amber-500 bg-[#0d1322]">
-            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+        <div class="surface-card p-4">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
                 <span>Lượt Ra (OUT)</span>
-                <i class="fas fa-arrow-up text-amber-400"></i>
+                <i class="fas fa-arrow-up text-slate-400"></i>
             </div>
-            <p class="text-2xl md:text-3xl font-extrabold text-white mt-1.5 tracking-tight">{{ total_out }}</p>
-            <span class="text-[11px] text-slate-500 mt-1 block">Tích lũy qua vạch B &rarr; A</span>
+            <p class="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1.5 tracking-tight">{{ total_out }}</p>
+            <span class="text-[11px] text-slate-400 mt-1 block">Tích lũy qua vạch B &rarr; A</span>
         </div>
 
         <!-- Current Net Occupancy -->
-        <div class="surface-card p-4 border-l-4 border-l-cyan-500 bg-[#0d1322]">
-            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+        <div class="surface-card p-4">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
                 <span>Hiện Diện Ước Tính</span>
-                <i class="fas fa-users text-cyan-400"></i>
+                <i class="fas fa-users text-slate-400"></i>
             </div>
-            <p class="text-2xl md:text-3xl font-extrabold text-cyan-300 mt-1.5 tracking-tight">{{ current_occupancy }}</p>
-            <span class="text-[11px] text-slate-500 mt-1 block">Số người trong khu vực</span>
+            <p class="text-2xl md:text-3xl font-extrabold text-blue-600 mt-1.5 tracking-tight">{{ current_occupancy }}</p>
+            <span class="text-[11px] text-slate-400 mt-1 block">Số người trong khu vực</span>
         </div>
 
         <!-- Peak Density -->
-        <div class="surface-card p-4 border-l-4 border-l-purple-500 bg-[#0d1322]">
-            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+        <div class="surface-card p-4">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
                 <span>Đỉnh Điểm Đám Đông</span>
-                <i class="fas fa-chart-line text-purple-400"></i>
+                <i class="fas fa-chart-line text-slate-400"></i>
             </div>
-            <p class="text-2xl md:text-3xl font-extrabold text-purple-300 mt-1.5 tracking-tight">{{ peak_crowd }}</p>
-            <span class="text-[11px] text-slate-500 mt-1 block">Kỷ lục người/khung hình</span>
+            <p class="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1.5 tracking-tight">{{ peak_crowd }}</p>
+            <span class="text-[11px] text-slate-400 mt-1 block">Kỷ lục người/khung hình</span>
         </div>
 
         <!-- Overcrowd Alerts -->
-        <div class="surface-card p-4 border-l-4 border-l-rose-500 bg-[#0d1322] col-span-2 md:col-span-1">
-            <div class="flex items-center justify-between text-slate-400 text-xs font-medium">
+        <div class="surface-card p-4 col-span-2 md:col-span-1">
+            <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
                 <span>Cảnh Báo Quá Tải</span>
-                <i class="fas fa-triangle-exclamation text-rose-400"></i>
+                <i class="fas fa-triangle-exclamation {% if alert_count > 0 %}text-rose-500{% else %}text-slate-400{% endif %}"></i>
             </div>
-            <p class="text-2xl md:text-3xl font-extrabold {% if alert_count > 0 %}text-rose-400{% else %}text-slate-300{% endif %} mt-1.5 tracking-tight">
+            <p class="text-2xl md:text-3xl font-extrabold {% if alert_count > 0 %}text-rose-600{% else %}text-slate-900{% endif %} mt-1.5 tracking-tight">
                 {{ alert_count }}
             </p>
-            <span class="text-[11px] text-slate-500 mt-1 block">Số lần vượt ngưỡng an toàn</span>
+            <span class="text-[11px] text-slate-400 mt-1 block">Số lần vượt ngưỡng an toàn</span>
         </div>
     </div>
 
     <!-- Charts Grid: 2 Columns -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <!-- 24-Hour Traffic Trend (8 Cols) -->
-        <div class="lg:col-span-8 surface-card p-5 space-y-3 bg-[#0d1322]">
-            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div class="lg:col-span-8 surface-card p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
-                    <h3 class="text-sm font-bold text-white flex items-center space-x-2">
-                        <i class="fas fa-chart-area text-teal-400 text-xs"></i>
+                    <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                        <i class="fas fa-chart-line text-blue-600 text-xs"></i>
                         <span>Lưu Lượng Người Theo 24 Giờ (Hourly Pedestrian Trend)</span>
                     </h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Biểu đồ tổng hợp phân bố dòng người trong ca trực</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Biểu đồ tổng hợp phân bố dòng người trong ca trực</p>
                 </div>
             </div>
             <div class="relative h-64">
@@ -111,13 +111,13 @@
         </div>
 
         <!-- Crowd Density Breakdown (4 Cols) -->
-        <div class="lg:col-span-4 surface-card p-5 space-y-3 bg-[#0d1322]">
-            <div class="border-b border-slate-800/80 pb-3">
-                <h3 class="text-sm font-bold text-white flex items-center space-x-2">
-                    <i class="fas fa-chart-pie text-cyan-400 text-xs"></i>
+        <div class="lg:col-span-4 surface-card p-5 space-y-3">
+            <div class="border-b border-slate-100 pb-3">
+                <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                    <i class="fas fa-chart-pie text-blue-600 text-xs"></i>
                     <span>Phân Bổ Cấp Độ Mật Độ</span>
                 </h3>
-                <p class="text-[11px] text-slate-400 mt-0.5">Tỷ lệ các phiên theo mức đông đúc</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">Tỷ lệ các phiên theo mức đông đúc</p>
             </div>
             <div class="relative h-64 flex items-center justify-center">
                 <canvas id="densityPieChart"></canvas>
@@ -128,13 +128,13 @@
     <!-- Shifts & Recent Events Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <!-- Shift Comparison (5 Cols) -->
-        <div class="lg:col-span-5 surface-card p-5 space-y-3 bg-[#0d1322]">
-            <div class="border-b border-slate-800/80 pb-3">
-                <h3 class="text-sm font-bold text-white flex items-center space-x-2">
-                    <i class="fas fa-clock text-indigo-400 text-xs"></i>
+        <div class="lg:col-span-5 surface-card p-5 space-y-3">
+            <div class="border-b border-slate-100 pb-3">
+                <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                    <i class="fas fa-clock text-blue-600 text-xs"></i>
                     <span>Lưu Lượng Theo Ca Hoạt Động</span>
                 </h3>
-                <p class="text-[11px] text-slate-400 mt-0.5">Phân tích ca Sáng, Chiều, Tối, Đêm</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">Phân tích ca Sáng, Chiều, Tối, Đêm</p>
             </div>
             <div class="relative h-60">
                 <canvas id="shiftBarChart"></canvas>
@@ -142,23 +142,23 @@
         </div>
 
         <!-- Recent Monitoring Activity Logs (7 Cols) -->
-        <div class="lg:col-span-7 surface-card p-5 space-y-3 bg-[#0d1322]">
-            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div class="lg:col-span-7 surface-card p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
-                    <h3 class="text-sm font-bold text-white flex items-center space-x-2">
-                        <i class="fas fa-list-check text-teal-400 text-xs"></i>
+                    <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                        <i class="fas fa-list-check text-blue-600 text-xs"></i>
                         <span>Nhật Ký Giám Sát Gần Nhất</span>
                     </h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Bản ghi các lượt phát hiện gần nhất</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Bản ghi các lượt phát hiện gần nhất</p>
                 </div>
-                <a href="{{ url_for('main.history') }}" class="text-xs text-teal-400 hover:text-teal-300 font-semibold transition">
+                <a href="{{ url_for('main.history') }}" class="text-xs text-blue-600 hover:text-blue-700 font-semibold transition">
                     Xem tất cả &rarr;
                 </a>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
-                    <thead class="text-slate-400 uppercase bg-slate-900/60 border-b border-slate-800 text-[10px]">
+                    <thead class="text-slate-500 uppercase bg-slate-50 border-b border-slate-200 text-[10px]">
                         <tr>
                             <th class="py-2.5 px-3 font-semibold">Thời gian</th>
                             <th class="py-2.5 px-3 font-semibold">Loại</th>
@@ -168,45 +168,45 @@
                             <th class="py-2.5 px-3 font-semibold">Trạng thái</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                    <tbody class="divide-y divide-slate-100 text-slate-700">
                         {% for event in recent_events %}
-                        <tr class="hover:bg-slate-800/30 transition">
-                            <td class="py-2.5 px-3 mono-font text-slate-400 text-[11px]">
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-2.5 px-3 mono-font text-slate-500 text-[11px]">
                                 {{ event.timestamp.strftime('%H:%M:%S %d/%m') if event.timestamp else '-' }}
                             </td>
                             <td class="py-2.5 px-3 font-medium">
                                 {% if event.detection_type == 'crowd_live' or event.detection_type == 'camera' %}
-                                    <span class="text-cyan-400 flex items-center gap-1.5"><i class="fas fa-video text-[10px]"></i>Live Cam</span>
+                                    <span class="text-slate-800 flex items-center gap-1.5"><i class="fas fa-video text-[10px] text-blue-600"></i>Live Cam</span>
                                 {% else %}
-                                    <span class="text-indigo-400 flex items-center gap-1.5"><i class="fas fa-file-image text-[10px]"></i>Upload</span>
+                                    <span class="text-slate-800 flex items-center gap-1.5"><i class="fas fa-image text-[10px] text-slate-500"></i>Upload</span>
                                 {% endif %}
                             </td>
-                            <td class="py-2.5 px-3 font-bold text-white">
+                            <td class="py-2.5 px-3 font-bold text-slate-900">
                                 {{ event.current_count or 0 }} người
                             </td>
                             <td class="py-2.5 px-3">
-                                <span class="text-emerald-400 font-bold">+{{ event.in_count or 0 }}</span> / 
-                                <span class="text-amber-400 font-bold">-{{ event.out_count or 0 }}</span>
+                                <span class="text-slate-900 font-semibold">+{{ event.in_count or 0 }}</span> / 
+                                <span class="text-slate-500 font-semibold">-{{ event.out_count or 0 }}</span>
                             </td>
                             <td class="py-2.5 px-3">
                                 {% if event.density_level == 'CRITICAL' %}
-                                    <span class="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 text-[10px] font-bold">QUÁ TẢI</span>
+                                    <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold">QUÁ TẢI</span>
                                 {% elif event.density_level == 'HIGH' %}
-                                    <span class="px-2 py-0.5 rounded bg-orange-950 text-orange-300 border border-orange-800 text-[10px] font-bold">CAO</span>
+                                    <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold">CAO</span>
                                 {% elif event.density_level == 'MODERATE' %}
-                                    <span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 text-[10px] font-bold">TRUNG BÌNH</span>
+                                    <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-medium">TRUNG BÌNH</span>
                                 {% else %}
-                                    <span class="px-2 py-0.5 rounded bg-teal-950 text-teal-300 border border-teal-800 text-[10px] font-bold">BÌNH THƯỜNG</span>
+                                    <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-medium">BÌNH THƯỜNG</span>
                                 {% endif %}
                             </td>
                             <td class="py-2.5 px-3">
                                 {% if event.alert_triggered or event.density_level == 'CRITICAL' %}
-                                    <span class="text-rose-400 font-semibold flex items-center space-x-1">
-                                        <i class="fas fa-bell text-[10px]"></i>
+                                    <span class="text-rose-600 font-semibold flex items-center space-x-1">
+                                        <i class="fas fa-triangle-exclamation text-[10px]"></i>
                                         <span>Cảnh báo</span>
                                     </span>
                                 {% else %}
-                                    <span class="text-emerald-400 font-semibold flex items-center space-x-1">
+                                    <span class="text-emerald-600 font-semibold flex items-center space-x-1">
                                         <i class="fas fa-circle-check text-[10px]"></i>
                                         <span>Bình thường</span>
                                     </span>
@@ -215,7 +215,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" class="py-6 text-center text-slate-500 text-xs">
+                            <td colspan="6" class="py-6 text-center text-slate-400 text-xs">
                                 Chưa có phiên giám sát nào ghi nhận. Hãy mở Camera hoặc tải video lên để bắt đầu.
                             </td>
                         </tr>
@@ -228,27 +228,27 @@
 </div>
 
 <!-- Operational Report Modal -->
-<div id="aiReportModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
-    <div class="bg-[#0d1322] border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 class="text-base font-bold text-white flex items-center space-x-2">
-                <i class="fas fa-file-contract text-teal-400"></i>
+<div id="aiReportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                <i class="fas fa-file-contract text-blue-600"></i>
                 <span>Báo Cáo Tổng Hợp Ca Giám Sát (Operational Report)</span>
             </h3>
-            <button id="closeReportBtn" class="text-slate-400 hover:text-white p-1">
+            <button id="closeReportBtn" class="text-slate-400 hover:text-slate-600 p-1">
                 <i class="fas fa-times text-base"></i>
             </button>
         </div>
-        <div id="aiReportContent" class="bg-[#070a12] p-4 rounded-xl text-slate-300 text-xs whitespace-pre-wrap font-sans max-h-96 overflow-y-auto leading-relaxed border border-slate-800">
+        <div id="aiReportContent" class="bg-slate-50 p-4 rounded-xl text-slate-800 text-xs whitespace-pre-wrap font-sans max-h-96 overflow-y-auto leading-relaxed border border-slate-200">
             Đang trích xuất dữ liệu vận hành từ hệ thống...
         </div>
-        <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+        <div class="flex items-center justify-between pt-2 border-t border-slate-200">
             <span class="text-[11px] text-slate-500">SmartCrowd Analytics Engine &bull; YOLOv11m + ByteTrack</span>
             <div class="flex space-x-2">
-                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 px-3.5 py-1.5 rounded-xl text-white text-xs font-semibold transition">
+                <button onclick="window.print()" class="btn-secondary px-3.5 py-1.5 rounded-lg text-xs font-semibold">
                     <i class="fas fa-print mr-1.5"></i>In Báo Cáo
                 </button>
-                <button id="confirmCloseReportBtn" class="bg-teal-600 hover:bg-teal-500 px-4 py-1.5 rounded-xl text-white text-xs font-semibold transition">
+                <button id="confirmCloseReportBtn" class="btn-primary px-4 py-1.5 rounded-lg text-xs font-semibold">
                     Đóng
                 </button>
             </div>
@@ -268,12 +268,6 @@
         background: white !important;
         color: black !important;
         padding: 0 !important;
-    }
-    #aiReportModal .bg-[#0d1322],
-    #aiReportModal .bg-[#070a12] {
-        background: white !important;
-        color: #0f172a !important;
-        border: none !important;
     }
     #aiReportModal button { display: none !important; }
     #aiReportContent {
@@ -303,8 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 {
                     label: 'Người hiện diện',
                     data: hourlyPeopleData,
-                    borderColor: '#14b8a6',
-                    backgroundColor: 'rgba(20, 184, 166, 0.08)',
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.08)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.35,
@@ -314,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 {
                     label: 'Lượt Vào (IN)',
                     data: hourlyInData,
-                    borderColor: '#10b981',
+                    borderColor: '#64748b',
                     borderWidth: 1.5,
                     borderDash: [3, 3],
                     tension: 0.3,
@@ -323,9 +317,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 {
                     label: 'Lượt Ra (OUT)',
                     data: hourlyOutData,
-                    borderColor: '#f59e0b',
+                    borderColor: '#94a3b8',
                     borderWidth: 1.5,
-                    borderDash: [3, 3],
+                    borderDash: [2, 2],
                     tension: 0.3,
                     pointRadius: 1.5
                 }
@@ -335,11 +329,11 @@ document.addEventListener('DOMContentLoaded', () => {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { labels: { color: '#94a3b8', font: { size: 10 } } }
+                legend: { labels: { color: '#475569', font: { size: 10 } } }
             },
             scales: {
-                x: { grid: { color: 'rgba(30, 41, 59, 0.4)' }, ticks: { color: '#64748b', maxRotation: 0, font: { size: 9 } } },
-                y: { grid: { color: 'rgba(30, 41, 59, 0.4)' }, ticks: { color: '#64748b', beginAtZero: true, font: { size: 9 } } }
+                x: { grid: { color: '#f1f5f9' }, ticks: { color: '#64748b', maxRotation: 0, font: { size: 9 } } },
+                y: { grid: { color: '#f1f5f9' }, ticks: { color: '#64748b', beginAtZero: true, font: { size: 9 } } }
             }
         }
     });
@@ -353,15 +347,16 @@ document.addEventListener('DOMContentLoaded', () => {
             labels: ['Bình thường (<5)', 'Trung bình (5-15)', 'Cao (16-25)', 'Quá tải (>25)'],
             datasets: [{
                 data: [densityData.LOW || 0, densityData.MODERATE || 0, densityData.HIGH || 0, densityData.CRITICAL || 0],
-                backgroundColor: ['#10b981', '#f59e0b', '#f97316', '#ef4444'],
-                borderWidth: 0
+                backgroundColor: ['#3b82f6', '#93c5fd', '#f59e0b', '#ef4444'],
+                borderWidth: 1,
+                borderColor: '#ffffff'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 10, font: { size: 9 } } }
+                legend: { position: 'bottom', labels: { color: '#475569', boxWidth: 10, font: { size: 9 } } }
             },
             cutout: '68%'
         }
@@ -377,8 +372,8 @@ document.addEventListener('DOMContentLoaded', () => {
             datasets: [{
                 label: 'Lưu lượng phiên giám sát',
                 data: Object.values(shiftData),
-                backgroundColor: ['#06b6d4', '#3b82f6', '#8b5cf6', '#64748b'],
-                borderRadius: 6
+                backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#94a3b8'],
+                borderRadius: 4
             }]
         },
         options: {
@@ -388,8 +383,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 legend: { display: false }
             },
             scales: {
-                x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 9 } } },
-                y: { grid: { color: 'rgba(30, 41, 59, 0.4)' }, ticks: { color: '#64748b', beginAtZero: true, font: { size: 9 } } }
+                x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } },
+                y: { grid: { color: '#f1f5f9' }, ticks: { color: '#64748b', beginAtZero: true, font: { size: 9 } } }
             }
         }
     });

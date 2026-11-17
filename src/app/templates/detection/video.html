@@ -1,30 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}Phân Tích Video CCTV & Đám Đông - SmartCrowd AI Platform{% endblock %}
+{% block title %}SmartCrowd &bull; Phân Tích Video CCTV & Đếm Lưu Lượng{% endblock %}
+{% block header_title %}Phân Tích Video CCTV{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="surface-card p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
             <div class="flex items-center space-x-3">
-                <span class="p-2.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl text-indigo-400">
-                    <i class="fas fa-film text-xl"></i>
-                </span>
+                <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm">
+                    <i class="fas fa-film text-sm"></i>
+                </div>
                 <div>
-                    <h1 class="text-2xl lg:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-indigo-300">
-                        Phân Tích Video CCTV & Đếm Lưu Lượng
+                    <h1 class="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+                        Phân Tích Video CCTV &amp; Đếm Lưu Lượng
                     </h1>
-                    <p class="text-xs text-gray-400 mt-0.5">YOLOv11m CrowdHuman + ByteTrack Tracking Đa Đối Tượng • Đếm 2 Chiều & Bản Đồ Nhiệt</p>
+                    <p class="text-xs text-slate-500 mt-0.5">YOLOv11m CrowdHuman + ByteTrack Tracking &bull; Đếm 2 Chiều &amp; Bản Đồ Nhiệt</p>
                 </div>
             </div>
         </div>
-        <div class="flex items-center space-x-3">
-            <a href="{{ url_for('detection.camera') }}" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm font-medium border border-gray-700 transition flex items-center">
-                <i class="fas fa-video mr-2 text-cyan-400"></i> Giám sát Camera Trực tiếp
+        <div class="flex items-center space-x-2.5">
+            <a href="{{ url_for('detection.camera') }}" class="btn-secondary px-4 py-2 rounded-lg text-xs font-semibold flex items-center">
+                <i class="fas fa-video mr-1.5 text-slate-500"></i> Giám Sát Camera Trực Tiếp
             </a>
-            <a href="{{ url_for('main.dashboard') }}" class="btn-primary px-5 py-2 rounded-xl text-white text-sm font-semibold shadow-lg shadow-teal-500/20 flex items-center">
-                <i class="fas fa-arrow-left mr-2"></i> Dashboard
+            <a href="{{ url_for('main.dashboard') }}" class="btn-secondary px-4 py-2 rounded-lg text-xs font-semibold flex items-center">
+                <i class="fas fa-arrow-left mr-1.5 text-slate-500"></i> Dashboard
             </a>
         </div>
     </div>
@@ -32,75 +33,75 @@
     <!-- Upload & Parameter Configuration Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Video Upload Box -->
-        <div class="lg:col-span-2 card p-6 rounded-2xl border border-gray-800 space-y-4">
-            <h2 class="text-base font-bold text-gray-200 flex items-center">
-                <i class="fas fa-cloud-upload-alt text-indigo-400 mr-2"></i> Tải Lên Video Giám Sát CCTV
+        <div class="lg:col-span-2 surface-card p-6 space-y-4">
+            <h2 class="text-sm font-bold text-slate-900 flex items-center">
+                <i class="fas fa-cloud-arrow-up text-blue-600 mr-2"></i> Tải Lên Video Giám Sát CCTV
             </h2>
             
-            <div id="videoDropZone" class="border-2 border-dashed border-gray-700 hover:border-indigo-500 rounded-2xl p-8 text-center cursor-pointer transition bg-gray-900/40 hover:bg-indigo-950/10">
+            <div id="videoDropZone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-8 text-center cursor-pointer transition bg-slate-50 hover:bg-blue-50/40">
                 <input type="file" id="videoFileInput" accept="video/mp4,video/avi,video/quicktime,video/x-matroska" class="hidden">
-                <div class="w-16 h-16 mx-auto mb-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-400 text-3xl">
+                <div class="w-14 h-14 mx-auto mb-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-center text-blue-600 text-2xl">
                     <i class="fas fa-file-video"></i>
                 </div>
-                <p class="text-sm font-semibold text-gray-200 mb-1">Kéo thả file video vào đây hoặc nhấp để chọn video</p>
-                <p class="text-xs text-gray-400">Hỗ trợ các định dạng: MP4, AVI, MOV, MKV (Tối đa 150MB)</p>
-                <div id="selectedFileInfo" class="mt-3 inline-block px-4 py-1.5 bg-indigo-500/20 border border-indigo-500/40 rounded-full text-xs font-medium text-indigo-300" style="display: none;"></div>
+                <p class="text-xs font-semibold text-slate-800 mb-1">Kéo thả file video vào đây hoặc nhấp để chọn video</p>
+                <p class="text-[11px] text-slate-400">Hỗ trợ các định dạng: MP4, AVI, MOV, MKV (Tối đa 150MB)</p>
+                <div id="selectedFileInfo" class="mt-3 inline-block px-3 py-1 bg-blue-50 border border-blue-200 rounded-lg text-xs font-medium text-blue-700" style="display: none;"></div>
             </div>
 
             <!-- Upload Action Buttons -->
             <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-                <button id="startProcessBtn" disabled class="btn-primary px-6 py-2.5 rounded-xl text-white font-semibold text-sm opacity-50 cursor-not-allowed transition flex items-center shadow-lg shadow-indigo-500/20">
-                    <i class="fas fa-play-circle mr-2"></i> Bắt Đầu Phân Tích Video
+                <button id="startProcessBtn" disabled class="btn-primary px-5 py-2.5 rounded-lg text-white font-semibold text-xs opacity-50 cursor-not-allowed transition flex items-center">
+                    <i class="fas fa-play mr-2"></i> Bắt Đầu Phân Tích Video
                 </button>
-                <button id="resetFormBtn" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-xl text-xs border border-gray-700 transition">
-                    <i class="fas fa-redo-alt mr-1"></i> Làm mới
+                <button id="resetFormBtn" class="btn-secondary px-3.5 py-2 rounded-lg text-xs">
+                    <i class="fas fa-rotate mr-1 text-slate-400"></i> Làm mới
                 </button>
             </div>
         </div>
 
         <!-- Hyperparameters & Inference Engine Options -->
-        <div class="card p-6 rounded-2xl border border-gray-800 space-y-4">
-            <h2 class="text-base font-bold text-gray-200 flex items-center">
-                <i class="fas fa-sliders-h text-teal-400 mr-2"></i> Cấu Hình Nhận Diện AI
+        <div class="surface-card p-6 space-y-4">
+            <h2 class="text-sm font-bold text-slate-900 flex items-center">
+                <i class="fas fa-sliders text-blue-600 mr-2"></i> Thông Số Nhận Diện
             </h2>
 
             <!-- Confidence Slider -->
             <div class="space-y-1.5">
                 <div class="flex justify-between text-xs">
-                    <span class="text-gray-400">Độ nhạy AI (Confidence):</span>
-                    <span id="videoConfVal" class="text-teal-400 font-mono font-bold">30%</span>
+                    <span class="text-slate-500">Độ nhạy phát hiện (Confidence):</span>
+                    <span id="videoConfVal" class="text-blue-600 font-mono font-bold">30%</span>
                 </div>
-                <input type="range" id="videoConfSlider" min="15" max="80" value="30" class="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-teal-500">
-                <p class="text-[10px] text-gray-500">30% - 35%: Chuẩn xác nhất, loại bỏ nhiễu vật thể/bóng bàn</p>
+                <input type="range" id="videoConfSlider" min="15" max="80" value="30" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <p class="text-[10px] text-slate-400">30% - 35%: Chuẩn xác nhất, loại bỏ nhiễu vật thể</p>
             </div>
 
             <!-- Frame Skip (Speed vs Accuracy) -->
             <div class="space-y-1.5">
                 <div class="flex justify-between text-xs">
-                    <span class="text-gray-400">Tốc độ xử lý (Bỏ qua frame):</span>
-                    <span id="frameSkipVal" class="text-indigo-400 font-mono font-bold">Bước 2 (Cân bằng & Nhanh 2x)</span>
+                    <span class="text-slate-500">Tốc độ xử lý:</span>
+                    <span id="frameSkipVal" class="text-blue-600 font-mono font-bold">Bước 2 (Cân bằng & Nhanh 2x)</span>
                 </div>
-                <input type="range" id="frameSkipSlider" min="1" max="5" value="2" class="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
-                <p class="text-[10px] text-gray-500">Bước 1 = Đầy đủ từng frame | Bước 2 = Tối ưu tốc độ | Bước 3 = Cực nhanh</p>
+                <input type="range" id="frameSkipSlider" min="1" max="5" value="2" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <p class="text-[10px] text-slate-400">Bước 1 = Từng frame | Bước 2 = Cân bằng | Bước 3 = Cực nhanh</p>
             </div>
 
             <!-- Virtual Line Position -->
             <div class="space-y-1.5">
                 <div class="flex justify-between text-xs">
-                    <span class="text-gray-400">Vị trí Vạch Đếm 2 Chiều:</span>
-                    <span id="videoLineVal" class="text-amber-400 font-mono font-bold">50%</span>
+                    <span class="text-slate-500">Vị trí Vạch Đếm 2 Chiều:</span>
+                    <span id="videoLineVal" class="text-blue-600 font-mono font-bold">50%</span>
                 </div>
-                <input type="range" id="videoLineSlider" min="15" max="85" value="50" class="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-amber-500">
-                <p class="text-[10px] text-gray-500">Vạch ảo cắt ngang khung hình để đếm số lượt đi VÀO (IN) và đi RA (OUT)</p>
+                <input type="range" id="videoLineSlider" min="15" max="85" value="50" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <p class="text-[10px] text-slate-400">Vạch ảo cắt ngang khung hình để đếm số lượt đi VÀO và RA</p>
             </div>
 
             <!-- Max Processing Duration -->
             <div class="space-y-1.5">
                 <div class="flex justify-between text-xs">
-                    <span class="text-gray-400">Thời lượng xử lý tối đa:</span>
-                    <span class="text-cyan-400 font-mono font-bold">180 giây</span>
+                    <span class="text-slate-500">Thời lượng xử lý tối đa:</span>
+                    <span class="text-blue-600 font-mono font-bold">180 giây</span>
                 </div>
-                <select id="maxTimeoutSelect" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-teal-500">
+                <select id="maxTimeoutSelect" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-blue-500">
                     <option value="60">60 giây (Video ngắn)</option>
                     <option value="180" selected>180 giây (Tiêu chuẩn)</option>
                     <option value="360">360 giây (Video dài)</option>
@@ -110,75 +111,75 @@
     </div>
 
     <!-- Processing Status Banner (Hidden until processing) -->
-    <div id="processingBanner" class="p-6 bg-gradient-to-r from-indigo-950/70 via-purple-950/70 to-slate-900 border border-indigo-500/40 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl" style="display: none;">
+    <div id="processingBanner" class="p-5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm" style="display: none;">
         <div class="flex items-center space-x-4">
-            <div class="animate-spin rounded-full h-10 w-10 border-4 border-indigo-400 border-t-transparent"></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-3 border-blue-600 border-t-transparent"></div>
             <div>
-                <h3 class="text-base font-bold text-white">Đang Phân Tích Video CCTV...</h3>
-                <p class="text-xs text-indigo-300">YOLOv11m nhận diện người, ByteTrack theo dõi quỹ đạo, đếm lượt qua vạch và vẽ bản đồ nhiệt Heatmap.</p>
+                <h3 class="text-sm font-bold text-slate-900">Đang Phân Tích Video CCTV...</h3>
+                <p class="text-xs text-slate-600">Hệ thống đang nhận diện người, theo dõi quỹ đạo ByteTrack, đếm lượt qua vạch và vẽ Heatmap.</p>
             </div>
         </div>
         <div class="text-right">
-            <span class="text-xs text-gray-400 font-mono bg-gray-900/80 px-3 py-1.5 rounded-lg border border-gray-800">Vui lòng giữ cửa sổ trình duyệt</span>
+            <span class="text-xs text-slate-500 font-mono bg-white px-3 py-1.5 rounded-lg border border-slate-200">Vui lòng giữ cửa sổ trình duyệt</span>
         </div>
     </div>
 
     <!-- Results Section (Hidden until done) -->
     <div id="resultsSection" class="space-y-6" style="display: none;">
-        <!-- 5 KPI Cards -->
+        <!-- 5 KPI Cards (Clean Unified Style) -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <!-- Total IN -->
-            <div class="card p-4 rounded-xl border border-gray-800 flex items-center space-x-3">
-                <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl">
-                    <i class="fas fa-sign-in-alt text-lg"></i>
+            <div class="surface-card p-4 flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                    <i class="fas fa-arrow-down text-sm"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 font-medium">Lượt đi VÀO (IN)</p>
-                    <p id="kpiTotalIn" class="text-2xl font-black text-emerald-400">0</p>
+                    <p class="text-xs text-slate-500 font-medium">Lượt đi VÀO (IN)</p>
+                    <p id="kpiTotalIn" class="text-2xl font-bold text-slate-900">0</p>
                 </div>
             </div>
 
             <!-- Total OUT -->
-            <div class="card p-4 rounded-xl border border-gray-800 flex items-center space-x-3">
-                <div class="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl">
-                    <i class="fas fa-sign-out-alt text-lg"></i>
+            <div class="surface-card p-4 flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                    <i class="fas fa-arrow-up text-sm"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 font-medium">Lượt đi RA (OUT)</p>
-                    <p id="kpiTotalOut" class="text-2xl font-black text-amber-400">0</p>
+                    <p class="text-xs text-slate-500 font-medium">Lượt đi RA (OUT)</p>
+                    <p id="kpiTotalOut" class="text-2xl font-bold text-slate-900">0</p>
                 </div>
             </div>
 
             <!-- Net Occupancy -->
-            <div class="card p-4 rounded-xl border border-gray-800 flex items-center space-x-3">
-                <div class="p-3 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-xl">
-                    <i class="fas fa-users text-lg"></i>
+            <div class="surface-card p-4 flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                    <i class="fas fa-users text-sm"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 font-medium">Số người có mặt</p>
-                    <p id="kpiNetOcc" class="text-2xl font-black text-cyan-400">0</p>
+                    <p class="text-xs text-slate-500 font-medium">Số người có mặt</p>
+                    <p id="kpiNetOcc" class="text-2xl font-bold text-blue-600">0</p>
                 </div>
             </div>
 
             <!-- Peak Crowd -->
-            <div class="card p-4 rounded-xl border border-gray-800 flex items-center space-x-3">
-                <div class="p-3 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl">
-                    <i class="fas fa-chart-line text-lg"></i>
+            <div class="surface-card p-4 flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                    <i class="fas fa-chart-line text-sm"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 font-medium">Đỉnh điểm (1 Frame)</p>
-                    <p id="kpiPeakInFrame" class="text-2xl font-black text-purple-400">0</p>
+                    <p class="text-xs text-slate-500 font-medium">Đỉnh điểm (1 Frame)</p>
+                    <p id="kpiPeakInFrame" class="text-2xl font-bold text-slate-900">0</p>
                 </div>
             </div>
 
             <!-- Unique Visitors / Total in video -->
-            <div class="card p-4 rounded-xl border border-gray-800 flex items-center space-x-3 col-span-2 md:col-span-1">
-                <div class="p-3 bg-teal-500/10 border border-teal-500/20 text-teal-400 rounded-xl">
-                    <i class="fas fa-user-check text-lg"></i>
+            <div class="surface-card p-4 flex items-center space-x-3 col-span-2 md:col-span-1">
+                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                    <i class="fas fa-user-check text-sm"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-gray-400 font-medium">Tổng số người trong video</p>
-                    <p id="kpiUnique" class="text-2xl font-black text-teal-400">0</p>
+                    <p class="text-xs text-slate-500 font-medium">Tổng số người</p>
+                    <p id="kpiUnique" class="text-2xl font-bold text-slate-900">0</p>
                 </div>
             </div>
         </div>
@@ -186,16 +187,16 @@
         <!-- Video Player & Heatmap Side-by-side -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Annotated Video Playback -->
-            <div class="card p-6 rounded-2xl border border-gray-800 space-y-3">
+            <div class="surface-card p-5 space-y-3">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-gray-200 flex items-center">
-                        <i class="fas fa-play text-teal-400 mr-2"></i> Video Đã Nhận Diện & Tracking
+                    <h3 class="text-sm font-bold text-slate-900 flex items-center">
+                        <i class="fas fa-play text-blue-600 mr-2 text-xs"></i> Video Đã Nhận Diện &amp; Tracking
                     </h3>
-                    <a id="downloadVideoBtn" href="#" download class="text-xs text-teal-400 hover:text-teal-300 flex items-center px-3 py-1 bg-gray-800 rounded-lg border border-gray-700">
-                        <i class="fas fa-download mr-1.5"></i> Tải MP4
+                    <a id="downloadVideoBtn" href="#" download class="btn-secondary text-xs px-3 py-1 rounded-lg flex items-center">
+                        <i class="fas fa-download mr-1.5 text-slate-400"></i> Tải MP4
                     </a>
                 </div>
-                <div class="rounded-xl overflow-hidden bg-black border border-gray-800 aspect-video flex items-center justify-center shadow-lg">
+                <div class="rounded-lg overflow-hidden bg-slate-900 border border-slate-200 aspect-video flex items-center justify-center shadow-sm">
                     <video id="resultVideoPlayer" controls class="w-full h-full object-contain">
                         Trình duyệt không hỗ trợ phát video HTML5.
                     </video>
@@ -203,25 +204,25 @@
             </div>
 
             <!-- Heatmap View -->
-            <div class="card p-6 rounded-2xl border border-gray-800 space-y-3">
+            <div class="surface-card p-5 space-y-3">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-gray-200 flex items-center">
-                        <i class="fas fa-fire text-amber-400 mr-2"></i> Bản Đồ Nhiệt Tích Lũy (Crowd Heatmap)
+                    <h3 class="text-sm font-bold text-slate-900 flex items-center">
+                        <i class="fas fa-fire text-amber-500 mr-2 text-xs"></i> Bản Đồ Nhiệt Tích Lũy (Crowd Heatmap)
                     </h3>
-                    <a id="downloadHeatmapBtn" href="#" download class="text-xs text-amber-400 hover:text-amber-300 flex items-center px-3 py-1 bg-gray-800 rounded-lg border border-gray-700">
-                        <i class="fas fa-download mr-1.5"></i> Tải Heatmap
+                    <a id="downloadHeatmapBtn" href="#" download class="btn-secondary text-xs px-3 py-1 rounded-lg flex items-center">
+                        <i class="fas fa-download mr-1.5 text-slate-400"></i> Tải Heatmap
                     </a>
                 </div>
-                <div class="rounded-xl overflow-hidden bg-black border border-gray-800 aspect-video flex items-center justify-center shadow-lg">
+                <div class="rounded-lg overflow-hidden bg-slate-900 border border-slate-200 aspect-video flex items-center justify-center shadow-sm">
                     <img id="resultHeatmapImg" src="" alt="Bản đồ nhiệt đám đông" class="w-full h-full object-contain">
                 </div>
             </div>
         </div>
 
         <!-- Timeline Foot Traffic Density Chart -->
-        <div class="card p-6 rounded-2xl border border-gray-800">
-            <h3 class="text-sm font-bold text-gray-200 mb-3 flex items-center">
-                <i class="fas fa-chart-area text-indigo-400 mr-2"></i> Biểu Đồ Biến Thiên Mật Độ & Lưu Lượng Theo Thời Gian
+        <div class="surface-card p-5 space-y-3">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center">
+                <i class="fas fa-chart-line text-blue-600 mr-2 text-xs"></i> Biểu Đồ Biến Thiên Mật Độ &amp; Lưu Lượng Theo Thời Gian
             </h3>
             <div class="h-64">
                 <canvas id="timelineChart"></canvas>
@@ -229,26 +230,26 @@
         </div>
 
         <!-- Processing Benchmark Telemetry -->
-        <div class="p-4 bg-gray-900 border border-gray-800 rounded-xl flex flex-wrap items-center justify-between text-xs text-gray-400 gap-4">
+        <div class="p-4 bg-slate-100 border border-slate-200 rounded-xl flex flex-wrap items-center justify-between text-xs text-slate-600 gap-4">
             <div>
-                <span class="text-gray-500">Số frame đã xử lý: </span>
-                <span id="teleFrames" class="text-gray-200 font-mono font-bold">-</span>
+                <span class="text-slate-500">Số frame đã xử lý: </span>
+                <span id="teleFrames" class="text-slate-900 font-mono font-bold">-</span>
             </div>
             <div>
-                <span class="text-gray-500">Thời gian phân tích: </span>
-                <span id="teleTime" class="text-gray-200 font-mono font-bold">-</span>s
+                <span class="text-slate-500">Thời gian phân tích: </span>
+                <span id="teleTime" class="text-slate-900 font-mono font-bold">-</span>s
             </div>
             <div>
-                <span class="text-gray-500">Tốc độ xử lý: </span>
-                <span id="teleFps" class="text-teal-400 font-mono font-bold">-</span> FPS
+                <span class="text-slate-500">Tốc độ xử lý: </span>
+                <span id="teleFps" class="text-blue-600 font-mono font-bold">-</span> FPS
             </div>
             <div>
-                <span class="text-gray-500">Mô hình AI: </span>
-                <span class="text-indigo-400 font-mono font-bold">YOLOv11m-CrowdHuman</span>
+                <span class="text-slate-500">Mô hình: </span>
+                <span class="text-slate-900 font-mono font-bold">YOLOv11m-CrowdHuman</span>
             </div>
             <div>
-                <span class="text-gray-500">Thuật toán theo dõi: </span>
-                <span class="text-cyan-400 font-mono font-bold">ByteTrack</span>
+                <span class="text-slate-500">Thuật toán theo dõi: </span>
+                <span class="text-slate-900 font-mono font-bold">ByteTrack</span>
             </div>
         </div>
     </div>
@@ -304,16 +305,16 @@
 
     videoDropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        videoDropZone.classList.add('border-indigo-500', 'bg-indigo-950/20');
+        videoDropZone.classList.add('border-blue-500', 'bg-blue-50/60');
     });
 
     videoDropZone.addEventListener('dragleave', () => {
-        videoDropZone.classList.remove('border-indigo-500', 'bg-indigo-950/20');
+        videoDropZone.classList.remove('border-blue-500', 'bg-blue-50/60');
     });
 
     videoDropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        videoDropZone.classList.remove('border-indigo-500', 'bg-indigo-950/20');
+        videoDropZone.classList.remove('border-blue-500', 'bg-blue-50/60');
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             handleFileSelect(e.dataTransfer.files[0]);
         }
@@ -439,8 +440,8 @@
                     {
                         label: 'Số người trong Frame',
                         data: counts,
-                        borderColor: '#818cf8',
-                        backgroundColor: 'rgba(129, 140, 248, 0.15)',
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
                         fill: true,
                         tension: 0.35,
                         borderWidth: 2,
@@ -449,8 +450,8 @@
                     {
                         label: 'Lũy kế VÀO (IN)',
                         data: ins,
-                        borderColor: '#10b981',
-                        borderDash: [5, 5],
+                        borderColor: '#64748b',
+                        borderDash: [4, 4],
                         borderWidth: 1.5,
                         fill: false,
                         pointRadius: 0
@@ -458,8 +459,8 @@
                     {
                         label: 'Lũy kế RA (OUT)',
                         data: outs,
-                        borderColor: '#f59e0b',
-                        borderDash: [5, 5],
+                        borderColor: '#94a3b8',
+                        borderDash: [2, 2],
                         borderWidth: 1.5,
                         fill: false,
                         pointRadius: 0
@@ -471,17 +472,17 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: { color: '#9ca3af', font: { size: 11 } }
+                        labels: { color: '#475569', font: { size: 10 } }
                     }
                 },
                 scales: {
                     x: {
-                        ticks: { color: '#6b7280', maxTicksLimit: 12 },
-                        grid: { color: '#1f2937' }
+                        ticks: { color: '#64748b', maxTicksLimit: 12, font: { size: 9 } },
+                        grid: { color: '#f1f5f9' }
                     },
                     y: {
-                        ticks: { color: '#6b7280' },
-                        grid: { color: '#1f2937' },
+                        ticks: { color: '#64748b', font: { size: 9 } },
+                        grid: { color: '#f1f5f9' },
                         beginAtZero: true
                     }
                 }
