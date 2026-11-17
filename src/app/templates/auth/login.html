@@ -3,65 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCrowd VisionAI — Đăng Nhập Hệ Thống Giám Sát Đám Đông</title>
+    <title>SmartCrowd &bull; Đăng Nhập Hệ Thống Giám Sát</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(circle at 50% 20%, #0d1527 0%, #060913 60%, #020408 100%);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #070a12;
+            color: #e2e8f0;
             min-height: 100vh;
         }
         .mono-font { font-family: 'JetBrains Mono', monospace; }
-        .glass-card {
-            background: rgba(13, 20, 36, 0.75);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(45, 60, 95, 0.5);
+        .login-card {
+            background: #0d1322;
+            border: 1px solid #1e293b;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
-        .btn-gradient {
-            background: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #06b6d4 100%);
-            transition: all 0.25s ease;
+        .input-field {
+            background: #070a12;
+            border: 1px solid #1e293b;
+            transition: all 0.15s ease-in-out;
         }
-        .btn-gradient:hover {
-            box-shadow: 0 0 25px rgba(20, 184, 166, 0.45);
-            transform: translateY(-1.5px);
-        }
-        .input-glass {
-            background: rgba(10, 15, 28, 0.85);
-            border: 1px solid rgba(51, 65, 85, 0.8);
-            transition: all 0.2s ease;
-        }
-        .input-glass:focus {
+        .input-field:focus {
             border-color: #14b8a6;
-            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.15);
         }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4 text-gray-200 antialiased selection:bg-teal-500 selection:text-white">
+<body class="flex flex-col items-center justify-center min-h-screen p-4 antialiased selection:bg-teal-500 selection:text-white">
 
-    <!-- Container -->
-    <div class="w-full max-w-md space-y-4 my-6">
+    <div class="w-full max-w-sm space-y-4 my-6">
 
-        <!-- Main Card -->
-        <div class="glass-card rounded-3xl p-7 md:p-8 shadow-2xl relative overflow-hidden">
-            <!-- Decorative Glow Background -->
-            <div class="absolute -top-24 -right-24 w-60 h-60 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-            <!-- Logo & Brand Header -->
+        <!-- Login Container Card -->
+        <div class="login-card rounded-2xl p-7 relative">
+            <!-- Header & Branding -->
             <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center p-3 bg-gradient-to-br from-teal-500/20 to-cyan-500/10 border border-teal-500/30 rounded-2xl mb-3 shadow-inner shadow-teal-500/20">
-                    <i class="fas fa-eye text-3xl text-teal-400"></i>
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white mb-3 shadow-md shadow-teal-500/20">
+                    <i class="fas fa-video text-lg"></i>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-teal-300 tracking-tight">
-                    SmartCrowd VisionAI
+                <h1 class="text-xl font-extrabold text-white tracking-tight">
+                    SmartCrowd
                 </h1>
-                <p class="text-xs text-gray-400 mt-1">Hệ thống Giám sát Đám đông Real-time & Phân tích Dòng người</p>
-                <div class="flex flex-wrap justify-center gap-1.5 mt-2.5">
-                    <span class="px-2 py-0.5 rounded-md bg-gray-800/80 border border-gray-700 text-[10px] mono-font text-teal-300">YOLOv11m</span>
-                    <span class="px-2 py-0.5 rounded-md bg-gray-800/80 border border-gray-700 text-[10px] mono-font text-cyan-300">ByteTrack</span>
-                    <span class="px-2 py-0.5 rounded-md bg-gray-800/80 border border-gray-700 text-[10px] mono-font text-indigo-300">Databricks</span>
+                <p class="text-xs text-slate-400 mt-0.5">Hệ thống Giám sát Lưu lượng &amp; An ninh CCTV</p>
+                <div class="flex items-center justify-center gap-1.5 mt-2">
+                    <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] mono-font text-teal-300">YOLOv11m</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] mono-font text-cyan-300">ByteTrack</span>
                 </div>
             </div>
 
@@ -69,87 +59,83 @@
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                        <div class="mb-5 p-3.5 rounded-xl text-xs font-medium border flex items-center space-x-2 {% if category == 'error' %}bg-rose-950/80 text-rose-300 border-rose-800{% else %}bg-emerald-950/80 text-emerald-300 border-emerald-800{% endif %}">
-                            <i class="fas {% if category == 'error' %}fa-exclamation-circle text-rose-400{% else %}fa-check-circle text-emerald-400{% endif %}"></i>
+                        <div class="mb-4 p-3 rounded-xl text-xs font-medium border flex items-center space-x-2 {% if category == 'error' %}bg-rose-950/60 text-rose-300 border-rose-800/80{% else %}bg-emerald-950/60 text-emerald-300 border-emerald-800/80{% endif %}">
+                            <i class="fas {% if category == 'error' %}fa-triangle-exclamation text-rose-400{% else %}fa-circle-check text-emerald-400{% endif %}"></i>
                             <span>{{ message }}</span>
                         </div>
                     {% endfor %}
                 {% endif %}
             {% endwith %}
 
-            <!-- Clean Credentials Note (Pre-filled Notice) -->
-            <div class="mb-5 p-3 rounded-xl bg-gray-900/60 border border-teal-500/30 flex items-center justify-between text-xs">
-                <span class="text-gray-300 flex items-center">
-                    <i class="fas fa-key text-teal-400 mr-2"></i>
-                    Tài khoản trải nghiệm:
+            <!-- Pre-filled Credentials Helper -->
+            <div class="mb-4 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between text-xs">
+                <span class="text-slate-400 flex items-center text-[11px]">
+                    <i class="fas fa-key text-teal-400 mr-1.5"></i>
+                    Tài khoản demo:
                 </span>
-                <span class="mono-font text-teal-300 font-bold bg-teal-950/60 px-2.5 py-1 rounded-lg border border-teal-700/50">
+                <span class="mono-font text-teal-300 font-bold bg-slate-800 px-2 py-0.5 rounded text-[11px] border border-slate-700">
                     demo &bull; demo123
                 </span>
             </div>
 
             <!-- Login Form (Pre-filled with demo credentials) -->
-            <form method="POST" class="space-y-4">
+            <form method="POST" class="space-y-3.5">
                 <div>
-                    <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
-                        <i class="fas fa-user-astronaut mr-1.5 text-teal-400"></i>Tên đăng nhập hoặc Email
+                    <label for="email" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                        Tên đăng nhập hoặc Email
                     </label>
                     <input type="text" id="email" name="email" value="demo" required
-                           class="input-glass w-full px-4 py-2.5 rounded-xl text-white text-sm placeholder-gray-500 outline-none mono-font"
-                           placeholder="Nhập tên đăng nhập hoặc email">
+                           class="input-field w-full px-3.5 py-2 rounded-xl text-white text-xs placeholder-slate-500 mono-font"
+                           placeholder="Nhập tên đăng nhập">
                 </div>
                 
                 <div>
-                    <div class="flex justify-between items-center mb-1.5">
-                        <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-gray-300">
-                            <i class="fas fa-lock mr-1.5 text-teal-400"></i>Mật khẩu
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="password" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            Mật khẩu
                         </label>
-                        <button type="button" id="togglePasswordBtn" class="text-xs text-gray-400 hover:text-teal-300 transition">
-                            <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                        <button type="button" id="togglePasswordBtn" class="text-xs text-slate-400 hover:text-teal-300 transition">
+                            <i class="fas fa-eye text-xs" id="togglePasswordIcon"></i>
                         </button>
                     </div>
                     <input type="password" id="password" name="password" value="demo123" required
-                           class="input-glass w-full px-4 py-2.5 rounded-xl text-white text-sm placeholder-gray-500 outline-none mono-font"
+                           class="input-field w-full px-3.5 py-2 rounded-xl text-white text-xs placeholder-slate-500 mono-font"
                            placeholder="Nhập mật khẩu">
                 </div>
                 
-                <div class="flex items-center justify-between pt-1">
+                <div class="flex items-center justify-between pt-0.5">
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" name="remember" checked class="w-4 h-4 rounded bg-gray-900 border-gray-700 text-teal-500 focus:ring-0">
-                        <span class="text-xs text-gray-300 ml-2">Ghi nhớ đăng nhập</span>
+                        <input type="checkbox" name="remember" checked class="w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-teal-500 focus:ring-0">
+                        <span class="text-[11px] text-slate-400 ml-2">Ghi nhớ phiên</span>
                     </label>
-                    <span class="text-xs text-gray-500">Mã hóa bcrypt</span>
+                    <span class="text-[10px] text-slate-500 mono-font">BCrypt</span>
                 </div>
                 
-                <button type="submit" class="btn-gradient w-full py-3.5 px-4 text-white font-extrabold text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-teal-500/30 flex items-center justify-center gap-2 mt-2">
-                    <i class="fas fa-sign-in-alt text-teal-100"></i>
+                <button type="submit" class="w-full py-2.5 px-4 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-md shadow-teal-900/30 flex items-center justify-center gap-2 mt-2">
+                    <i class="fas fa-arrow-right-to-bracket text-xs"></i>
                     <span>ĐĂNG NHẬP VÀO HỆ THỐNG</span>
-                    <i class="fas fa-arrow-right text-xs"></i>
                 </button>
             </form>
 
-            <!-- Fullscreen Recommendation -->
-            <div class="mt-6 pt-4 border-t border-gray-800/80 flex items-center justify-between text-xs text-gray-400">
+            <!-- Fullscreen Recommendation for iframe -->
+            <div class="mt-5 pt-3.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
                 <span class="flex items-center">
-                    <i class="fas fa-expand mr-1.5 text-cyan-400"></i>
-                    Đang xem trong iframe?
+                    <i class="fas fa-expand mr-1.5 text-slate-500"></i>
+                    Xem trong iframe?
                 </span>
                 <a href="https://minhunhooo-smartcrowd-visionai.hf.space" target="_blank"
-                   class="text-teal-400 hover:text-teal-300 font-semibold transition flex items-center gap-1">
+                   class="text-teal-400 hover:text-teal-300 font-medium transition flex items-center gap-1">
                     <span>Mở Fullscreen Tab Mới</span>
-                    <i class="fas fa-external-link-alt text-[10px]"></i>
+                    <i class="fas fa-arrow-up-right-from-square text-[9px]"></i>
                 </a>
             </div>
         </div>
 
-        <!-- System Architecture Footnote -->
-        <div class="text-center text-[11px] text-gray-500 space-y-1">
-            <p>SmartCrowd VisionAI Platform &bull; Fine-tuned on CrowdHuman (15,000+ images)</p>
-            <p>Hỗ trợ đa luồng ByteTrack &amp; Kiến trúc Databricks Lakehouse Medallion</p>
+        <div class="text-center text-[11px] text-slate-500">
+            <p>SmartCrowd Vision Platform &bull; YOLOv11m + ByteTrack</p>
         </div>
     </div>
 
-    <!-- Password visibility toggle script -->
     <script>
         const passwordInput = document.getElementById('password');
         const togglePasswordBtn = document.getElementById('togglePasswordBtn');
@@ -158,10 +144,10 @@
         togglePasswordBtn.addEventListener('click', () => {
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                togglePasswordIcon.className = 'fas fa-eye-slash text-teal-400';
+                togglePasswordIcon.className = 'fas fa-eye-slash text-teal-400 text-xs';
             } else {
                 passwordInput.type = 'password';
-                togglePasswordIcon.className = 'fas fa-eye';
+                togglePasswordIcon.className = 'fas fa-eye text-slate-400 text-xs';
             }
         });
     </script>
