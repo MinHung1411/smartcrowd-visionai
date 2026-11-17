@@ -6,14 +6,14 @@
 {% block content %}
 <div class="space-y-6 max-w-4xl">
     <!-- Header -->
-    <div class="surface-card p-5 md:p-6 flex items-center justify-between">
+    <div class="surface-card bg-gradient-to-r from-blue-50/50 via-slate-50/30 to-white p-5 md:p-6 flex items-center justify-between border border-slate-200/90">
         <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
                 <i class="fas fa-sliders text-sm"></i>
             </div>
             <div>
                 <h1 class="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Cấu Hình Hệ Thống</h1>
-                <p class="text-xs text-slate-500 mt-0.5">Quản lý tham số nhận diện và thông tin tài khoản giám sát</p>
+                <p class="text-xs text-slate-500 mt-1">Quản lý tham số nhận diện và thông tin tài khoản giám sát</p>
             </div>
         </div>
         <a href="{{ url_for('main.dashboard') }}" class="btn-secondary px-4 py-2 rounded-lg text-xs font-semibold flex items-center">

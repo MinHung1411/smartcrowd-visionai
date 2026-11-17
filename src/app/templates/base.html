@@ -13,14 +13,14 @@
         :root {
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
-            --bg-canvas: #f1f5f9;       /* Trắng đục / trắng xanh dịu mắt (Slate 100), sáng mà không chói */
-            --bg-surface: #ffffff;      /* Thẻ card nổi trên nền canvas */
-            --border-subtle: #e2e8f0;   /* Viền thanh lịch */
+            --bg-canvas: #f1f5f9;       /* Slate 100: Trắng đục ngả xanh dịu mắt, chống mỏi */
+            --bg-surface: #ffffff;
+            --border-subtle: #e2e8f0;
         }
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-canvas);
-            color: #1e293b;
+            color: #0f172a;
             overflow-x: hidden;
         }
         .mono-font {
@@ -42,19 +42,25 @@
         }
         .surface-card, .card {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 0.875rem;
+            box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .surface-card:hover {
+            box-shadow: 0 4px 12px 0 rgba(15, 23, 42, 0.06);
         }
         .btn-primary {
-            background-color: #2563eb;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: #ffffff;
             font-weight: 600;
             transition: all 0.15s ease-in-out;
-            box-shadow: 0 1px 2px 0 rgba(37, 99, 235, 0.2);
+            box-shadow: 0 2px 4px 0 rgba(37, 99, 235, 0.2);
         }
         .btn-primary:hover {
-            background-color: #1d4ed8;
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            box-shadow: 0 4px 8px 0 rgba(37, 99, 235, 0.3);
+            transform: translateY(-1px);
         }
         .btn-secondary {
             background-color: #ffffff;
@@ -62,24 +68,28 @@
             border: 1px solid #cbd5e1;
             font-weight: 500;
             transition: all 0.15s ease-in-out;
+            box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.03);
         }
         .btn-secondary:hover {
             background-color: #f8fafc;
             border-color: #94a3b8;
             color: #0f172a;
+            transform: translateY(-1px);
         }
         .nav-link {
             transition: all 0.15s ease-in-out;
+            border-radius: 0.625rem;
         }
         .nav-link:hover {
-            background-color: #f8fafc;
+            background-color: #f1f5f9;
             color: #0f172a;
         }
         .nav-link.active {
-            background-color: #eff6ff;
-            border-right: 3px solid #2563eb;
+            background: linear-gradient(90deg, #eff6ff 0%, #ffffff 100%);
+            border-left: 3px solid #2563eb;
             color: #1d4ed8;
             font-weight: 600;
+            box-shadow: 0 1px 2px 0 rgba(37, 99, 235, 0.05);
         }
         .mobile-menu {
             display: none;
@@ -100,19 +110,22 @@
 </head>
 <body class="selection:bg-blue-600 selection:text-white">
     <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar Navigation (Clean Cool-White / Soft-Tinted) -->
-        <aside id="sidebar" class="sidebar w-64 bg-white border-r border-slate-200 text-slate-700 flex flex-col z-30 shrink-0">
+        <!-- Sidebar Navigation (Clean Enterprise VMS) -->
+        <aside id="sidebar" class="sidebar w-64 bg-white border-r border-slate-200/90 text-slate-700 flex flex-col z-30 shrink-0">
             <!-- Brand / Logo Area -->
-            <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+            <div class="p-4 border-b border-slate-200/90 flex items-center justify-between">
                 <a href="{{ url_for('main.dashboard') }}" class="flex items-center space-x-3 group">
-                    <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
                         <i class="fas fa-video text-sm"></i>
                     </div>
                     <div>
-                        <span class="text-base font-extrabold text-slate-900 tracking-tight">SmartCrowd</span>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="text-base font-extrabold text-slate-900 tracking-tight">SmartCrowd</span>
+                            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200">VMS</span>
+                        </div>
                         <div class="flex items-center space-x-1.5 mt-0.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span class="text-[10px] text-slate-500 font-semibold tracking-wide uppercase">Hệ Thống Trực Tuyến</span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="text-[10px] text-slate-500 font-semibold tracking-wide">YOLOv11 &bull; ByteTrack</span>
                         </div>
                     </div>
                 </a>
@@ -120,61 +133,61 @@
             
             <!-- Navigation Links -->
             <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
-                <div class="px-3 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                <div class="px-3 pt-2 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Giám Sát &amp; Phân Tích
                 </div>
 
                 <a href="{{ url_for('main.dashboard') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.dashboard' %}active{% else %}text-slate-600{% endif %}">
+                   class="nav-link flex items-center px-3.5 py-2.5 text-xs font-medium {% if request.endpoint == 'main.dashboard' %}active{% else %}text-slate-600{% endif %}">
                     <i class="fas fa-chart-pie w-5 mr-2.5 text-sm {% if request.endpoint == 'main.dashboard' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
                     <span>Tổng Quan (Dashboard)</span>
                 </a>
 
                 <a href="{{ url_for('detection.camera') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'detection.camera' %}active{% else %}text-slate-600{% endif %}">
+                   class="nav-link flex items-center px-3.5 py-2.5 text-xs font-medium {% if request.endpoint == 'detection.camera' %}active{% else %}text-slate-600{% endif %}">
                     <i class="fas fa-camera w-5 mr-2.5 text-sm {% if request.endpoint == 'detection.camera' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
                     <span>Camera Giám Sát Trực Tiếp</span>
                 </a>
 
                 <a href="{{ url_for('detection.video') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'detection.video' %}active{% else %}text-slate-600{% endif %}">
+                   class="nav-link flex items-center px-3.5 py-2.5 text-xs font-medium {% if request.endpoint == 'detection.video' %}active{% else %}text-slate-600{% endif %}">
                     <i class="fas fa-film w-5 mr-2.5 text-sm {% if request.endpoint == 'detection.video' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
                     <span>Phân Tích Video CCTV</span>
                 </a>
 
                 <a href="{{ url_for('detection.upload') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'detection.upload' %}active{% else %}text-slate-600{% endif %}">
+                   class="nav-link flex items-center px-3.5 py-2.5 text-xs font-medium {% if request.endpoint == 'detection.upload' %}active{% else %}text-slate-600{% endif %}">
                     <i class="fas fa-image w-5 mr-2.5 text-sm {% if request.endpoint == 'detection.upload' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
                     <span>Nhận Diện Ảnh Đám Đông</span>
                 </a>
 
-                <div class="pt-4 px-3 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                <div class="pt-4 px-3 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Dữ Liệu &amp; Quản Trị
                 </div>
 
                 <a href="{{ url_for('main.history') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.history' %}active{% else %}text-slate-600{% endif %}">
+                   class="nav-link flex items-center px-3.5 py-2.5 text-xs font-medium {% if request.endpoint == 'main.history' %}active{% else %}text-slate-600{% endif %}">
                     <i class="fas fa-clock-rotate-left w-5 mr-2.5 text-sm {% if request.endpoint == 'main.history' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
                     <span>Nhật Ký Lưu Lượng</span>
                 </a>
 
                 {% if current_user.is_admin() %}
                 <a href="{{ url_for('main.activity') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.activity' %}active{% else %}text-slate-600{% endif %}">
+                   class="nav-link flex items-center px-3.5 py-2.5 text-xs font-medium {% if request.endpoint == 'main.activity' %}active{% else %}text-slate-600{% endif %}">
                     <i class="fas fa-shield-halved w-5 mr-2.5 text-sm {% if request.endpoint == 'main.activity' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
                     <span>Nhật Ký Hệ Thống (Audit)</span>
                 </a>
                 {% endif %}
 
                 <a href="{{ url_for('main.settings') }}"
-                   class="nav-link flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium {% if request.endpoint == 'main.settings' %}active{% else %}text-slate-600{% endif %}">
+                   class="nav-link flex items-center px-3.5 py-2.5 text-xs font-medium {% if request.endpoint == 'main.settings' %}active{% else %}text-slate-600{% endif %}">
                     <i class="fas fa-sliders w-5 mr-2.5 text-sm {% if request.endpoint == 'main.settings' %}text-blue-600{% else %}text-slate-400{% endif %}"></i>
                     <span>Cấu Hình Hệ Thống</span>
                 </a>
 
                 <div class="pt-3">
                     <a href="{{ url_for('auth.logout') }}"
-                       class="flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition">
+                       class="flex items-center px-3.5 py-2.5 rounded-lg text-xs font-medium text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition">
                         <i class="fas fa-arrow-right-from-bracket w-5 mr-2.5 text-sm text-slate-400"></i>
                         <span>Đăng Xuất</span>
                     </a>
@@ -182,10 +195,10 @@
             </nav>
             
             <!-- User Profile Summary in Footer -->
-            <div class="p-3.5 border-t border-slate-200 bg-slate-50/80">
+            <div class="p-3.5 border-t border-slate-200 bg-slate-50/70">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2.5 min-w-0">
-                        <div class="w-8 h-8 rounded-lg bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 text-xs font-bold shrink-0">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-xs shrink-0">
                             {{ current_user.username[:1].upper() if current_user and current_user.username else 'U' }}
                         </div>
                         <div class="min-w-0">
@@ -203,30 +216,42 @@
         <!-- Main Content Area (Soft Off-White/Cool-Slate Canvas, Gentle on the Eyes) -->
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f1f5f9]">
             <!-- Top App Bar -->
-            <header class="bg-white border-b border-slate-200 px-6 py-3.5 z-10 shrink-0">
+            <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/90 px-6 py-3 z-10 shrink-0">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
-                        <button id="mobileMenuBtn" class="mobile-menu text-slate-500 hover:text-slate-800 p-1 rounded-lg">
-                            <i class="fas fa-bars text-lg"></i>
+                        <button id="mobileMenuBtn" class="mobile-menu text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100">
+                            <i class="fas fa-bars text-base"></i>
                         </button>
                         <div class="flex items-center space-x-2 text-xs">
-                            <span class="text-slate-400">Hệ Thống Giám Sát</span>
-                            <span class="text-slate-300">/</span>
+                            <span class="text-slate-400 hidden sm:inline">Hệ Thống Giám Sát CCTV</span>
+                            <span class="text-slate-300 hidden sm:inline">/</span>
                             <span class="text-slate-800 font-semibold">{% block header_title %}Bảng Điều Khiển{% endblock %}</span>
                         </div>
                     </div>
 
                     <div class="flex items-center space-x-3">
+                        <!-- Live Clock -->
+                        <div class="hidden lg:flex items-center space-x-1.5 text-[11px] text-slate-600 font-mono bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200/80">
+                            <i class="fas fa-clock text-slate-400 text-[10px]"></i>
+                            <span id="headerLiveClock">--:--:--</span>
+                        </div>
+
+                        <!-- RTSP Live Stream Status -->
+                        <div class="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-[11px] font-semibold text-emerald-700 border border-emerald-200/70">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>RTSP VMS: Active</span>
+                        </div>
+
                         <!-- Model Specs Tag -->
-                        <div class="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[11px] mono-font text-slate-600">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                        <div class="hidden md:flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200/70 text-[11px] mono-font text-blue-700 font-medium">
+                            <i class="fas fa-microchip text-[10px]"></i>
                             <span>YOLOv11m &bull; ByteTrack</span>
                         </div>
 
                         <!-- Fullscreen New Tab Link -->
                         <a href="https://minhunhooo-smartcrowd-visionai.hf.space" target="_blank"
-                           class="hidden md:inline-flex items-center space-x-1.5 text-xs text-slate-500 hover:text-blue-600 transition px-2.5 py-1 rounded-lg hover:bg-slate-100">
-                            <i class="fas fa-arrow-up-right-from-square text-[11px]"></i>
+                           class="inline-flex items-center space-x-1.5 text-xs text-slate-600 hover:text-blue-600 transition px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 shadow-xs">
+                            <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
                             <span>Fullscreen</span>
                         </a>
                     </div>
@@ -272,6 +297,18 @@
                 }
             });
         }
+
+        // Live Header Clock
+        function updateHeaderClock() {
+            const clockEl = document.getElementById('headerLiveClock');
+            if (clockEl) {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('vi-VN', { hour12: false });
+                clockEl.textContent = timeStr;
+            }
+        }
+        setInterval(updateHeaderClock, 1000);
+        updateHeaderClock();
     </script>
     
     {% block scripts %}{% endblock %}
